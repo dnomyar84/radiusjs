@@ -60,14 +60,31 @@ export function mountAll(root = document) {
     const source = node.textContent;
     const host = document.createElement('div');
     host.className = 'radius-mount';
+  // Dataset truncates poorly for huge fences — keep a JS copy too
+  host._radiusSource = source;
+  try {
+    host.dataset.radiusSource = source;
+  } catch {
+    /* ignore dataset size limits */
+  }
     node.replaceWith(host);
     try {
-      out.push(render(host, source));
+      const result = render(host, source);
+      out.push(result);
+      fillNearbySnippet(host, source);
     } catch {
-      /* error painted inside host */
+      fillNearbySnippet(host, source);
     }
   });
   return out;
+}
+
+/** Fill a sibling "What the AI writes" panel if present. */
+function fillNearbySnippet(host, source) {
+  if (typeof document === 'undefined') return;
+  const scope = host.parentElement || document;
+  const panel = scope.querySelector('details.snippet pre, .radius-snippet pre, [data-radius-snippet]');
+  if (panel && source) panel.textContent = source.trim();
 }
 
 function autoMount() {

@@ -77,7 +77,7 @@ Use **one** theme for the diagram. Prefer `paper` for Azure HCI → Nutanix migr
 
 ### `neon` — isometric neon tech (AI-infographic look)
 
-Dark void, cyan / amber / violet glow, converging circuitry into a 2.5D chip (`ground: chip` by default), neon edges, `look: perspective` by default. Same aesthetic people mean by cyber-neon / isometric HUD / synthwave circuit.
+Dark void, cyan / amber / violet glow, converging circuitry into a 2.5D chip (`ground: chip` by default). Board/ground stays **axis-aligned**; nodes/groups get isometric tilt when `look: perspective` (neon default). Neon edges. Same aesthetic people mean by cyber-neon / isometric HUD / synthwave circuit.
 
 ```
 theme: neon

@@ -33,21 +33,8 @@ edges:
 </pre>
   <details class="snippet" open>
     <summary>What the AI writes</summary>
-    <pre tabindex="0">theme: neon
-template: hub
-frame: slide
-title: Inference fabric
-nodes:
-  model[Foundation model]{kind:ctr.container}
-  api[API gateway]{kind:it.step}
-  rag[RAG store]{kind:it.db}
-  edge[Edge apps]{kind:ctr.deployment}
-  obs[Observability]{kind:nkp.prometheus}
-edges:
-  api --> model
-  rag --> model
-  model --> edge
-  model --> obs</pre>
+    <pre tabindex="0" data-radius-snippet></pre>
   </details>
+  <script type="module" src="demo-snippet.js"></script>
 </body>
 </html>

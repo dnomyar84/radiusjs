@@ -129,11 +129,18 @@ export function bindInteract(root, spec, laid) {
   groups.forEach((g) => {
     const head = g.querySelector('.radius-group-head');
     if (!head) return;
-    head.style.cursor = 'pointer';
-    head.addEventListener('click', (e) => {
+    const onToggle = (e) => {
+      e.preventDefault();
       e.stopPropagation();
       toggleGroup(g.dataset.id);
+    };
+    head.addEventListener('click', onToggle);
+    head.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') onToggle(e);
     });
+    head.tabIndex = 0;
+    head.setAttribute('role', 'button');
+    head.setAttribute('aria-label', `Expand or collapse ${g.dataset.id}`);
   });
 
   function clearStoryClasses() {

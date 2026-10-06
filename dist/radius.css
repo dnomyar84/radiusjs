@@ -117,6 +117,7 @@
   position: absolute;
   inset: 0;
   z-index: 2;
+  pointer-events: none;
 }
 
 .radius-group {
@@ -126,8 +127,9 @@
   border-radius: 14px;
   background: color-mix(in srgb, var(--radius-card) 55%, transparent);
   box-sizing: border-box;
-  overflow: hidden;
+  overflow: visible;
   transition: height 320ms var(--radius-ease), box-shadow 220ms var(--radius-ease);
+  pointer-events: none; /* body must not steal node clicks */
 }
 
 .radius-group.is-expandable {
@@ -146,6 +148,10 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   user-select: none;
+  pointer-events: auto;
+  position: relative;
+  z-index: 5;
+  cursor: pointer;
 }
 
 .radius-fold-btn {
@@ -201,6 +207,7 @@
   border-radius: 12px;
   cursor: default;
   transform-origin: center bottom;
+  pointer-events: auto;
   transition:
     box-shadow 220ms var(--radius-ease),
     transform 220ms var(--radius-ease),
@@ -389,13 +396,18 @@
   backdrop-filter: blur(2px);
 }
 
-.radius-root[data-theme="neon"].look-perspective .radius-board {
-  transform: perspective(1200px) rotateX(8deg) rotateZ(-2deg);
-  transform-origin: center 60%;
+/* Isometric tilt is on nodes/groups only — board/ground stays axis-aligned */
+.radius-root[data-theme="neon"].look-perspective .radius-node.is-shown {
+  transform: perspective(900px) rotateX(8deg) rotateY(-6deg) skewX(-4deg);
 }
 
-.radius-root[data-theme="neon"].look-perspective .radius-node.is-shown {
-  transform: perspective(900px) rotateX(6deg) skewX(-2deg);
+.radius-root[data-theme="neon"].look-perspective .radius-node.will-appear {
+  transform: perspective(900px) rotateX(8deg) rotateY(-6deg) skewX(-4deg) translateY(var(--radius-rise));
+}
+
+.radius-root[data-theme="neon"].look-perspective .radius-group {
+  transform: perspective(900px) rotateX(4deg) rotateY(-3deg);
+  transform-origin: center bottom;
 }
 
 .radius-root[data-theme="neon"] .radius-node.is-hot,
@@ -405,6 +417,11 @@
     0 0 0 2px color-mix(in srgb, var(--radius-glow-2) 70%, transparent),
     0 0 28px color-mix(in srgb, var(--radius-accent) 55%, transparent),
     0 0 40px color-mix(in srgb, var(--radius-glow-3) 35%, transparent);
+}
+
+.radius-root[data-theme="neon"].look-perspective .radius-node.is-hot,
+.radius-root[data-theme="neon"].look-perspective .radius-node.is-focus {
+  transform: perspective(900px) rotateX(8deg) rotateY(-6deg) skewX(-4deg) scale(var(--radius-hot-scale));
 }
 
 .radius-root[data-theme="neon"] .radius-group {
@@ -431,8 +448,5 @@
     transition: none !important;
     transform: none !important;
     opacity: 1 !important;
-  }
-  .radius-root[data-theme="neon"].look-perspective .radius-board {
-    transform: none;
   }
 }
