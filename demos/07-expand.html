@@ -4,15 +4,15 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="radius-learn" content="RADIUS.md" />
-  <title>07 Expand / collapse — Radius</title>
+  <title>07 Expand / nest — Radius</title>
   <link rel="stylesheet" href="demo.css" />
   <script type="module" src="../dist/radius.js"></script>
 </head>
 <body>
   <header class="demo-bar">
     <a href="index.html">← Demos</a>
-    <strong>07 · Expand / collapse</strong>
-    <em>Click headers · or → for story expand</em>
+    <strong>07 · Expand / nested collapse</strong>
+    <em>Click headers · → story drills nested groups</em>
   </header>
   <pre class="radius">
 theme: paper
@@ -20,26 +20,52 @@ template: cloud
 frame: system
 ground: circuit
 look: elevated
-title: Migration drill-down
+title: Nested migration drill-down
 groups:
-  src[Azure HCI estate]{family:azure members:hci arc vms collapsed:true}
-  dst[Nutanix landing]{family:nutanix members:nci ahv nkp collapsed:true}
+  src[Azure HCI estate]{family:azure members:hci arc collapsed:true}
+  srcCompute[Compute]{family:azure parent:src members:vms aks collapsed:true}
+  srcData[Data & identity]{family:azure parent:src members:stor vault collapsed:true}
+  dst[Nutanix landing zone]{family:nutanix members:prism nci collapsed:true}
+  dstAhv[AHV & storage]{family:nutanix parent:dst members:ahv files objs collapsed:true}
+  dstNkp[NKP]{family:nkp parent:dst members:mgt wk flux collapsed:true}
+  apps[Container apps]{family:ctr parent:dstNkp members:deploy svc ing collapsed:true}
 nodes:
   hci[Azure Stack HCI]{kind:azure.hci}
   arc[Azure Arc]{kind:azure.arc}
   vms[Guest VMs]{kind:azure.vm}
+  aks[AKS hybrid]{kind:azure.aks}
+  stor[Azure Storage]{kind:azure.storage}
+  vault[Key Vault]{kind:azure.keyvault}
+  prism[Prism Central]{kind:nutanix.prismcentral}
   nci[NCI]{kind:nutanix.nci}
   ahv[AHV]{kind:nutanix.ahv}
-  nkp[NKP]{kind:nkp.management}
+  files[Files]{kind:nutanix.files}
+  objs[Objects]{kind:nutanix.objects}
+  mgt[NKP management]{kind:nkp.management}
+  wk[Managed workload]{kind:nkp.managed}
+  flux[Flux]{kind:nkp.flux}
+  deploy[Deployments]{kind:ctr.deployment}
+  svc[Services]{kind:ctr.service}
+  ing[Ingress]{kind:ctr.ingress}
 edges:
-  hci --> nci: migrate
+  hci --> nci
   vms --> ahv
-  arc --> nkp
+  aks --> wk
+  stor --> objs
+  vault --> prism
+  arc --> mgt
+  mgt --> wk
+  flux --> deploy
+  deploy --> svc
+  svc --> ing
 story:
   expand src
-  focus hci vms
+  expand srcCompute
+  focus vms aks
   expand dst
-  focus nci nkp
+  expand dstNkp
+  expand apps
+  focus deploy ing
   collapse src
 </pre>
   <details class="snippet" open>

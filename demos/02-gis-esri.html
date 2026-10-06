@@ -11,29 +11,47 @@
 <body>
   <header class="demo-bar">
     <a href="index.html">← Demos</a>
-    <strong>02 · GIS / Esri</strong>
+    <strong>02 · GIS / Esri poster</strong>
+    <em>Nested apps · data · services</em>
   </header>
   <pre class="radius">
 theme: esri
 template: gis
 frame: system
 ground: hex
-title: ArcGIS stack
+look: elevated
+title: ArcGIS enterprise pattern
 groups:
-  apps[Apps]{family:esri members:portal agol}
-  data[Data]{family:esri members:gdb fc}
+  apps[Experience apps]{family:esri members:portal agol exp}
+  maps[Mapping]{family:esri parent:apps members:webmap scene}
+  data[Data tier]{family:esri members:gdb fc ds}
+  services[Services]{family:esri members:server notebook}
 nodes:
-  portal[Portal]{kind:esri.portal group:apps}
-  agol[ArcGIS Online]{kind:esri.agol group:apps}
-  gdb[File GDB]{kind:esri.gdb group:data}
-  fc[Feature class]{kind:esri.feature group:data}
+  portal[Portal]{kind:esri.portal}
+  agol[ArcGIS Online]{kind:esri.agol}
+  exp[Experience Builder]{kind:esri.experience}
+  webmap[Web Map]{kind:esri.map}
+  scene[3D Scene]{kind:esri.scene}
+  gdb[File GDB]{kind:esri.gdb}
+  fc[Feature class]{kind:esri.feature}
+  ds[Data Store]{kind:esri.datastore}
+  server[ArcGIS Server]{kind:esri.server}
+  notebook[Notebooks]{kind:esri.notebook}
 edges:
-  portal --> gdb
-  agol --> fc
+  portal --> webmap
+  portal --> scene
+  agol --> exp
+  webmap --> fc
+  scene --> fc
+  gdb --> fc
+  fc --> ds
+  server --> gdb
+  notebook --> server
+  exp --> portal
 </pre>
   <details class="snippet" open>
     <summary>What the AI writes</summary>
-    <pre tabindex="0"></pre>
+    <pre tabindex="0" data-radius-snippet></pre>
   </details>
   <script type="module" src="demo-snippet.js"></script>
 </body>

@@ -57,7 +57,7 @@ export function paint(host, spec, laid) {
       const chev = g.expandable
         ? `<button type="button" class="radius-fold-btn" aria-expanded="${g.collapsed ? 'false' : 'true'}" title="Expand or collapse">${g.collapsed ? '▸' : '▾'}</button>`
         : '';
-      return `<div class="radius-group${g.collapsed ? ' is-collapsed' : ' is-expanded'}${g.expandable ? ' is-expandable' : ''}" data-id="${esc(id)}" data-family="${esc(g.family || '')}" data-collapsed="${collapsed}" data-expandable="${g.expandable ? 'true' : 'false'}" data-members="${esc((g.members || []).join(','))}" style="left:${g.x}px;top:${g.y}px;width:${g.w}px;height:${h}px;${border}">
+      return `<div class="radius-group${g.collapsed ? ' is-collapsed' : ' is-expanded'}${g.expandable ? ' is-expandable' : ''}" data-id="${esc(id)}" data-family="${esc(g.family || '')}" data-parent="${esc(g.parent || '')}" data-depth="${g.depth || 0}" data-collapsed="${collapsed}" data-expandable="${g.expandable ? 'true' : 'false'}" data-members="${esc((g.members || []).join(','))}" data-children="${esc((g.childIds || []).join(','))}" style="left:${g.x}px;top:${g.y}px;width:${g.w}px;height:${h}px;${border}">
         <div class="radius-group-head" style="${head}">
           ${chev}
           <span class="radius-group-title">${esc(g.label || id)}</span>

@@ -12,6 +12,7 @@
   <header class="demo-bar">
     <a href="index.html">← Demos</a>
     <strong>01 · Deck slide</strong>
+    <em>Appear stagger · elevated cards · wash ground</em>
   </header>
   <pre class="radius">
 theme: paper
@@ -20,16 +21,24 @@ frame: slide
 look: elevated
 motion: tasteful
 ground: wash
-title: Radius
+title: Radius for agentic architecture
 nodes:
-  vision[Agent-native specs]
-  layout[Layout that packs]
-  paint[Tasteful surfaces]
-  story[Story on arrows]
+  contract[RADIUS.md contract]{kind:it.step}
+  fence[Emit ```radius fence]{kind:it.api}
+  layout[Pack + route layout]{kind:it.step}
+  paint[Themes · grounds · 2.5D]{kind:it.step}
+  story[Story · expand · hover]{kind:it.queue}
+  pin[Pin CDN @x.y.z]{kind:it.cache}
+edges:
+  contract --> fence
+  fence --> layout
+  layout --> paint
+  paint --> story
+  story --> pin
 </pre>
   <details class="snippet" open>
     <summary>What the AI writes</summary>
-    <pre tabindex="0"></pre>
+    <pre tabindex="0" data-radius-snippet></pre>
   </details>
   <script type="module" src="demo-snippet.js"></script>
 </body>

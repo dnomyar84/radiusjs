@@ -31,10 +31,24 @@
   box-shadow: 0 1px 0 color-mix(in srgb, var(--radius-line) 80%, transparent);
 }
 
+.radius-group.is-folded-group {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none !important;
+}
+
+.radius-group[data-depth="1"] {
+  background: color-mix(in srgb, var(--radius-card) 72%, transparent);
+}
+
+.radius-group[data-depth="2"] {
+  background: color-mix(in srgb, var(--radius-card) 88%, transparent);
+}
+
 .frame-system .radius-board {
   aspect-ratio: auto;
-  min-height: 480px;
-  height: var(--radius-board-h, 540px);
+  min-height: 640px;
+  height: var(--radius-board-h, 720px);
 }
 
 .radius-ground {

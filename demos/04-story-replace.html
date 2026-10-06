@@ -12,7 +12,7 @@
   <header class="demo-bar">
     <a href="index.html">← Demos</a>
     <strong>04 · Story replace</strong>
-    <em>Focus the board, then press →</em>
+    <em>Focus the board, press → through the cutover narrative</em>
   </header>
   <pre class="radius">
 theme: night
@@ -20,22 +20,30 @@ template: process
 frame: slide
 motion: tasteful
 ground: vignette
-title: Cutover story
+look: elevated
+title: Cutover narrative
 nodes:
-  early[Early: discover]
-  mid[Mid: land]
-  end[End: cutover]
+  discover[1 · Discover estate]{kind:it.step}
+  land[2 · Land on NCI]{kind:nutanix.nci}
+  replatform[3 · Replatform apps]{kind:nkp.managed}
+  data[4 · Move data]{kind:nutanix.objects}
+  cutover[5 · Cutover & retire HCI]{kind:azure.hci}
 edges:
-  early --> mid
-  mid --> end
+  discover --> land
+  land --> replatform
+  replatform --> data
+  data --> cutover
 story:
-  focus early
-  focus mid
-  replace early with end
+  focus discover
+  focus land
+  focus replatform data
+  replace cutover with land
+  focus cutover
+  replace discover with cutover
 </pre>
   <details class="snippet" open>
     <summary>What the AI writes</summary>
-    <pre tabindex="0"></pre>
+    <pre tabindex="0" data-radius-snippet></pre>
   </details>
   <script type="module" src="demo-snippet.js"></script>
 </body>

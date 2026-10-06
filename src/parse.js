@@ -218,6 +218,7 @@ export function parse(raw) {
         id: gm[1],
         label: gm[2] || gm[1],
         family: attrs.family || null,
+        parent: attrs.parent || null,
         members: (attrs.members || '').split(/[\s,]+/).filter(Boolean),
         collapsed: parseBool(attrs.collapsed, false) || parseBool(attrs.fold, false),
         expandable: parseBool(attrs.expandable, true),

@@ -50,13 +50,14 @@ a --> b: label
 
 ```
 groups:
-  src[On-prem Azure HCI]{family:azure members:hci arc collapsed:true}
-  dst[Nutanix]{family:nutanix members:nci nkp collapsed:true}
+  src[On-prem Azure HCI]{family:azure members:hci arc}
+  compute[Compute]{family:azure parent:src members:vms aks collapsed:true}
+  dst[Nutanix]{family:nutanix members:nci nkp}
 ```
 
-One board `theme` only. Group `family` tints header/border; kinds color chips.
+One board `theme` only. Group `family` tints header/border; kinds color chips. Nested groups use `parent:<groupId>`.
 
-**Expand / collapse (Eraser-like):** `collapsed:true` starts folded. Click the group header to expand — children **appear one-by-one** (same stagger as mount appear). Click again to collapse. Use for sequential or hierarchical teaching flows.
+**Expand / collapse (Eraser-like):** `collapsed:true` starts folded. Click the group header to expand — children **appear one-by-one** (same stagger as mount appear). Nested groups can fold independently. Use for sequential or hierarchical teaching flows.
 
 ### story
 

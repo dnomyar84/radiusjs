@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="radius-learn" content="RADIUS.md" />
-  <title>06 Neon isometric — Radius</title>
+  <title>06 Neon — Radius</title>
   <link rel="stylesheet" href="demo.css" />
   <script type="module" src="../dist/radius.js"></script>
 </head>
@@ -12,24 +12,55 @@
   <header class="demo-bar">
     <a href="index.html">← Demos</a>
     <strong>06 · Neon isometric tech</strong>
-    <em>AI-infographic / cyber-neon look</em>
+    <em>Axis-aligned ground · isometric nodes · multi-hop inference</em>
   </header>
   <pre class="radius">
 theme: neon
-template: hub
-frame: slide
+template: cloud
+frame: system
+ground: chip
+look: perspective
+motion: tasteful
 title: Inference fabric
+groups:
+  edge[Edge & channels]{family:ctr members:web mobile voice}
+  fabric[Model fabric]{family:it members:gateway orchestrator}
+  models[Model zoo]{family:ctr parent:fabric members:llm embed rerank vision collapsed:true}
+  memory[Memory & tools]{family:it members:rag vector cache tools}
+  ops[Runtime ops]{family:nkp members:obs guardrail eval}
 nodes:
-  model[Foundation model]{kind:ctr.container}
-  api[API gateway]{kind:it.step}
-  rag[RAG store]{kind:it.db}
-  edge[Edge apps]{kind:ctr.deployment}
-  obs[Observability]{kind:nkp.prometheus}
+  web[Web copilots]{kind:ctr.deployment}
+  mobile[Mobile SDK]{kind:ctr.container}
+  voice[Voice gateway]{kind:it.api}
+  gateway[API gateway]{kind:it.lb}
+  orchestrator[Agent orchestrator]{kind:it.queue}
+  llm[Foundation LLM]{kind:ctr.container}
+  embed[Embedding model]{kind:ctr.container}
+  rerank[Reranker]{kind:ctr.container}
+  vision[Vision model]{kind:ctr.container}
+  rag[RAG pipelines]{kind:it.db}
+  vector[Vector index]{kind:it.cache}
+  cache[KV cache]{kind:it.cache}
+  tools[Tool adapters]{kind:it.api}
+  obs[Tracing / metrics]{kind:nkp.prometheus}
+  guardrail[Guardrails]{kind:nkp.gatekeeper}
+  eval[Eval harness]{kind:it.step}
 edges:
-  api --> model
-  rag --> model
-  model --> edge
-  model --> obs
+  web --> gateway
+  mobile --> gateway
+  voice --> gateway
+  gateway --> orchestrator
+  orchestrator --> llm
+  orchestrator --> rag
+  rag --> vector
+  rag --> embed
+  llm --> rerank
+  orchestrator --> tools
+  orchestrator --> vision
+  llm --> cache
+  obs --> orchestrator
+  guardrail --> gateway
+  eval --> llm
 </pre>
   <details class="snippet" open>
     <summary>What the AI writes</summary>

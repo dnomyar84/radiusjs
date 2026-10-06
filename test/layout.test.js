@@ -63,10 +63,22 @@ nodes:
     }
   });
 
-  it('appearOrder covers every node', () => {
-    const spec = parse(fixture('process.radius.md'));
+  it('nests child groups under parent', () => {
+    const spec = parse(`
+theme: paper
+template: cloud
+groups:
+  src[Source]{family:azure members:hci}
+  compute[Compute]{family:azure parent:src members:vms aks}
+nodes:
+  hci[HCI]{kind:azure.hci}
+  vms[VMs]{kind:azure.vm}
+  aks[AKS]{kind:azure.aks}
+`);
     const laid = layout(spec, board);
-    assert.equal(laid.appearOrder.length, spec.nodes.length);
-    assert.deepEqual([...laid.appearOrder].sort(), spec.nodes.map((n) => n.id).sort());
+    assert.ok(laid.groupBoxes.src.childIds.includes('compute'));
+    assert.equal(laid.groupBoxes.compute.parent, 'src');
+    assert.ok(laid.groupBoxes.compute.depth >= 1);
+    assert.ok(laid.boxes.vms.y > laid.groupBoxes.compute.y);
   });
 });

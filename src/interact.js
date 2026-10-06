@@ -13,7 +13,7 @@ export function bindInteract(root, spec, laid) {
 
   const nodes = [...board.querySelectorAll('.radius-node')];
   const edges = [...board.querySelectorAll('.radius-edge')];
-  const groups = [...board.querySelectorAll('.radius-group.is-expandable')];
+  const groups = [...board.querySelectorAll('.radius-group[data-id]')];
   const byId = Object.fromEntries(nodes.map((el) => [el.dataset.id, el]));
   const groupById = Object.fromEntries(groups.map((el) => [el.dataset.id, el]));
 
@@ -45,6 +45,19 @@ export function bindInteract(root, spec, laid) {
     return (g.dataset.members || '').split(',').filter(Boolean);
   }
 
+  function childGroupIds(gid) {
+    const meta = laid.groupBoxes?.[gid];
+    return meta?.childIds || [];
+  }
+
+  function allDescendantNodeIds(gid) {
+    const out = [...memberIds(gid)];
+    childGroupIds(gid).forEach((cid) => {
+      out.push(...allDescendantNodeIds(cid));
+    });
+    return out;
+  }
+
   function syncEdges() {
     edges.forEach((edge) => {
       const from = byId[edge.dataset.from];
@@ -61,9 +74,21 @@ export function bindInteract(root, spec, laid) {
 
   function revealMembers(gid, { animate = true } = {}) {
     const ids = memberIds(gid);
+    // show nested group frames
+    childGroupIds(gid).forEach((cid) => {
+      const cg = groupById[cid];
+      if (!cg) return;
+      cg.classList.remove('is-folded-group');
+      // keep nested collapsed state until user expands
+      if (cg.dataset.collapsed !== 'true') revealMembers(cid, { animate });
+    });
     ids.forEach((id, i) => {
       const el = byId[id];
       if (!el) return;
+      // skip if lives in a still-collapsed child group
+      const home = el.dataset.group;
+      if (home && home !== gid && groupById[home]?.dataset.collapsed === 'true') return;
+      if (home && home !== gid && groupById[home]?.classList.contains('is-folded-group')) return;
       el.classList.remove('is-folded');
       if (!animate || motion === 'none') {
         el.classList.add('is-shown');
@@ -82,11 +107,17 @@ export function bindInteract(root, spec, laid) {
   }
 
   function hideMembers(gid) {
-    memberIds(gid).forEach((id) => {
+    allDescendantNodeIds(gid).forEach((id) => {
       const el = byId[id];
       if (!el) return;
       el.classList.add('is-folded');
       el.classList.remove('is-shown', 'will-appear', 'is-focus', 'is-hot');
+    });
+    childGroupIds(gid).forEach((cid) => {
+      const cg = groupById[cid];
+      if (!cg) return;
+      cg.classList.add('is-folded-group');
+      hideMembers(cid);
     });
     syncEdges();
   }
@@ -127,6 +158,7 @@ export function bindInteract(root, spec, laid) {
   });
 
   groups.forEach((g) => {
+    if (g.dataset.expandable === 'false') return;
     const head = g.querySelector('.radius-group-head');
     if (!head) return;
     const onToggle = (e) => {

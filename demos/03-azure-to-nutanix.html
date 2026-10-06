@@ -12,6 +12,7 @@
   <header class="demo-bar">
     <a href="index.html">← Demos</a>
     <strong>03 · Azure HCI → Nutanix</strong>
+    <em>Nested groups · family tints · migration edges</em>
   </header>
   <pre class="radius">
 theme: paper
@@ -19,25 +20,51 @@ template: cloud
 frame: system
 look: elevated
 ground: circuit
-title: Migrate Azure HCI to Nutanix
+title: Migrate Azure Stack HCI into Nutanix + NKP
 groups:
-  src[On-prem Azure HCI]{family:azure members:hci arc vms}
-  dst[Nutanix cloud]{family:nutanix members:nci ahv nkp}
+  src[On-prem Azure HCI]{family:azure members:hci arc vnet mon}
+  compute[Compute & guests]{family:azure parent:src members:vms aks collapsed:true}
+  identity[Ops & identity]{family:azure parent:src members:vault stor}
+  dst[Nutanix cloud]{family:nutanix members:prism nci}
+  ahvlayer[AHV fabric]{family:nutanix parent:dst members:ahv files objs flow collapsed:true}
+  platform[NKP platform]{family:nkp parent:dst members:nkpmgt wk1 wk2 flux prom collapsed:true}
 nodes:
   hci[Azure Stack HCI]{kind:azure.hci}
   arc[Azure Arc]{kind:azure.arc}
+  vnet[HCI virtual network]{kind:azure.vnet}
+  mon[Azure Monitor]{kind:azure.monitor}
   vms[Guest VMs]{kind:azure.vm}
-  nci[NCI / AHV]{kind:nutanix.nci}
-  ahv[AHV cluster]{kind:nutanix.ahv}
-  nkp[NKP management]{kind:nkp.management}
+  aks[AKS hybrid]{kind:azure.aks}
+  vault[Key Vault]{kind:azure.keyvault}
+  stor[Storage accounts]{kind:azure.storage}
+  prism[Prism Central]{kind:nutanix.prismcentral}
+  nci[NCI cluster]{kind:nutanix.nci}
+  ahv[AHV hosts]{kind:nutanix.ahv}
+  files[Files]{kind:nutanix.files}
+  objs[Objects]{kind:nutanix.objects}
+  flow[Flow networking]{kind:nutanix.flow}
+  nkpmgt[NKP management]{kind:nkp.management}
+  wk1[Workload cluster A]{kind:nkp.managed}
+  wk2[Workload cluster B]{kind:nkp.managed}
+  flux[Flux GitOps]{kind:nkp.flux}
+  prom[Prometheus]{kind:nkp.prometheus}
 edges:
-  hci --> nci: migrate
-  arc --> nkp
-  vms --> ahv
+  hci --> nci: rehost
+  vms --> ahv: P2V / move
+  aks --> wk1: replatform
+  arc --> nkpmgt
+  vnet --> flow
+  stor --> objs
+  vault --> prism
+  nkpmgt --> wk1
+  nkpmgt --> wk2
+  flux --> wk1
+  prom --> nkpmgt
+  mon --> prom: cutover metrics
 </pre>
   <details class="snippet" open>
     <summary>What the AI writes</summary>
-    <pre tabindex="0"></pre>
+    <pre tabindex="0" data-radius-snippet></pre>
   </details>
   <script type="module" src="demo-snippet.js"></script>
 </body>

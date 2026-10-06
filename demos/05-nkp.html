@@ -11,30 +11,57 @@
 <body>
   <header class="demo-bar">
     <a href="index.html">← Demos</a>
-    <strong>05 · NKP hub-spoke</strong>
+    <strong>05 · NKP fleet</strong>
+    <em>Hub-spoke + platform services + containers</em>
   </header>
   <pre class="radius">
 theme: nutanix
-template: nkp
+template: cloud
 frame: system
 ground: hex
 look: elevated
-title: NKP fleet
+title: NKP management plane & workloads
+groups:
+  mgt[Management cluster]{family:nkp members:mgmt konvoy kommander capi}
+  platform[Platform apps]{family:nkp parent:mgt members:flux dex prom grafana velero csi collapsed:true}
+  workloads[Workload clusters]{family:nkp members:wkprod wkdev attached}
+  apps[App layer]{family:ctr parent:workloads members:deploy svc ing helm reg collapsed:true}
 nodes:
-  mgt[Management]{kind:nkp.management}
-  wk1[Workload A]{kind:nkp.managed}
-  wk2[Workload B]{kind:nkp.managed}
-  att[Attached EKS]{kind:nkp.attached}
-  pod[Apps]{kind:ctr.deployment}
+  mgmt[NKP management]{kind:nkp.management}
+  konvoy[Konvoy]{kind:nkp.konvoy}
+  kommander[Kommander]{kind:nkp.kommander}
+  capi[Cluster API]{kind:nkp.capi}
+  flux[Flux CD]{kind:nkp.flux}
+  dex[Dex auth]{kind:nkp.dex}
+  prom[Prometheus]{kind:nkp.prometheus}
+  grafana[Grafana]{kind:nkp.grafana}
+  velero[Velero]{kind:nkp.velero}
+  csi[Nutanix CSI]{kind:nkp.csi}
+  wkprod[Prod managed]{kind:nkp.managed}
+  wkdev[Dev managed]{kind:nkp.managed}
+  attached[Attached EKS]{kind:nkp.attached}
+  deploy[Deployments]{kind:ctr.deployment}
+  svc[Services]{kind:ctr.service}
+  ing[Ingress]{kind:ctr.ingress}
+  helm[Helm releases]{kind:ctr.helm}
+  reg[Harbor registry]{kind:ctr.registry}
 edges:
-  mgt --> wk1
-  mgt --> wk2
-  mgt --> att
-  wk1 --> pod
+  mgmt --> konvoy
+  mgmt --> kommander
+  capi --> wkprod
+  capi --> wkdev
+  kommander --> attached
+  flux --> deploy
+  deploy --> svc
+  svc --> ing
+  helm --> deploy
+  reg --> deploy
+  csi --> wkprod
+  prom --> grafana
 </pre>
   <details class="snippet" open>
     <summary>What the AI writes</summary>
-    <pre tabindex="0"></pre>
+    <pre tabindex="0" data-radius-snippet></pre>
   </details>
   <script type="module" src="demo-snippet.js"></script>
 </body>

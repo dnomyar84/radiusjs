@@ -20,9 +20,12 @@ function ensureCSS() {
 }
 
 function boardSize(el, frame) {
-  const w = el.clientWidth || el.parentElement?.clientWidth || 960;
-  const h = frame === 'slide' ? Math.round((w * 9) / 16) : Math.max(480, Math.round(w * 0.62));
-  return { w: Math.max(640, w), h: Math.max(360, h) };
+  const w = el.clientWidth || el.parentElement?.clientWidth || 1100;
+  const h =
+    frame === 'slide'
+      ? Math.round((w * 9) / 16)
+      : Math.max(640, Math.round(w * 0.72));
+  return { w: Math.max(720, w), h: Math.max(420, h) };
 }
 
 /**

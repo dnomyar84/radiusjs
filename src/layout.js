@@ -137,80 +137,157 @@ function layoutFlow(spec, board) {
 }
 
 function layoutCloud(spec, board) {
-  // Group-aware: place groups as columns, nodes stacked inside
-  const groups = spec.groups?.length
-    ? spec.groups
-    : [{ id: '_default', label: '', members: spec.nodes.map((n) => n.id), family: null }];
-
-  const memberSet = new Set(groups.flatMap((g) => {
-    const explicit = g.members?.length
-      ? g.members
-      : spec.nodes.filter((n) => n.group === g.id).map((n) => n.id);
-    return explicit;
-  }));
-  const orphans = spec.nodes.filter((n) => !memberSet.has(n.id) && !n.group);
-  const layoutGroups = groups.map((g) => ({
+  const allGroups = (spec.groups || []).map((g) => ({
     ...g,
     members: (g.members?.length
       ? g.members
       : spec.nodes.filter((n) => n.group === g.id).map((n) => n.id)
     ).filter(Boolean),
+    children: [],
   }));
-  if (orphans.length) {
-    layoutGroups.push({ id: '_ungrouped', label: '', members: orphans.map((n) => n.id), family: null });
+
+  if (!allGroups.length) {
+    allGroups.push({
+      id: '_default',
+      label: '',
+      members: spec.nodes.map((n) => n.id),
+      family: null,
+      parent: null,
+      children: [],
+      collapsed: false,
+      expandable: false,
+    });
   }
 
+  const byId = Object.fromEntries(allGroups.map((g) => [g.id, g]));
+  const roots = [];
+  for (const g of allGroups) {
+    if (g.parent && byId[g.parent]) byId[g.parent].children.push(g);
+    else roots.push(g);
+  }
+
+  const memberSet = new Set(allGroups.flatMap((g) => g.members));
+  const orphans = spec.nodes.filter((n) => !memberSet.has(n.id) && !n.group);
+  if (orphans.length) {
+    roots.push({
+      id: '_ungrouped',
+      label: '',
+      members: orphans.map((n) => n.id),
+      family: null,
+      parent: null,
+      children: [],
+      collapsed: false,
+      expandable: false,
+    });
+  }
+
+  // Nodes claimed by nested groups should not also pack in the parent
   const boxes = {};
   const groupBoxes = {};
-  const cols = layoutGroups.length;
   const colGap = GAP;
-  const usable = board.w - PAD * 2 - colGap * Math.max(0, cols - 1);
-  const colW = usable / Math.max(cols, 1);
+  const usable = board.w - PAD * 2 - colGap * Math.max(0, roots.length - 1);
+  const colW = usable / Math.max(roots.length, 1);
+  const top = PAD + TITLE_H + 8;
+  const maxH = board.h - top - PAD;
 
-  layoutGroups.forEach((g, gi) => {
-    const nodes = g.members.map((id) => spec.nodes.find((n) => n.id === id)).filter(Boolean);
+  function packGroup(g, gx, gy, gw, depth, rankBase) {
+    const childMemberIds = new Set(g.children.flatMap((c) => c.members));
+    const nodes = g.members
+      .filter((id) => !childMemberIds.has(id))
+      .map((id) => spec.nodes.find((n) => n.id === id))
+      .filter(Boolean);
+
+    const nestPad = 12;
+    const header = 32;
+    const gap = nodes.length + g.children.length > 4 ? 12 : 18;
+
+    // Measure children first (recursive heights)
+    const childLayouts = [];
+    let childBlockH = 0;
+    g.children.forEach((child, ci) => {
+      const innerW = gw - nestPad * 2;
+      const est = estimateGroupHeight(child);
+      childLayouts.push({ child, h: est, ci });
+      childBlockH += est + (ci ? gap : 0);
+    });
+
     const sizes = nodes.map(measureNode);
-    const gap = nodes.length > 3 ? 16 : GAP;
-    const innerH = sizes.reduce((s, x) => s + x.h, 0) + gap * Math.max(0, nodes.length - 1);
-    const gw = colW;
-    const top = PAD + TITLE_H + 8;
-    const maxH = board.h - top - PAD;
-    const gh = Math.min(Math.max(innerH + GROUP_PAD * 2 + 28, 120), maxH);
-    const gx = PAD + gi * (colW + colGap);
-    const gy = top;
-    // If content taller than max, scale vertical spacing into the box
-    const availInner = Math.max(40, gh - GROUP_PAD * 2 - 28);
-    const rawInner = Math.max(1, innerH);
-    const scale = Math.min(1, availInner / rawInner);
+    const nodesH = sizes.reduce((s, x) => s + x.h, 0) + gap * Math.max(0, nodes.length - 1);
+    const rawInner = header + (nodes.length ? nodesH + 8 : 0) + (g.children.length ? childBlockH + 8 : 0);
+    const gh = Math.max(48, rawInner + nestPad);
+    const hCollapsed = 48;
 
     groupBoxes[g.id] = {
       x: gx,
       y: gy,
       w: gw,
-      h: gh,
-      hCollapsed: 48,
-      hExpanded: gh,
+      h: Math.min(gh, maxH - (gy - top)),
+      hCollapsed,
+      hExpanded: Math.min(gh, maxH - (gy - top)),
       label: g.label,
       family: g.family,
-      members: nodes.map((n) => n.id),
+      parent: g.parent || null,
+      depth,
+      members: g.members.slice(),
+      childIds: g.children.map((c) => c.id),
       collapsed: !!g.collapsed,
-      expandable: g.expandable !== false,
+      expandable: g.expandable !== false && (g.members.length > 0 || g.children.length > 0),
     };
 
-    let y = gy + GROUP_PAD + 28;
+    const box = groupBoxes[g.id];
+    const scale = Math.min(1, (box.hExpanded - header - nestPad) / Math.max(1, rawInner - header));
+
+    let y = gy + header;
     nodes.forEach((node, i) => {
       const { w, h } = sizes[i];
-      const nh = h * scale;
+      const nh = Math.max(40, h * scale);
+      const nw = Math.min(w, gw - nestPad * 2);
       boxes[node.id] = {
-        x: gx + (gw - w) / 2,
+        x: gx + (gw - nw) / 2,
         y,
-        w,
-        h: Math.max(44, nh),
-        rank: gi * 10 + i,
+        w: nw,
+        h: nh,
+        rank: rankBase + i,
         group: g.id,
       };
-      y += Math.max(44, nh) + gap * scale;
+      y += nh + gap * scale;
     });
+
+    g.children.forEach((child, ci) => {
+      const ch = childLayouts[ci].h * scale;
+      packGroup(child, gx + nestPad, y, gw - nestPad * 2, depth + 1, rankBase + 100 * (ci + 1));
+      // fix height after pack
+      if (groupBoxes[child.id]) {
+        groupBoxes[child.id].hExpanded = Math.max(groupBoxes[child.id].hExpanded, 48);
+        y += groupBoxes[child.id].hExpanded + gap * scale;
+      } else {
+        y += ch + gap * scale;
+      }
+    });
+
+    // Recompute expanded height from content
+    const contentBottom = y + nestPad / 2;
+    box.hExpanded = Math.max(hCollapsed, contentBottom - gy);
+    if (!box.collapsed) box.h = box.hExpanded;
+    else box.h = hCollapsed;
+    return box.hExpanded;
+  }
+
+  function estimateGroupHeight(g) {
+    const childMemberIds = new Set(g.children.flatMap((c) => c.members));
+    const nodes = g.members
+      .filter((id) => !childMemberIds.has(id))
+      .map((id) => spec.nodes.find((n) => n.id === id))
+      .filter(Boolean);
+    const gap = 14;
+    const nodesH = nodes.reduce((s, n) => s + measureNode(n).h + gap, 0);
+    const kids = g.children.reduce((s, c) => s + estimateGroupHeight(c) + gap, 0);
+    return 40 + nodesH + kids + 16;
+  }
+
+  roots.forEach((g, gi) => {
+    const gx = PAD + gi * (colW + colGap);
+    packGroup(g, gx, top, colW, 0, gi * 1000);
   });
 
   return { boxes, groupBoxes };
