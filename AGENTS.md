@@ -1,0 +1,10 @@
+# Agents
+
+1. Read [RADIUS.md](RADIUS.md) at the same version as the script.
+2. Emit ` ```radius ` (or JSON). No x/y, no raw CSS.
+3. Pin script URL — never `@latest`.
+4. On error, repair using `{ path, fix, see }`.
+
+Visual taste gate: [VISUAL.md](VISUAL.md). Dev loop: [TEST.md](TEST.md).
+
+Local (now): open demos via `serve.ps1` (static HTTP). Node test suite: later.

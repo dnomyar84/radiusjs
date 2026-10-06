@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Radius demos</title>
+  <style>
+    :root { color-scheme: light; --ink:#1c1917; --muted:#78716c; --bg:#f7f4ef; --card:#fffcf7; --line:#e7e5e4; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", ui-sans-serif, system-ui, sans-serif; background:
+      radial-gradient(90% 60% at 0% 0%, #e8d5a8 0%, transparent 50%),
+      var(--bg); color: var(--ink); }
+    main { max-width: 880px; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
+    h1 { font-size: 2rem; letter-spacing: -0.03em; margin: 0 0 0.35rem; }
+    .brand { font-weight: 700; }
+    p { color: var(--muted); line-height: 1.5; max-width: 40rem; }
+    ul { list-style: none; padding: 0; margin: 2rem 0 0; display: grid; gap: 0.75rem; }
+    a.card { display: block; padding: 1rem 1.15rem; background: var(--card); border: 1px solid var(--line);
+      border-radius: 12px; text-decoration: none; color: inherit; transition: transform 180ms ease, box-shadow 180ms ease; }
+    a.card:hover { transform: translateY(-2px); box-shadow: 0 12px 28px -18px rgba(28,25,23,.35); }
+    a.card strong { display: block; margin-bottom: 0.2rem; }
+    a.card span { color: var(--muted); font-size: 0.92rem; }
+    footer { margin-top: 2.5rem; font-size: 0.85rem; color: var(--muted); }
+    code { font-size: 0.9em; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1><span class="brand">Radius</span> demos</h1>
+    <p>Local MVP 0.1.0 — open a sample, hover nodes, use ← → when a story is present. Snippets show what an agent writes.</p>
+    <ul>
+      <li><a class="card" href="01-deck-slide.html"><strong>01 · Deck slide</strong><span>Keynote-like appear, paper theme</span></a></li>
+      <li><a class="card" href="02-gis-esri.html"><strong>02 · GIS / Esri</strong><span>Chips + hex ground</span></a></li>
+      <li><a class="card" href="03-azure-to-nutanix.html"><strong>03 · Azure HCI → Nutanix</strong><span>Neutral paper board, family groups</span></a></li>
+      <li><a class="card" href="04-story-replace.html"><strong>04 · Story replace</strong><span>Arrow keys: early → mid → end</span></a></li>
+      <li><a class="card" href="05-nkp.html"><strong>05 · NKP hub-spoke</strong><span>Management + workload clusters</span></a></li>
+      <li><a class="card" href="06-neon.html"><strong>06 · Neon isometric</strong><span>Dark chip glow · cyber-neon AI-infographic</span></a></li>
+      <li><a class="card" href="07-expand.html"><strong>07 · Expand / collapse</strong><span>Eraser-like fold · children pop in sequence</span></a></li>
+    </ul>
+    <footer>Schema: <code>RADIUS.md</code> · Serve with <code>.\serve.ps1</code></footer>
+  </main>
+</body>
+</html>

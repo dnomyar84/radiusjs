@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="radius-learn" content="RADIUS.md" />
+  <title>02 GIS — Radius</title>
+  <link rel="stylesheet" href="demo.css" />
+  <script type="module" src="../dist/radius.js"></script>
+</head>
+<body>
+  <header class="demo-bar">
+    <a href="index.html">← Demos</a>
+    <strong>02 · GIS / Esri</strong>
+  </header>
+  <pre class="radius">
+theme: esri
+template: gis
+frame: system
+ground: hex
+title: ArcGIS stack
+groups:
+  apps[Apps]{family:esri members:portal agol}
+  data[Data]{family:esri members:gdb fc}
+nodes:
+  portal[Portal]{kind:esri.portal group:apps}
+  agol[ArcGIS Online]{kind:esri.agol group:apps}
+  gdb[File GDB]{kind:esri.gdb group:data}
+  fc[Feature class]{kind:esri.feature group:data}
+edges:
+  portal --> gdb
+  agol --> fc
+</pre>
+  <details class="snippet" open>
+    <summary>What the AI writes</summary>
+    <pre tabindex="0"></pre>
+  </details>
+  <script type="module" src="demo-snippet.js"></script>
+</body>
+</html>

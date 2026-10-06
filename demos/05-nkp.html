@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="radius-learn" content="RADIUS.md" />
+  <title>05 NKP — Radius</title>
+  <link rel="stylesheet" href="demo.css" />
+  <script type="module" src="../dist/radius.js"></script>
+</head>
+<body>
+  <header class="demo-bar">
+    <a href="index.html">← Demos</a>
+    <strong>05 · NKP hub-spoke</strong>
+  </header>
+  <pre class="radius">
+theme: nutanix
+template: nkp
+frame: system
+ground: hex
+look: elevated
+title: NKP fleet
+nodes:
+  mgt[Management]{kind:nkp.management}
+  wk1[Workload A]{kind:nkp.managed}
+  wk2[Workload B]{kind:nkp.managed}
+  att[Attached EKS]{kind:nkp.attached}
+  pod[Apps]{kind:ctr.deployment}
+edges:
+  mgt --> wk1
+  mgt --> wk2
+  mgt --> att
+  wk1 --> pod
+</pre>
+  <details class="snippet" open>
+    <summary>What the AI writes</summary>
+    <pre tabindex="0"></pre>
+  </details>
+  <script type="module" src="demo-snippet.js"></script>
+</body>
+</html>

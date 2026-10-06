@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="radius-learn" content="RADIUS.md" />
+  <title>07 Expand / collapse — Radius</title>
+  <link rel="stylesheet" href="demo.css" />
+  <script type="module" src="../dist/radius.js"></script>
+</head>
+<body>
+  <header class="demo-bar">
+    <a href="index.html">← Demos</a>
+    <strong>07 · Expand / collapse</strong>
+    <em>Click headers · or → for story expand</em>
+  </header>
+  <pre class="radius">
+theme: paper
+template: cloud
+frame: system
+ground: circuit
+look: elevated
+title: Migration drill-down
+groups:
+  src[Azure HCI estate]{family:azure members:hci arc vms collapsed:true}
+  dst[Nutanix landing]{family:nutanix members:nci ahv nkp collapsed:true}
+nodes:
+  hci[Azure Stack HCI]{kind:azure.hci}
+  arc[Azure Arc]{kind:azure.arc}
+  vms[Guest VMs]{kind:azure.vm}
+  nci[NCI]{kind:nutanix.nci}
+  ahv[AHV]{kind:nutanix.ahv}
+  nkp[NKP]{kind:nkp.management}
+edges:
+  hci --> nci: migrate
+  vms --> ahv
+  arc --> nkp
+story:
+  expand src
+  focus hci vms
+  expand dst
+  focus nci nkp
+  collapse src
+</pre>
+  <details class="snippet" open>
+    <summary>What the AI writes</summary>
+    <pre tabindex="0">theme: paper
+template: cloud
+groups:
+  src[Azure HCI estate]{family:azure members:hci arc vms collapsed:true}
+  dst[Nutanix landing]{family:nutanix members:nci ahv nkp collapsed:true}
+…
+story:
+  expand src
+  focus hci vms
+  expand dst
+  collapse src</pre>
+  </details>
+</body>
+</html>

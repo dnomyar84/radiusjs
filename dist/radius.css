@@ -1,0 +1,438 @@
+/* Radius v0.1 — HTML5 board styles */
+
+.radius-root,
+.radius-mount {
+  --radius-rise: 8px;
+  --radius-stagger: 80ms;
+  --radius-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --radius-hot-scale: 1.02;
+  display: block;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: var(--radius-ink, #1c1917);
+}
+
+.radius-root.font-modern,
+.radius-root.font-display {
+  font-family: "Segoe UI Variable", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+}
+
+.radius-board {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 720px;
+  background: var(--radius-surface, #f7f4ef);
+  border-radius: 12px;
+  overflow: hidden;
+  outline: none;
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--radius-line) 80%, transparent);
+}
+
+.frame-system .radius-board {
+  aspect-ratio: auto;
+  min-height: 480px;
+  height: var(--radius-board-h, 540px);
+}
+
+.radius-ground {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.radius-ground-wash {
+  background:
+    radial-gradient(120% 80% at 10% 0%, color-mix(in srgb, var(--radius-accent) 18%, transparent), transparent 55%),
+    linear-gradient(160deg, var(--radius-surface), var(--radius-surface-2));
+}
+
+.radius-ground-vignette {
+  background:
+    radial-gradient(ellipse at center, transparent 40%, color-mix(in srgb, var(--radius-ink) 18%, transparent) 100%),
+    var(--radius-surface);
+}
+
+.radius-ground-solid {
+  background: var(--radius-surface);
+}
+
+.radius-ground-matrix {
+  background:
+    linear-gradient(var(--radius-surface), var(--radius-surface-2));
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+  color: color-mix(in srgb, var(--radius-muted) 35%, transparent);
+  letter-spacing: 0.15em;
+  overflow: hidden;
+}
+
+.radius-ground-matrix::before {
+  content: "010011010110 101100101001 010110100110 101001011010 011010010110";
+  position: absolute;
+  inset: 8% 6%;
+  line-height: 1.7;
+  word-break: break-all;
+  opacity: 0.7;
+}
+
+.radius-ground-globe {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.radius-title {
+  position: absolute;
+  left: 40px;
+  top: 20px;
+  z-index: 3;
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--radius-ink);
+}
+
+.radius-edges {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.radius-edge {
+  stroke: var(--radius-muted);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.85;
+}
+
+.radius-nodes {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+.radius-group {
+  position: absolute;
+  z-index: 1;
+  border: 1.5px dashed var(--radius-line);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--radius-card) 55%, transparent);
+  box-sizing: border-box;
+  overflow: hidden;
+  transition: height 320ms var(--radius-ease), box-shadow 220ms var(--radius-ease);
+}
+
+.radius-group.is-expandable {
+  border-style: solid;
+}
+
+.radius-group-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 10px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+.radius-fold-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 0.85rem;
+  line-height: 1;
+  padding: 0 2px;
+  cursor: pointer;
+}
+
+.radius-group-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.radius-group-count {
+  opacity: 0.65;
+  font-variant-numeric: tabular-nums;
+}
+
+.radius-group.is-collapsed {
+  box-shadow: 0 6px 16px -12px var(--radius-shadow);
+}
+
+.radius-node.is-folded {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: scale(0.92) !important;
+  visibility: hidden;
+}
+
+.radius-edge.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.radius-node {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  box-sizing: border-box;
+  background: var(--radius-card);
+  color: var(--radius-ink);
+  border: 1px solid color-mix(in srgb, var(--radius-line) 90%, transparent);
+  border-radius: 12px;
+  cursor: default;
+  transform-origin: center bottom;
+  transition:
+    box-shadow 220ms var(--radius-ease),
+    transform 220ms var(--radius-ease),
+    opacity 280ms var(--radius-ease),
+    filter 280ms var(--radius-ease);
+}
+
+.look-elevated .radius-node {
+  box-shadow:
+    0 1px 0 color-mix(in srgb, #fff 40%, transparent) inset,
+    0 8px 20px -12px var(--radius-shadow);
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--radius-card) 92%, #fff),
+    var(--radius-card)
+  );
+}
+
+.look-perspective .radius-node {
+  transform: perspective(900px) rotateX(4deg);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, #fff 50%, transparent) inset,
+    0 14px 28px -14px var(--radius-shadow);
+}
+
+.radius-chip {
+  flex: 0 0 auto;
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 6px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.radius-label {
+  font-size: 0.88rem;
+  font-weight: 550;
+  line-height: 1.25;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+/* Appear */
+.radius-node.will-appear {
+  opacity: 0;
+  transform: translateY(var(--radius-rise));
+}
+
+.radius-node.is-shown {
+  opacity: 1;
+  transform: none;
+}
+
+.look-perspective .radius-node.will-appear {
+  transform: perspective(900px) rotateX(4deg) translateY(var(--radius-rise));
+}
+
+.look-perspective .radius-node.is-shown {
+  transform: perspective(900px) rotateX(4deg);
+}
+
+/* Hot / story */
+.radius-node.is-hot,
+.radius-node:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--radius-accent) 70%, transparent),
+    0 10px 24px -10px var(--radius-shadow);
+  transform: scale(var(--radius-hot-scale));
+  z-index: 5;
+}
+
+.look-perspective .radius-node.is-hot {
+  transform: perspective(900px) rotateX(4deg) scale(var(--radius-hot-scale));
+}
+
+.radius-node.is-focus {
+  box-shadow:
+    0 0 0 2px var(--radius-accent),
+    0 12px 28px -12px var(--radius-shadow);
+  z-index: 4;
+}
+
+.radius-node.is-dim {
+  opacity: 0.35;
+  filter: grayscale(0.2);
+}
+
+.radius-node.is-ghost {
+  opacity: 0.35;
+  filter: grayscale(0.5);
+  border-style: dashed;
+}
+
+.radius-node.is-solid {
+  opacity: 1;
+  filter: none;
+}
+
+.radius-story-hint {
+  position: absolute;
+  right: 16px;
+  bottom: 12px;
+  z-index: 6;
+  font-size: 0.72rem;
+  color: var(--radius-muted);
+  background: color-mix(in srgb, var(--radius-card) 80%, transparent);
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.radius-error-box {
+  margin: 0;
+  padding: 1rem 1.25rem;
+  background: #2a1215;
+  color: #fecaca;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+}
+
+/* —— neon / isometric cyber-tech (AI infographic) —— */
+.radius-root[data-theme="neon"] .radius-board {
+  background:
+    radial-gradient(50% 45% at 50% 48%, rgba(45, 226, 230, 0.16), transparent 55%),
+    radial-gradient(40% 40% at 42% 46%, rgba(184, 77, 255, 0.12), transparent 50%),
+    radial-gradient(40% 40% at 58% 52%, rgba(255, 122, 24, 0.1), transparent 50%),
+    var(--radius-surface);
+  border: 1px solid color-mix(in srgb, var(--radius-accent) 35%, transparent);
+  box-shadow:
+    0 0 40px -12px color-mix(in srgb, var(--radius-accent) 55%, transparent),
+    inset 0 0 60px rgba(0, 0, 0, 0.45);
+}
+
+.radius-ground-chip {
+  inset: 0;
+}
+
+.radius-chip-glow {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  width: 42%;
+  height: 42%;
+  transform: translate(-50%, -50%);
+  background:
+    radial-gradient(circle, color-mix(in srgb, var(--radius-accent) 35%, transparent), transparent 68%),
+    radial-gradient(circle at 30% 40%, color-mix(in srgb, var(--radius-glow-3) 28%, transparent), transparent 60%),
+    radial-gradient(circle at 70% 60%, color-mix(in srgb, var(--radius-glow-2) 25%, transparent), transparent 60%);
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+.radius-root[data-theme="neon"] .radius-title {
+  color: var(--radius-ink);
+  text-shadow:
+    0 0 12px color-mix(in srgb, var(--radius-accent) 50%, transparent),
+    0 0 24px color-mix(in srgb, var(--radius-glow-3) 30%, transparent);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.95rem;
+}
+
+.radius-root[data-theme="neon"] .radius-edge {
+  stroke: var(--radius-accent);
+  stroke-width: 1.8;
+  filter: drop-shadow(0 0 3px var(--radius-accent)) drop-shadow(0 0 6px var(--radius-glow-3));
+  opacity: 0.95;
+}
+
+.radius-root[data-theme="neon"] .radius-node {
+  background: linear-gradient(145deg, #161a36, #0a0d1c 55%, #12102a);
+  border: 1px solid color-mix(in srgb, var(--radius-accent) 55%, transparent);
+  color: var(--radius-ink);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--radius-glow-3) 25%, transparent) inset,
+    0 0 18px -4px color-mix(in srgb, var(--radius-accent) 45%, transparent),
+    0 12px 28px -14px rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(2px);
+}
+
+.radius-root[data-theme="neon"].look-perspective .radius-board {
+  transform: perspective(1200px) rotateX(8deg) rotateZ(-2deg);
+  transform-origin: center 60%;
+}
+
+.radius-root[data-theme="neon"].look-perspective .radius-node.is-shown {
+  transform: perspective(900px) rotateX(6deg) skewX(-2deg);
+}
+
+.radius-root[data-theme="neon"] .radius-node.is-hot,
+.radius-root[data-theme="neon"] .radius-node.is-focus {
+  border-color: var(--radius-glow-2);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--radius-glow-2) 70%, transparent),
+    0 0 28px color-mix(in srgb, var(--radius-accent) 55%, transparent),
+    0 0 40px color-mix(in srgb, var(--radius-glow-3) 35%, transparent);
+}
+
+.radius-root[data-theme="neon"] .radius-group {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--radius-accent) 40%, transparent);
+  background: color-mix(in srgb, #0a0d1c 70%, transparent);
+  box-shadow: inset 0 0 24px color-mix(in srgb, var(--radius-glow-3) 12%, transparent);
+}
+
+.radius-root[data-theme="neon"] .radius-chip {
+  box-shadow: 0 0 10px color-mix(in srgb, var(--radius-accent) 40%, transparent);
+}
+
+.radius-root[data-theme="neon"] .radius-story-hint {
+  background: rgba(10, 13, 28, 0.85);
+  border: 1px solid color-mix(in srgb, var(--radius-accent) 40%, transparent);
+  color: var(--radius-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .radius-node,
+  .radius-node.will-appear,
+  .radius-node.is-shown {
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+  .radius-root[data-theme="neon"].look-perspective .radius-board {
+    transform: none;
+  }
+}

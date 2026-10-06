@@ -1,0 +1,42 @@
+:root { color-scheme: light dark; }
+body {
+  margin: 0;
+  font-family: "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  background: #ece8e1;
+  color: #1c1917;
+}
+.demo-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  align-items: baseline;
+  padding: 0.85rem 1.25rem;
+  background: #fffcf7;
+  border-bottom: 1px solid #e7e5e4;
+}
+.demo-bar a { color: #78716c; text-decoration: none; }
+.demo-bar a:hover { color: #1c1917; }
+.demo-bar em { color: #78716c; font-size: 0.9rem; font-style: normal; }
+.radius-mount, .radius-root { margin: 1.25rem auto; padding: 0 1rem; }
+.snippet {
+  max-width: 1100px;
+  margin: 1rem auto 2.5rem;
+  padding: 0 1rem;
+}
+.snippet summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+body.demo-dark {
+  background: #07060f;
+  color: #e8f7ff;
+}
+body.demo-dark .demo-bar {
+  background: #101228;
+  border-bottom-color: #1c3a55;
+}
+body.demo-dark .demo-bar a { color: #8eb6d4; }
+body.demo-dark .demo-bar a:hover { color: #e8f7ff; }
+body.demo-dark .demo-bar em { color: #8eb6d4; }
+

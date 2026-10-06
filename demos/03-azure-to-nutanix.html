@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="radius-learn" content="RADIUS.md" />
+  <title>03 Azure HCI → Nutanix — Radius</title>
+  <link rel="stylesheet" href="demo.css" />
+  <script type="module" src="../dist/radius.js"></script>
+</head>
+<body>
+  <header class="demo-bar">
+    <a href="index.html">← Demos</a>
+    <strong>03 · Azure HCI → Nutanix</strong>
+  </header>
+  <pre class="radius">
+theme: paper
+template: cloud
+frame: system
+look: elevated
+ground: circuit
+title: Migrate Azure HCI to Nutanix
+groups:
+  src[On-prem Azure HCI]{family:azure members:hci arc vms}
+  dst[Nutanix cloud]{family:nutanix members:nci ahv nkp}
+nodes:
+  hci[Azure Stack HCI]{kind:azure.hci}
+  arc[Azure Arc]{kind:azure.arc}
+  vms[Guest VMs]{kind:azure.vm}
+  nci[NCI / AHV]{kind:nutanix.nci}
+  ahv[AHV cluster]{kind:nutanix.ahv}
+  nkp[NKP management]{kind:nkp.management}
+edges:
+  hci --> nci: migrate
+  arc --> nkp
+  vms --> ahv
+</pre>
+  <details class="snippet" open>
+    <summary>What the AI writes</summary>
+    <pre tabindex="0"></pre>
+  </details>
+  <script type="module" src="demo-snippet.js"></script>
+</body>
+</html>

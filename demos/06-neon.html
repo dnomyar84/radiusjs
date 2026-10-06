@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="radius-learn" content="RADIUS.md" />
+  <title>06 Neon isometric — Radius</title>
+  <link rel="stylesheet" href="demo.css" />
+  <script type="module" src="../dist/radius.js"></script>
+</head>
+<body class="demo-dark">
+  <header class="demo-bar">
+    <a href="index.html">← Demos</a>
+    <strong>06 · Neon isometric tech</strong>
+    <em>AI-infographic / cyber-neon look</em>
+  </header>
+  <pre class="radius">
+theme: neon
+template: hub
+frame: slide
+title: Inference fabric
+nodes:
+  model[Foundation model]{kind:ctr.container}
+  api[API gateway]{kind:it.step}
+  rag[RAG store]{kind:it.db}
+  edge[Edge apps]{kind:ctr.deployment}
+  obs[Observability]{kind:nkp.prometheus}
+edges:
+  api --> model
+  rag --> model
+  model --> edge
+  model --> obs
+</pre>
+  <details class="snippet" open>
+    <summary>What the AI writes</summary>
+    <pre tabindex="0">theme: neon
+template: hub
+frame: slide
+title: Inference fabric
+nodes:
+  model[Foundation model]{kind:ctr.container}
+  api[API gateway]{kind:it.step}
+  rag[RAG store]{kind:it.db}
+  edge[Edge apps]{kind:ctr.deployment}
+  obs[Observability]{kind:nkp.prometheus}
+edges:
+  api --> model
+  rag --> model
+  model --> edge
+  model --> obs</pre>
+  </details>
+</body>
+</html>

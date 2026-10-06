@@ -1,0 +1,12 @@
+{
+  "name": "radiusjs",
+  "version": "0.1.0",
+  "description": "Raymond's Agentic Diagramming Unified System (Radius)",
+  "type": "module",
+  "license": "MIT",
+  "private": true,
+  "exports": {
+    ".": "./src/radius.js",
+    "./css": "./dist/radius.css"
+  }
+}
