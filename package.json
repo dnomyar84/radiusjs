@@ -8,5 +8,14 @@
   "exports": {
     ".": "./src/radius.js",
     "./css": "./dist/radius.css"
+  },
+  "scripts": {
+    "test": "node --test test/parse.test.js test/layout.test.js test/kinds.test.js",
+    "test:parse": "node --test test/parse.test.js",
+    "test:layout": "node --test test/layout.test.js",
+    "serve": "powershell -NoProfile -ExecutionPolicy Bypass -File ./serve.ps1"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

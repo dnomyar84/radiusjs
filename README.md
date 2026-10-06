@@ -2,13 +2,16 @@
 
 **R**aymond's **A**gentic **D**iagramming **U**nified **S**ystem — AI-native diagrams (HTML5). Agents learn [RADIUS.md](RADIUS.md), emit ` ```radius `, you pin a versioned script.
 
-## Local preview (no Node)
+## Local preview
 
 ```powershell
+.\npm.cmd test
 .\serve.ps1
 ```
 
 Open [http://127.0.0.1:8765/demos/](http://127.0.0.1:8765/demos/).
+
+Portable Node lives under `.tools/` (gitignored). Use `.\node.cmd` / `.\npm.cmd` wrappers.
 
 ## Agent 30-second path
 

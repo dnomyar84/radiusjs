@@ -7,4 +7,7 @@
 
 Visual taste gate: [VISUAL.md](VISUAL.md). Dev loop: [TEST.md](TEST.md).
 
-Local (now): open demos via `serve.ps1` (static HTTP). Node test suite: later.
+```powershell
+.\npm.cmd test
+.\serve.ps1
+```

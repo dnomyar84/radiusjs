@@ -1,17 +1,24 @@
-# TEST.md — local loop (Node later)
+# TEST.md — local loop
 
-## Now (no Node)
+## Setup (portable Node in `.tools/`)
 
-1. Run `.\serve.ps1`
-2. Open http://127.0.0.1:8765/demos/
-3. Check each demo: layout, hover, ArrowLeft/Right story
-4. Score against VISUAL.md
-5. Fix `src/*` + refresh
+```powershell
+.\node.cmd -v
+.\npm.cmd test
+.\serve.ps1
+```
 
-## Later (Node)
+Open http://127.0.0.1:8765/demos/
 
-- L0 parse fixtures
-- L1 layout metrics / overlaps
-- L3 Playwright story
+## Now
+
+1. `npm test` — L0 parse + L1 layout + kinds/themes
+2. Visual: demos gallery + VISUAL.md scorecard
+3. Expand demo: click headers / ArrowRight story
+
+## Later
+
+- L3 Playwright story/hover
 - L4 screenshot goldens
 - L4b vision scorecard before locking goldens
+- GitHub push + CI

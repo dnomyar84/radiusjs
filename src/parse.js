@@ -42,10 +42,22 @@ function stripFence(raw) {
 function parseAttrs(s) {
   const out = {};
   if (!s) return out;
-  const re = /(\w[\w-]*)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s\],}]+))/g;
+  const keys = [];
+  const re = /(\w[\w-]*)\s*[:=]\s*/g;
   let m;
   while ((m = re.exec(s))) {
-    out[m[1]] = m[2] ?? m[3] ?? m[4];
+    keys.push({ key: m[1], valueStart: m.index + m[0].length, keyStart: m.index });
+  }
+  for (let i = 0; i < keys.length; i++) {
+    const end = i + 1 < keys.length ? keys[i + 1].keyStart : s.length;
+    let val = s.slice(keys[i].valueStart, end).trim();
+    if (
+      (val.startsWith('"') && val.endsWith('"')) ||
+      (val.startsWith("'") && val.endsWith("'"))
+    ) {
+      val = val.slice(1, -1);
+    }
+    out[keys[i].key] = val;
   }
   return out;
 }
@@ -150,13 +162,13 @@ export function parse(raw) {
 
   const lines = text.split(/\r?\n/);
   const meta = {
-    theme: 'paper',
-    template: 'flow',
-    frame: 'slide',
-    look: 'elevated',
-    motion: 'tasteful',
-    font: 'modern',
-    ground: null,
+    theme: undefined,
+    template: undefined,
+    frame: undefined,
+    look: undefined,
+    motion: undefined,
+    font: undefined,
+    ground: undefined,
     title: null,
   };
   const nodes = [];
@@ -181,9 +193,9 @@ export function parse(raw) {
       if (kv) {
         const key = kv[1].toLowerCase();
         const val = kv[2].trim().replace(/^["']|["']$/g, '');
-        if (key in meta || key === 'groundtone') {
-          if (key === 'groundtone') meta.groundTone = val;
-          else meta[key] = val;
+        if (key === 'groundtone') meta.groundTone = val;
+        else if (key in meta || ['theme', 'template', 'frame', 'look', 'motion', 'font', 'ground', 'title'].includes(key)) {
+          meta[key] = val;
         }
         continue;
       }

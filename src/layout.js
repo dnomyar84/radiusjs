@@ -170,11 +170,19 @@ function layoutCloud(spec, board) {
   layoutGroups.forEach((g, gi) => {
     const nodes = g.members.map((id) => spec.nodes.find((n) => n.id === id)).filter(Boolean);
     const sizes = nodes.map(measureNode);
-    const innerH = sizes.reduce((s, x) => s + x.h, 0) + GAP * Math.max(0, nodes.length - 1);
+    const gap = nodes.length > 3 ? 16 : GAP;
+    const innerH = sizes.reduce((s, x) => s + x.h, 0) + gap * Math.max(0, nodes.length - 1);
     const gw = colW;
-    const gh = Math.max(innerH + GROUP_PAD * 2 + 28, 120);
+    const top = PAD + TITLE_H + 8;
+    const maxH = board.h - top - PAD;
+    const gh = Math.min(Math.max(innerH + GROUP_PAD * 2 + 28, 120), maxH);
     const gx = PAD + gi * (colW + colGap);
-    const gy = PAD + TITLE_H + 8;
+    const gy = top;
+    // If content taller than max, scale vertical spacing into the box
+    const availInner = Math.max(40, gh - GROUP_PAD * 2 - 28);
+    const rawInner = Math.max(1, innerH);
+    const scale = Math.min(1, availInner / rawInner);
+
     groupBoxes[g.id] = {
       x: gx,
       y: gy,
@@ -192,15 +200,16 @@ function layoutCloud(spec, board) {
     let y = gy + GROUP_PAD + 28;
     nodes.forEach((node, i) => {
       const { w, h } = sizes[i];
+      const nh = h * scale;
       boxes[node.id] = {
         x: gx + (gw - w) / 2,
         y,
         w,
-        h,
+        h: Math.max(44, nh),
         rank: gi * 10 + i,
         group: g.id,
       };
-      y += h + GAP;
+      y += Math.max(44, nh) + gap * scale;
     });
   });
 
