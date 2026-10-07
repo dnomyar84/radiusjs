@@ -1,6 +1,6 @@
 /**
  * Layout — native packers + optional elkjs for graph templates.
- * Timeline / deck / hub / mindmap / constellation stay Radius-native.
+ * Timeline / deck / hub / mindmap / constellation / sequence / hierarchy stay Radius-native.
  */
 
 import { measureNode, measureFace, FACE_H, FACE_W, LABEL_GROW_MAX_W } from './labels.js';
@@ -1469,6 +1469,270 @@ function routeTimelineEdges(boxes, edges, axis) {
   return deconflictEdgeLabels(routes, collectLabelObstacles({}));
 }
 
+function sequenceAxis(spec) {
+  const dir = spec.dir || 'lr';
+  return {
+    verticalHeads: dir === 'tb' || dir === 'bt',
+    reverse: dir === 'rl' || dir === 'bt',
+  };
+}
+
+/** Lifeline heads. Messages are routed separately in document order. */
+function layoutSequence(spec, board) {
+  const nodes = sortNodes(spec.nodes);
+  const { verticalHeads, reverse } = sequenceAxis(spec);
+  const ordered = reverse ? [...nodes].reverse() : nodes;
+  const boxes = {};
+  const n = Math.max(ordered.length, 1);
+  ordered.forEach((node, i) => {
+    const s = measureNode(node);
+    if (!verticalHeads) {
+      const slot = (board.w - PAD * 2) / n;
+      boxes[node.id] = {
+        x: PAD + slot * i + (slot - s.w) / 2,
+        y: PAD,
+        w: s.w,
+        h: s.h,
+        rank: i,
+        measure: s,
+        shape: node.shape || 'rect',
+      };
+    } else {
+      const slot = (board.h - PAD * 2) / n;
+      boxes[node.id] = {
+        x: PAD,
+        y: PAD + slot * i + (slot - s.h) / 2,
+        w: s.w,
+        h: s.h,
+        rank: i,
+        measure: s,
+        shape: node.shape || 'rect',
+      };
+    }
+  });
+  return boxes;
+}
+
+function routeSequenceEdges(boxes, edges, board, spec) {
+  const { verticalHeads } = sequenceAxis(spec);
+  const list = edges || [];
+  const routes = [];
+  const count = Math.max(list.length, 1);
+  const push = (e, d, labelX, labelY, routeMode = 'sequence') => {
+    routes.push({
+      ...e,
+      d,
+      labelX,
+      labelY,
+      resolvedFrom: e.from,
+      resolvedTo: e.to,
+      fromEndpoint: 'node',
+      toEndpoint: 'node',
+      logicalFrom: e.from,
+      logicalTo: e.to,
+      wire: e.wire || 'main',
+      mergedCount: 1,
+      routeMode,
+      decorative: routeMode === 'sequence-life',
+    });
+  };
+
+  const heads = Object.values(boxes);
+  if (!verticalHeads) {
+    const headBottom = heads.length ? Math.max(...heads.map((b) => b.y + b.h)) : PAD;
+    const foot = board.h - PAD;
+    for (const b of heads) {
+      const x = b.x + b.w / 2;
+      const id = Object.keys(boxes).find((k) => boxes[k] === b);
+      if (!id) continue;
+      push(
+        { from: id, to: id, label: null, wire: 'main' },
+        `M ${x} ${b.y + b.h} L ${x} ${foot}`,
+        null,
+        null,
+        'sequence-life',
+      );
+    }
+    const span = Math.max(24, foot - headBottom);
+    const step = span / count;
+    list.forEach((e, i) => {
+      const a = boxes[e.from];
+      const b = boxes[e.to];
+      if (!a || !b) return;
+      const y = headBottom + step * i + step * 0.45;
+      const x1 = a.x + a.w / 2;
+      const x2 = b.x + b.w / 2;
+      if (e.from === e.to) {
+        const loop = 28;
+        push(
+          e,
+          `M ${x1} ${y} L ${x1 + loop} ${y} L ${x1 + loop} ${y + 18} L ${x1} ${y + 18}`,
+          x1 + loop + 6,
+          y + 2,
+        );
+      } else {
+        push(e, `M ${x1} ${y} L ${x2} ${y}`, (x1 + x2) / 2, y - 14);
+      }
+    });
+  } else {
+    const headRight = heads.length ? Math.max(...heads.map((b) => b.x + b.w)) : PAD;
+    const foot = board.w - PAD;
+    for (const b of heads) {
+      const y = b.y + b.h / 2;
+      const id = Object.keys(boxes).find((k) => boxes[k] === b);
+      if (!id) continue;
+      push(
+        { from: id, to: id, label: null, wire: 'main' },
+        `M ${b.x + b.w} ${y} L ${foot} ${y}`,
+        null,
+        null,
+        'sequence-life',
+      );
+    }
+    const span = Math.max(24, foot - headRight);
+    const step = span / count;
+    list.forEach((e, i) => {
+      const a = boxes[e.from];
+      const b = boxes[e.to];
+      if (!a || !b) return;
+      const x = headRight + step * i + step * 0.45;
+      const y1 = a.y + a.h / 2;
+      const y2 = b.y + b.h / 2;
+      if (e.from === e.to) {
+        const loop = 22;
+        push(
+          e,
+          `M ${x} ${y1} L ${x} ${y1 + loop} L ${x + 18} ${y1 + loop} L ${x + 18} ${y1}`,
+          x + 4,
+          y1 + loop + 8,
+        );
+      } else {
+        push(e, `M ${x} ${y1} L ${x} ${y2}`, x + 8, (y1 + y2) / 2);
+      }
+    });
+  }
+  return deconflictEdgeLabels(routes, []);
+}
+
+function treeIndex(spec) {
+  const nodes = sortNodes(spec.nodes);
+  const byId = Object.fromEntries(nodes.map((n) => [n.id, n]));
+  const kids = Object.fromEntries(nodes.map((n) => [n.id, []]));
+  for (const n of nodes) {
+    if (n.parent && byId[n.parent] && n.parent !== n.id) kids[n.parent].push(n.id);
+  }
+  for (const e of spec.edges || []) {
+    if (!byId[e.from] || !byId[e.to] || e.from === e.to) continue;
+    if (byId[e.to].parent) continue;
+    if (kids[e.to].includes(e.from)) continue;
+    if (!kids[e.from].includes(e.to)) kids[e.from].push(e.to);
+  }
+  for (const id of Object.keys(kids)) {
+    kids[id] = [...new Set(kids[id])].sort((a, b) => {
+      const ao = byId[a].order != null ? Number(byId[a].order) : byId[a].rank != null ? Number(byId[a].rank) : 0;
+      const bo = byId[b].order != null ? Number(byId[b].order) : byId[b].rank != null ? Number(byId[b].rank) : 0;
+      if (ao !== bo) return ao - bo;
+      return String(a).localeCompare(String(b));
+    });
+  }
+  return { nodes, byId, kids };
+}
+
+/**
+ * Orthogonal tree. `parent:` and edges (from → to) build generations.
+ * Default dir grows downward; lr/rl grow across; bt/rl reverse the axis.
+ */
+function layoutHierarchy(spec, board) {
+  const { nodes, byId, kids } = treeIndex(spec);
+  const childSet = new Set();
+  for (const list of Object.values(kids)) for (const c of list) childSet.add(c);
+  let roots = nodes.filter((n) => !childSet.has(n.id));
+  if (!roots.length && nodes[0]) roots = [nodes[0]];
+
+  const levels = [];
+  const seen = new Set();
+  const queue = roots.map((n) => [n.id, 0]);
+  while (queue.length) {
+    const [id, d] = queue.shift();
+    if (!id || seen.has(id) || !byId[id]) continue;
+    seen.add(id);
+    if (!levels[d]) levels[d] = [];
+    levels[d].push(id);
+    for (const c of kids[id] || []) queue.push([c, d + 1]);
+  }
+  const rest = nodes.filter((n) => !seen.has(n.id));
+  if (rest.length) {
+    if (!levels[0]) levels[0] = [];
+    for (const n of rest) levels[0].push(n.id);
+  }
+
+  const vertical = spec.dir !== 'lr' && spec.dir !== 'rl';
+  const reverse = spec.dir === 'bt' || spec.dir === 'rl';
+  const boxes = {};
+  const levelCount = Math.max(levels.length, 1);
+  levels.forEach((ids, d) => {
+    const sizes = ids.map((id) => measureNode(byId[id]));
+    const slotCount = Math.max(ids.length, 1);
+    if (vertical) {
+      const rowH = (board.h - PAD * 2) / levelCount;
+      const y0 = reverse ? board.h - PAD - (d + 1) * rowH : PAD + d * rowH;
+      const slot = (board.w - PAD * 2) / slotCount;
+      ids.forEach((id, i) => {
+        const s = sizes[i];
+        boxes[id] = {
+          x: PAD + slot * i + (slot - s.w) / 2,
+          y: y0 + (rowH - s.h) / 2,
+          w: s.w,
+          h: s.h,
+          rank: d,
+          measure: s,
+          shape: byId[id].shape || 'rect',
+        };
+      });
+    } else {
+      const colW = (board.w - PAD * 2) / levelCount;
+      const x0 = reverse ? board.w - PAD - (d + 1) * colW : PAD + d * colW;
+      const slot = (board.h - PAD * 2) / slotCount;
+      ids.forEach((id, i) => {
+        const s = sizes[i];
+        boxes[id] = {
+          x: x0 + (colW - s.w) / 2,
+          y: PAD + slot * i + (slot - s.h) / 2,
+          w: s.w,
+          h: s.h,
+          rank: d,
+          measure: s,
+          shape: byId[id].shape || 'rect',
+        };
+      });
+    }
+  });
+
+  for (const n of nodes) {
+    const b = boxes[n.id];
+    if (!b) continue;
+    const childIds = kids[n.id] || [];
+    const expandable = childIds.length > 0 && n.expandable !== false;
+    // Show the tree unless the author set collapsed:true (parent: defaults to that).
+    const collapsed = expandable && n.collapsed === true;
+    b.expandable = expandable;
+    b.collapsed = collapsed;
+    b.isParent = expandable;
+    b.childIds = childIds.slice();
+    for (const cid of childIds) {
+      const cb = boxes[cid];
+      if (!cb) continue;
+      cb.parentNode = n.id;
+      if (collapsed) {
+        cb.folded = true;
+        cb.x = b.x;
+        cb.y = b.y;
+      }
+    }
+  }
+  return boxes;
+}
+
 function layoutNkp(spec, board) {
   const hub =
     spec.nodes.find((n) => (n.kind || '').includes('management')) || sortNodes(spec.nodes)[0];
@@ -1610,6 +1874,13 @@ export function layoutNative(spec, board = { w: 960, h: 540 }) {
   else if (t === 'hub') boxes = layoutHub(spec, board);
   else if (t === 'mindmap') boxes = layoutMindmap(spec, board);
   else if (t === 'constellation') boxes = layoutConstellation(spec, board);
+  else if (t === 'sequence') {
+    boxes = layoutSequence(spec, board);
+    return finish(spec, board, boxes, {}, {
+      engine: 'native',
+      routes: routeSequenceEdges(boxes, spec.edges, board, spec),
+    });
+  } else if (t === 'hierarchy') boxes = layoutHierarchy(spec, board);
   else if (t === 'nkp') boxes = layoutNkp(spec, board);
   else if (t === 'timeline') {
     const r = layoutTimeline(spec, board);

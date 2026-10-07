@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="radius-learn" content="RADIUS.md" />
+  <title>22 Sequence — Radius</title>
+  <link rel="stylesheet" href="demo.css" />
+  <script type="module" src="../dist/radius.js"></script>
+</head>
+<body>
+  <header class="demo-bar">
+    <a href="index.html">← Demos</a>
+    <strong>22 · Sequence</strong>
+    <em>Lifeline heads · messages in order · self-loop</em>
+  </header>
+  <h1 class="demo-sub">Checkout conversation</h1>
+  <pre class="radius">
+theme: paper
+template: sequence
+dir: lr
+frame: system
+ground: grid
+glass: frost
+motion: tasteful
+title: Checkout
+nodes:
+  client[Client]
+  api[API]
+  pay[Payments]
+  db[Orders]
+edges:
+  client --> api: place order
+  api --> pay: authorize
+  pay --> api: approved
+  api --> db: insert
+  db --> api: id
+  api --> api: retry once
+  api --> client: receipt
+</pre>
+  <details class="snippet">
+    <summary>What the AI writes</summary>
+    <pre tabindex="0" data-radius-snippet></pre>
+  </details>
+  <script type="module" src="demo-snippet.js"></script>
+</body>
+</html>

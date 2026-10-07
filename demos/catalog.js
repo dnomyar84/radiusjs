@@ -8,6 +8,20 @@ export const VERSION = '0.5.0';
 
 /** @type {Record<string, DemoEntry>} */
 export const DEMOS = {
+  '23-hierarchy': {
+    id: '23-hierarchy',
+    file: '23-hierarchy.html',
+    title: 'Hierarchy · org tree',
+    blurb: 'Generations · parent drill · dir tb',
+    tags: ['hierarchy', 'tree'],
+  },
+  '22-sequence': {
+    id: '22-sequence',
+    file: '22-sequence.html',
+    title: 'Sequence · lifelines',
+    blurb: 'Messages in order · self-loop · grid',
+    tags: ['sequence', 'story'],
+  },
   '21-constellation': {
     id: '21-constellation',
     file: '21-constellation.html',
@@ -171,7 +185,7 @@ export const CATEGORIES = [
   {
     id: 'new',
     label: 'New',
-    demos: ['21-constellation', '20-mindmap', '19-delivery-arch', '18-reality-jupedsim'],
+    demos: ['23-hierarchy', '22-sequence', '21-constellation', '20-mindmap', '19-delivery-arch', '18-reality-jupedsim'],
   },
   {
     id: 'architecture',
@@ -196,7 +210,7 @@ export const CATEGORIES = [
   {
     id: 'layout',
     label: 'Layout & fold',
-    demos: ['21-constellation', '20-mindmap', '07-expand', '10-layout-hints'],
+    demos: ['23-hierarchy', '22-sequence', '21-constellation', '20-mindmap', '07-expand', '10-layout-hints'],
   },
   {
     id: 'look',

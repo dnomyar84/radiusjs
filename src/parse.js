@@ -341,7 +341,8 @@ function defaultGround(template, frame, theme) {
   if (theme === 'indigo') return 'aurora';
   if (template === 'gis') return 'parcels';
   if (template === 'timeline') return 'grid';
-  if (template === 'mindmap') return 'dots';
+  if (template === 'mindmap' || template === 'hierarchy') return 'dots';
+  if (template === 'sequence') return 'grid';
   if (template === 'constellation') return 'aurora';
   if (template === 'cloud' || template === 'nkp') return 'circuit';
   if (template === 'k8s') return 'hex';
