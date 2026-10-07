@@ -11,17 +11,17 @@
 <body class="demo-dark">
   <header class="demo-bar">
     <a href="index.html">← Demos</a>
-    <strong>06 · Neon isometric tech</strong>
-    <em>Axis-aligned ground · isometric nodes · multi-hop inference</em>
+    <strong>06 · Neon</strong>
+    <em>Cyan / amber / violet · elevated (no extrusion) · <code>none</code></em>
   </header>
+  <h1 class="demo-sub">Inference fabric</h1>
   <pre class="radius">
 theme: neon
 template: cloud
 frame: system
-ground: chip
-look: perspective
+ground: none
+look: elevated
 motion: tasteful
-title: Inference fabric
 groups:
   edge[Edge & channels]{family:ctr members:web mobile voice}
   fabric[Model fabric]{family:it members:gateway orchestrator}
@@ -62,7 +62,7 @@ edges:
   guardrail --> gateway
   eval --> llm
 </pre>
-  <details class="snippet" open>
+  <details class="snippet">
     <summary>What the AI writes</summary>
     <pre tabindex="0" data-radius-snippet></pre>
   </details>

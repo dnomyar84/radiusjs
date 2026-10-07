@@ -8,19 +8,20 @@
   <link rel="stylesheet" href="demo.css" />
   <script type="module" src="../dist/radius.js"></script>
 </head>
-<body>
+<body class="demo-dark">
   <header class="demo-bar">
     <a href="index.html">← Demos</a>
-    <strong>02 · GIS / Esri poster</strong>
-    <em>Nested apps · data · services</em>
+    <strong>02 · GIS / Esri</strong>
+    <em>Neon palette · nested maps/data · <code>hex</code></em>
   </header>
+  <h1 class="demo-sub">ArcGIS enterprise pattern</h1>
   <pre class="radius">
-theme: esri
+theme: neon
 template: gis
 frame: system
 ground: hex
 look: elevated
-title: ArcGIS enterprise pattern
+glass: frost
 groups:
   apps[Experience apps]{family:esri members:portal agol exp}
   maps[Mapping]{family:esri parent:apps members:webmap scene}
@@ -38,9 +39,15 @@ nodes:
   server[ArcGIS Server]{kind:esri.server}
   notebook[Notebooks]{kind:esri.notebook}
 edges:
+  # to nested group exterior (Mapping box boundary)
+  portal --> maps: apps use maps
+  # to internals inside Mapping
   portal --> webmap
   portal --> scene
   agol --> exp
+  # Mapping exterior → Data tier exterior
+  maps --> data: reads
+  # internals → internals
   webmap --> fc
   scene --> fc
   gdb --> fc
@@ -48,8 +55,10 @@ edges:
   server --> gdb
   notebook --> server
   exp --> portal
+  # Services exterior → Data exterior
+  services --> data: serves
 </pre>
-  <details class="snippet" open>
+  <details class="snippet">
     <summary>What the AI writes</summary>
     <pre tabindex="0" data-radius-snippet></pre>
   </details>

@@ -1,8 +1,29 @@
-Radius (radiusjs)
-Copyright (c) 2026 Raymond Huang / RHJL
+# Third-party notices
 
-Licensed under the MIT License. See LICENSE.
+## elkjs
 
-Optional vendor icon overlays (when present under icons/licensed/) are NOT
-covered by MIT. See LICENSES/ and NOTICE entries added with each overlay.
-Esri Architecture Center icons, when vendored, remain CC BY — do not MIT-wash.
+This project optionally uses [elkjs](https://github.com/kieler/elkjs) (Eclipse Layout Kernel for JavaScript) for graph layout.
+
+- License: Eclipse Public License 2.0 (EPL-2.0)
+- Copyright: contributors to the Eclipse Layout Kernel / kieler projects
+
+Radius (MIT) remains a separate work. elkjs is loaded as a dependency / pinned CDN module and is not relicensed as MIT.
+
+Pin elkjs to a fixed version (currently 0.9.3) — never `@latest`.
+
+## Simple World Map (worldmap ground)
+
+`dist/worldmap.svg` is derived from [flekschas/simple-world-map](https://github.com/flekschas/simple-world-map) (Al MacDonald / Fritz Lekschas).
+
+- License: Creative Commons Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0)
+- Used as a CSS mask for a subtle blue–purple land silhouette under `ground: worldmap`
+
+## Esri-family chip icons
+
+`assets/esri/` and `dist/icons/esri/` ship **MIT-original** product-role glyphs for `esri.*` kinds (white strokes on Esri-blue chips).
+
+These are **not** Esri or ArcGIS trademark logos. Replace with a licensed icon pack when you have one (same filenames; see `assets/esri/README.md`).
+
+## AWS / Azure chip icons
+
+Same pattern under `assets/aws/`, `assets/azure/`, and `dist/icons/{aws,azure}/` — MIT-original glyphs for `aws.*` / `azure.*` kinds (not Amazon or Microsoft trademark artwork). Regenerate with `node scripts/gen-cloud-icons.js`.

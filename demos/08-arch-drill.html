@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="radius-learn" content="RADIUS.md" />
+  <title>08 Architecture drill-in — Radius</title>
+  <link rel="stylesheet" href="demo.css" />
+  <script type="module" src="../dist/radius.js"></script>
+</head>
+<body>
+  <header class="demo-bar">
+    <a href="index.html">← Demos</a>
+    <strong>08 · Conceptual → logical → physical</strong>
+    <em>Element faces · matrix ground · → story</em>
+  </header>
+  <h1 class="demo-sub">Platform drill-in</h1>
+  <pre class="radius">
+theme: night
+template: cloud
+frame: system
+ground: matrix
+groundTone: muted
+glass: frost
+groups:
+  platform[Hybrid platform]{family:nutanix layer:conceptual kind:nutanix.nci members:nci nkp collapsed:true}
+  logical[Control plane]{family:nkp parent:platform layer:logical members:mgt kom collapsed:true}
+  physical[Workers]{family:k8s parent:logical layer:physical members:node1 node2 collapsed:true}
+nodes:
+  nci[NCI]{kind:nutanix.nci layer:conceptual}
+  nkp[NKP]{kind:nkp.management layer:conceptual}
+  mgt[Management cluster]{kind:nkp.management layer:logical}
+  kom[Kommander]{kind:nkp.kommander layer:logical}
+  node1[Worker A]{kind:k8s.node layer:physical}
+  node2[Worker B]{kind:k8s.node layer:physical}
+edges:
+  nci --> nkp
+  nkp --> mgt
+  mgt --> kom
+  kom --> node1
+  kom --> node2
+story:
+  expand platform
+  expand logical
+  expand physical
+  focus node1 node2
+</pre>
+  <details class="snippet"><summary>What the AI writes</summary><pre></pre></details>
+</body>
+</html>

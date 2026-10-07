@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="radius-learn" content="RADIUS.md" />
+  <title>09 Timeline — Radius</title>
+  <link rel="stylesheet" href="demo.css" />
+  <script type="module" src="../dist/radius.js"></script>
+</head>
+<body>
+  <header class="demo-bar">
+    <a href="index.html">← Demos</a>
+    <strong>09 · Timeline</strong>
+    <em>Tick marks · horizontal rail · U-turn wrap · <code>grid</code></em>
+  </header>
+  <h1 class="demo-sub">Migration timeline</h1>
+  <pre class="radius">
+theme: paper
+template: timeline
+dir: lr
+frame: system
+ground: grid
+glass: frost
+nodes:
+  assess[Assess]{rank:0 time:2024 Q1}
+  pilot[Pilot LZ]{rank:1 time:2024 Q2}
+  scale[Scale]{rank:2 time:2024 Q3}
+  harden[Harden]{rank:3 time:2024 Q4}
+  cutover[Cutover]{rank:4 time:2025 Q1}
+  optimize[Optimize]{rank:5 time:2025 Q2}
+  expand[Expand]{rank:6 time:2025 Q3}
+  retire[Retire]{rank:7 time:2025 Q4}
+edges:
+  assess --> pilot: gate
+  pilot --> scale
+  scale --> harden
+  harden --> cutover: go-live
+  cutover --> optimize
+  optimize --> expand
+  expand --> retire
+story:
+  focus assess
+  focus pilot scale
+  focus cutover
+</pre>
+  <details class="snippet"><summary>What the AI writes</summary><pre></pre></details>
+</body>
+</html>

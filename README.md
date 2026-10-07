@@ -9,9 +9,20 @@
 .\serve.ps1
 ```
 
-Open [http://127.0.0.1:8765/demos/](http://127.0.0.1:8765/demos/).
+Open [http://127.0.0.1:8765/demos/](http://127.0.0.1:8765/demos/) — categorized left nav, diagram-first stage, and a **styling playground** (`#/playground`).
 
-Portable Node lives under `.tools/` (gitignored). Use `.\node.cmd` / `.\npm.cmd` wrappers.
+Portable Node + MinGit live under `.tools/` (gitignored). Use project wrappers:
+
+```powershell
+.\node.cmd -v
+.\npm.cmd test
+.\git.cmd status
+.\gh.cmd auth status
+```
+
+## GitHub Pages
+
+The `demos/` folder is static. Point Pages at `/docs` (copy/symlink demos) or the repo root and open `/demos/`. Deep links: `#/demo/20-mindmap`, `#/playground`.
 
 ## Agent 30-second path
 
@@ -21,7 +32,7 @@ Portable Node lives under `.tools/` (gitignored). Use `.\node.cmd` / `.\npm.cmd`
 
 ## Status
 
-Local **0.1.0** MVP. GitHub publish + `1.0.0` tag later. Node automated tests later.
+Local **0.5.0** — drill-in (C/L/P + timeline), layout omit/hints, label packing, optional elkjs. GitHub publish + `1.0.0` tag later.
 
 ## License
 

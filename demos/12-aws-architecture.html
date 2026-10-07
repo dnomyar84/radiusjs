@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="radius-learn" content="RADIUS.md" />
+  <title>12 AWS architecture — Radius</title>
+  <link rel="stylesheet" href="demo.css" />
+  <script type="module" src="../dist/radius.js"></script>
+</head>
+<body class="demo-dark">
+  <header class="demo-bar">
+    <a href="index.html">← Demos</a>
+    <strong>12 · AWS three-tier</strong>
+    <em>AWS kinds · hex ground · → story</em>
+  </header>
+  <h1 class="demo-sub">AWS web platform</h1>
+  <pre class="radius">
+theme: aws
+template: cloud
+frame: system
+ground: hex
+groundTone: muted
+glass: frost
+look: elevated
+groups:
+  edge[Edge & DNS]{family:aws layer:conceptual kind:aws.cloudfront members:r53 cf waf collapsed:true virtual:true}
+  vpc[Production VPC]{family:aws layer:conceptual kind:aws.vpc members:public app data collapsed:true virtual:true}
+  public[Public tier]{family:aws parent:vpc layer:logical kind:aws.alb members:alb nat collapsed:true virtual:true}
+  app[App tier]{family:aws parent:vpc layer:logical kind:aws.ecs members:ecs ecr lambda sqs collapsed:true virtual:true}
+  data[Data tier]{family:aws parent:vpc layer:logical kind:aws.rds members:rds cache s3 ddb collapsed:true virtual:true}
+  ops[Identity & ops]{family:aws layer:conceptual kind:aws.iam members:iam cw secrets collapsed:true virtual:true}
+nodes:
+  r53[Route 53]{kind:aws.route53 layer:conceptual}
+  cf[CloudFront]{kind:aws.cloudfront layer:conceptual}
+  waf[WAF]{kind:aws.waf layer:conceptual}
+  alb[Application Load Balancer]{kind:aws.alb layer:logical}
+  nat[NAT Gateway]{kind:aws.nat layer:logical}
+  ecs[ECS Fargate]{kind:aws.fargate layer:logical}
+  ecr[ECR]{kind:aws.ecr layer:logical}
+  lambda[Lambda workers]{kind:aws.lambda layer:logical}
+  sqs[SQS]{kind:aws.sqs layer:logical}
+  rds[Aurora PostgreSQL]{kind:aws.aurora layer:logical}
+  cache[ElastiCache Redis]{kind:aws.elasticache layer:logical}
+  s3[S3 assets]{kind:aws.s3 layer:logical}
+  ddb[DynamoDB sessions]{kind:aws.dynamodb layer:logical}
+  iam[IAM]{kind:aws.iam layer:conceptual}
+  cw[CloudWatch]{kind:aws.cloudwatch layer:conceptual}
+  secrets[Secrets Manager]{kind:aws.secretsmanager layer:conceptual}
+edges:
+  r53 --> cf: DNS
+  cf --> waf
+  waf --> alb
+  alb --> ecs
+  ecr --> ecs: images
+  ecs --> rds
+  ecs --> cache
+  ecs --> s3
+  ecs --> ddb
+  lambda --> sqs
+  lambda --> s3
+  nat --> ecs: egress
+  iam --> ecs
+  secrets --> ecs
+  cw --> ecs: metrics
+  ecs --> lambda: async
+story:
+  expand vpc
+  expand edge
+  expand app
+  expand data
+  focus alb ecs rds
+</pre>
+  <details class="snippet"><summary>What the AI writes</summary><pre></pre></details>
+</body>
+</html>

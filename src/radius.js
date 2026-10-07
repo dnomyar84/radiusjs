@@ -1,13 +1,17 @@
 import { parse } from './parse.js';
-import { layout, layoutReport } from './layout.js';
-import { paint } from './paint.js';
+import { layout, layoutAsync, layoutReport } from './layout.js';
+import { paint, applyWiresFilter } from './paint.js';
 import { bindInteract } from './interact.js';
+import { applyUserSizes } from './resize.js';
 import { THEME_IDS } from './themes.js';
-import { ENUMS } from './parse.js';
+import { ENUMS, normalizeWires, wireVisible } from './parse.js';
+import { snapshotFlip, playFlip, prefersReducedMotion } from './flip.js';
 
-export const version = '0.1.0';
+export const version = '0.5.0';
 
 const CSS_HREF = new URL('../dist/radius.css', import.meta.url).href;
+/** Wait for appear stagger before allowing any reflow */
+const APPEAR_GRACE_MS = 1800;
 
 function ensureCSS() {
   if (typeof document === 'undefined') return;
@@ -19,22 +23,211 @@ function ensureCSS() {
   document.head.appendChild(link);
 }
 
-function boardSize(el, frame) {
-  const w = el.clientWidth || el.parentElement?.clientWidth || 1100;
+/** Board size from the host’s available width (fluid). */
+export function boardSize(el, frame) {
+  const raw =
+    el.clientWidth ||
+    el.parentElement?.clientWidth ||
+    (typeof window !== 'undefined' ? Math.min(1100, window.innerWidth - 32) : 960);
+  const w = Math.max(280, Math.round(raw));
   const h =
     frame === 'slide'
-      ? Math.round((w * 9) / 16)
-      : Math.max(640, Math.round(w * 0.72));
-  return { w: Math.max(720, w), h: Math.max(420, h) };
+      ? Math.max(180, Math.round((w * 9) / 16))
+      : Math.max(280, Math.round(w * Math.min(0.85, Math.max(0.55, 640 / Math.max(w, 1)))));
+  return { w, h };
+}
+
+function snapshotFoldState(el) {
+  const groups = {};
+  const nodes = {};
+  el.querySelectorAll('.radius-group[data-id]').forEach((g) => {
+    groups[g.dataset.id] = g.dataset.collapsed === 'true';
+  });
+  el.querySelectorAll('.radius-node[data-expandable="true"]').forEach((n) => {
+    nodes[n.dataset.id] = n.dataset.collapsed === 'true';
+  });
+  return { groups, nodes, storyIndex: el._radius?.interact?.index?.() ?? -1 };
+}
+
+function restoreFoldState(spec, laid, snap) {
+  if (!snap) return;
+  for (const [id, collapsed] of Object.entries(snap.groups || {})) {
+    const box = laid.groupBoxes?.[id];
+    if (!box || !box.expandable) continue;
+    box.collapsed = collapsed;
+    box.h = collapsed ? box.hCollapsed : box.hExpanded;
+    box.w = collapsed ? (box.wCollapsed ?? box.w) : (box.wExpanded ?? box.w);
+    box.x = collapsed ? (box.xCollapsed ?? box.x) : (box.xExpanded ?? box.x);
+  }
+  for (const [id, collapsed] of Object.entries(snap.nodes || {})) {
+    const box = laid.boxes?.[id];
+    if (!box?.expandable) continue;
+    box.collapsed = collapsed;
+    box.h = collapsed ? box.hCollapsed : box.hExpanded;
+  }
+  for (const g of spec.groups || []) {
+    if (snap.groups[g.id] != null) g.collapsed = snap.groups[g.id];
+  }
+  for (const n of spec.nodes || []) {
+    if (snap.nodes[n.id] != null) n.collapsed = snap.nodes[n.id];
+  }
+}
+
+/** After expand/collapse, re-layout so parents and siblings make space. */
+function foldHooks(el, opts = {}) {
+  return {
+    onFoldChange(focusId) {
+      if (el._radius?._reflowing) return;
+      if (el._radius) el._radius._reflowing = true;
+      const board = el.querySelector('.radius-board');
+      const snap =
+        board && !prefersReducedMotion() && el._radius?.spec?.motion !== 'none'
+          ? snapshotFlip(board)
+          : null;
+      el.classList.add('is-reflowing');
+      reflow(el, {
+        ...el._radius?.opts,
+        ...opts,
+        keepObserver: true,
+        quiet: true,
+        force: true, // same viewport size, but fold state changed
+      })
+        .then(() => {
+          el.classList.remove('is-reflowing');
+          const nextBoard = el.querySelector('.radius-board');
+          if (snap && nextBoard) playFlip(nextBoard, snap, { focusId: focusId || null });
+        })
+        .catch(() => {
+          el.classList.remove('is-reflowing');
+        })
+        .finally(() => {
+          if (el._radius) el._radius._reflowing = false;
+        });
+    },
+  };
 }
 
 /**
- * Mount a Radius diagram into `el` from fence text or IR object.
- * @returns {{ spec, layout, interact, version }}
+ * Window-resize only. Never ResizeObserver on the diagram — paint changes
+ * height and would re-enter, killing fade-in and flickering forever.
  */
-export function render(el, source, opts = {}) {
+function bindResize(el, opts = {}) {
+  if (typeof window === 'undefined') return () => {};
+
+  const state = {
+    lastW: el.clientWidth || 0,
+    timer: 0,
+    busy: false,
+    readyAt: Date.now() + APPEAR_GRACE_MS,
+  };
+
+  const onWin = () => {
+    if (Date.now() < state.readyAt) return;
+    if (state.busy || el._radius?._reflowing) return;
+    const w = el.clientWidth || 0;
+    if (!w || Math.abs(w - state.lastW) < 24) return;
+    window.clearTimeout(state.timer);
+    state.timer = window.setTimeout(() => {
+      if (Date.now() < state.readyAt) return;
+      if (state.busy || el._radius?._reflowing) return;
+      const nextW = el.clientWidth || 0;
+      if (!nextW || Math.abs(nextW - state.lastW) < 24) return;
+
+      state.busy = true;
+      if (el._radius) el._radius._reflowing = true;
+      reflow(el, { ...el._radius?.opts, ...opts, keepObserver: true, quiet: true })
+        .then(() => {
+          state.lastW = el.clientWidth || nextW;
+        })
+        .catch(() => {})
+        .finally(() => {
+          state.busy = false;
+          if (el._radius) el._radius._reflowing = false;
+        });
+    }, 220);
+  };
+
+  window.addEventListener('resize', onWin, { passive: true });
+  el._radiusResize = state;
+  return () => {
+    window.clearTimeout(state.timer);
+    window.removeEventListener('resize', onWin);
+    el._radiusResize = null;
+  };
+}
+
+/**
+ * Recompute layout for current host width.
+ * Checks size BEFORE destroying interact so appear fade-in is not aborted.
+ */
+export async function reflow(el, opts = {}) {
+  const prev = el._radius;
+  if (!prev?.spec) return null;
+
+  const size = opts.size || boardSize(el, prev.spec.frame);
+  const prevBoard = prev.layout?.board;
+  // Skip only for resize no-ops — fold changes must always re-pack (force)
+  if (
+    !opts.force &&
+    prevBoard &&
+    Math.abs(prevBoard.w - size.w) < 24 &&
+    Math.abs(prevBoard.h - size.h) < 24
+  ) {
+    return prev;
+  }
+
+  const snap = snapshotFoldState(el);
+  // Apply fold state to spec BEFORE layout so parents shrink/grow with children
+  for (const g of prev.spec.groups || []) {
+    if (snap.groups[g.id] != null) g.collapsed = snap.groups[g.id];
+  }
+  for (const n of prev.spec.nodes || []) {
+    if (snap.nodes[n.id] != null) n.collapsed = snap.nodes[n.id];
+  }
+
+  prev.interact?.destroy?.();
+  if (!opts.keepObserver) prev._unresize?.();
+
+  const laid = opts.sync ? layout(prev.spec, size) : await layoutAsync(prev.spec, size);
+  restoreFoldState(prev.spec, laid, snap);
+  applyUserSizes(prev.spec, laid, prev.userSizes);
+  const paintSpec = opts.quiet ? { ...prev.spec, motion: 'none' } : prev.spec;
+  paint(el, paintSpec, laid);
+  const interact = bindInteract(el, paintSpec, laid, foldHooks(el, opts));
+  // Restore story visuals without re-folding — fold state already painted
+  if (snap.storyIndex >= 0) interact.step?.(snap.storyIndex, { folds: false });
+
+  const unresize = opts.keepObserver
+    ? prev._unresize
+    : opts.noResize
+      ? () => {}
+      : bindResize(el, opts);
+
+  el._radius = {
+    spec: prev.spec,
+    layout: laid,
+    interact,
+    report: layoutReport(prev.spec, laid),
+    version,
+    _unresize: unresize,
+    source: prev.source,
+    opts: prev.opts,
+    userSizes: prev.userSizes || {},
+    _reflowing: false,
+  };
+  return el._radius;
+}
+
+/**
+ * Mount a Radius diagram into `el`.
+ * Responsive via window resize after appear grace period.
+ */
+export async function render(el, source, opts = {}) {
   if (!el) throw new Error('Radius.render: missing element');
   ensureCSS();
+
+  el._radius?.interact?.destroy?.();
+  el._radius?._unresize?.();
 
   let spec;
   try {
@@ -46,43 +239,69 @@ export function render(el, source, opts = {}) {
   }
 
   if (opts.theme) spec.theme = opts.theme;
-  const size = opts.size || boardSize(el, spec.frame);
-  const laid = layout(spec, size);
-  paint(el, spec, laid);
-  const interact = bindInteract(el, spec, laid);
+  if (opts.engine) spec.engine = opts.engine;
 
-  el._radius = { spec, layout: laid, interact, report: layoutReport(spec, laid), version };
+  el.style.width = '100%';
+  el.style.maxWidth = '100%';
+  el.style.boxSizing = 'border-box';
+
+  if (typeof requestAnimationFrame !== 'undefined' && !opts.size) {
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  }
+
+  const size = opts.size || boardSize(el, spec.frame);
+  const laid = opts.sync ? layout(spec, size) : await layoutAsync(spec, size);
+  const userSizes = el._radius?.userSizes || opts.userSizes || {};
+  applyUserSizes(spec, laid, userSizes);
+  paint(el, spec, laid);
+  const interact = bindInteract(el, spec, laid, foldHooks(el, opts));
+  const unresize = opts.noResize ? () => {} : bindResize(el, opts);
+
+  el._radius = {
+    spec,
+    layout: laid,
+    interact,
+    report: layoutReport(spec, laid),
+    version,
+    _unresize: unresize,
+    source,
+    opts,
+    userSizes,
+    _reflowing: false,
+  };
   return el._radius;
 }
 
-export function mountAll(root = document) {
+export function renderSync(el, source, opts = {}) {
+  return render(el, source, { ...opts, sync: true });
+}
+
+export async function mountAll(root = document) {
   ensureCSS();
   const nodes = root.querySelectorAll('pre.radius, [data-radius], code.language-radius');
   const out = [];
-  nodes.forEach((node) => {
+  for (const node of nodes) {
     const source = node.textContent;
     const host = document.createElement('div');
     host.className = 'radius-mount';
-  // Dataset truncates poorly for huge fences — keep a JS copy too
-  host._radiusSource = source;
-  try {
-    host.dataset.radiusSource = source;
-  } catch {
-    /* ignore dataset size limits */
-  }
+    host._radiusSource = source;
+    try {
+      host.dataset.radiusSource = source;
+    } catch {
+      /* ignore */
+    }
     node.replaceWith(host);
     try {
-      const result = render(host, source);
+      const result = await render(host, source);
       out.push(result);
       fillNearbySnippet(host, source);
     } catch {
       fillNearbySnippet(host, source);
     }
-  });
+  }
   return out;
 }
 
-/** Fill a sibling "What the AI writes" panel if present. */
 function fillNearbySnippet(host, source) {
   if (typeof document === 'undefined') return;
   const scope = host.parentElement || document;
@@ -92,7 +311,9 @@ function fillNearbySnippet(host, source) {
 
 function autoMount() {
   if (typeof document === 'undefined') return;
-  const run = () => mountAll(document);
+  const run = () => {
+    mountAll(document).catch(() => {});
+  };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
   else run();
 }
@@ -104,6 +325,19 @@ export function help() {
     themes: THEME_IDS,
     templates: [...ENUMS.TEMPLATES],
     grounds: [...ENUMS.GROUNDS],
+    glass: [...(ENUMS.GLASS || ['frost', 'solid', 'none'])],
+    wires: 'all | off | <wire names> — edge groups via wire:name on edges',
+    layers: {
+      architecture: [...ENUMS.ARCH_LAYERS],
+      time: [...ENUMS.TIME_LAYERS],
+    },
+    layout: {
+      omit: 'Default — Radius auto-layouts (template flow).',
+      coarse: 'template: + optional dir:',
+      hints: 'rank, order, lane, span on nodes; never x/y or font-size',
+      engine: 'auto|elk|native',
+      responsive: 'window resize reflows after appear grace; no ResizeObserver on board',
+    },
     pin: 'Never use @latest — pin major.minor.patch in the script URL.',
   };
 }
@@ -122,9 +356,23 @@ function escapeHtml(s) {
     .replace(/>/g, '&gt;');
 }
 
-export { parse, layout, layoutReport, paint, bindInteract };
+export { parse, layout, layoutAsync, layoutReport, paint, bindInteract, applyWiresFilter, normalizeWires, wireVisible };
 
-export const Radius = { version, render, mountAll, help, parse, layout };
+export const Radius = {
+  version,
+  render,
+  renderSync,
+  reflow,
+  mountAll,
+  help,
+  parse,
+  layout,
+  layoutAsync,
+  boardSize,
+  applyWiresFilter,
+  normalizeWires,
+  wireVisible,
+};
 
 if (typeof window !== 'undefined') {
   window.Radius = Radius;

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="radius-learn" content="RADIUS.md" />
+  <title>10 Layout omit vs hints — Radius</title>
+  <link rel="stylesheet" href="demo.css" />
+  <script type="module" src="../dist/radius.js"></script>
+</head>
+<body>
+  <header class="demo-bar">
+    <a href="index.html">← Demos</a>
+    <strong>10 · Layout Tier 0 vs Tier 2</strong>
+    <em>Omit layout · rank/lane hints · dots ground</em>
+  </header>
+  <h2 class="demo-sub">Tier 0 — Auto layout only</h2>
+  <pre class="radius">
+ground: dots
+nodes:
+  ingest[Ingest gateway with a deliberately long label for ellipsis]
+  bus[Event bus]
+  lake[Lakehouse analytics store]
+edges:
+  ingest --> bus: events
+  bus --> lake: batch
+</pre>
+  <h2 class="demo-sub">Tier 2 — Hinted lanes (rank / lane, no x/y)</h2>
+  <pre class="radius">
+template: flow
+dir: lr
+engine: auto
+ground: dots
+nodes:
+  edge[Edge POP]{rank:0 lane:data kind:it.lb}
+  nci[NCI]{rank:1 lane:data kind:nutanix.nci}
+  nkp[NKP]{rank:2 lane:control kind:nkp.management}
+  mon[Observability stack]{rank:2 lane:ops kind:nkp.prometheus}
+edges:
+  edge --> nci
+  nci --> nkp
+  nkp --> mon: metrics
+</pre>
+  <details class="snippet"><summary>What the AI writes</summary><pre data-radius-snippet></pre></details>
+  <script type="module" src="demo-snippet.js"></script>
+</body>
+</html>

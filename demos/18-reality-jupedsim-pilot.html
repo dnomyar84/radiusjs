@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="radius-learn" content="RADIUS.md" />
+  <title>18 Reality → JuPedSim pilot — Radius</title>
+  <link rel="stylesheet" href="demo.css" />
+  <script type="module" src="../dist/radius.js"></script>
+</head>
+<body class="demo-dark">
+  <header class="demo-bar">
+    <a href="index.html">← Demos</a>
+    <strong>18 · Reality → JuPedSim pilot</strong>
+    <em>Action 29 · D5 / C15 · Pilot 02 · <code>indigo</code> · <code>aurora</code></em>
+  </header>
+  <h1 class="demo-sub">Pilot 02 — Reality capture → plan layers → JuPedSim · emergency routing</h1>
+  <!--
+    Interpreted for ArcGIS Enterprise from workshop notes (Wed) + Action 29.
+    Spelling: JuPedSim (FZ Jülich), not JePedSim.
+    Gaussian splat publish needs AGE 12.1+; mesh/point cloud via SLPK earlier.
+  -->
+  <pre class="radius">
+theme: indigo
+template: cloud
+dir: lr
+frame: system
+ground: aurora
+groundTone: strong
+glass: frost
+look: elevated
+engine: native
+wires: all
+groups:
+  capture[1 · Reality capture]{family:esri layer:conceptual kind:esri.image members:s1 s2 s3 s4 virtual collapsed:false}
+  publish[2 · Publish &amp; view]{family:esri layer:conceptual kind:esri.portal members:s5 s6 virtual collapsed:false}
+  plan[3 · Plan &amp; JuPedSim]{family:esri layer:conceptual kind:esri.gp members:s7 s8 s9 virtual collapsed:false}
+  route[4 · Emergency routing]{family:esri layer:conceptual kind:esri.network members:net_in net_out dyn virtual collapsed:false}
+  barriers[Barrier governance]{family:esri parent:route layer:logical kind:esri.workflow members:auth_barrier self_draw sop collapsed:false}
+nodes:
+  s1[1 Nominate site]{kind:esri.portal layer:logical}
+  s2[2 Fly drone · Reality mapping]{kind:esri.image layer:logical}
+  s3[3 Point cloud · Gaussian splat]{kind:esri.scene layer:logical}
+  s4[4 Mesh generation]{kind:esri.scene layer:logical}
+  s5[5 Publish PC + mesh + splat]{kind:esri.hosting layer:logical}
+  s6[6 Scene Viewer · CIMS2 JS SDK 5.x]{kind:esri.viewer layer:logical}
+  s7[7 Plan layers · furniture · barriers]{kind:esri.feature layer:logical}
+  s8[8 GP → JuPedSim · time-aware]{kind:esri.gp layer:logical}
+  s9[9 Iterate until plan OK]{kind:esri.workflow layer:logical}
+  net_in[Indoor network · Indoors]{kind:esri.experience layer:logical}
+  net_out[Outdoor network · streets]{kind:esri.network layer:logical}
+  dyn[Dynamic route · Closest Facility]{kind:esri.lb layer:logical}
+  auth_barrier[Authoritative barrier FL]{kind:esri.feature layer:logical}
+  self_draw[HTX self-draw fallback]{kind:esri.contributor layer:logical}
+  sop[SOP · ontology · time window]{kind:esri.workflow layer:logical}
+edges:
+  s1 --> s2: ad-hoc mission{wire:capture}
+  s2 --> s3: Reality for Pro{wire:capture}
+  s3 --> s4: prefer splat before mesh{wire:capture}
+  s3 --> s5: SLPK · 3tz{wire:publish}
+  s4 --> s5: mesh SLPK · longer{wire:publish}
+  s5 --> s6: WebScene{wire:publish}
+  s6 --> s7: small cohort{wire:plan}
+  s7 --> s8: walkable + stages{wire:plan}
+  s8 --> s9: trajectories · densities{wire:plan}
+  s9 --> s7: revise plan{wire:plan}
+  s7 --> auth_barrier: barricades{wire:route}
+  self_draw --> auth_barrier: until official{wire:route}
+  sop --> auth_barrier: maintain list{wire:route}
+  net_in --> dyn: indoors ↔ outdoors{wire:route}
+  net_out --> dyn{wire:route}
+  auth_barrier --> dyn: restriction · cost · time{wire:route}
+  dyn --> s6: HTC2 reroute{wire:route}
+  s8 --> s6: Stream / time slider{wire:plan}
+story:
+  expand all
+  wires capture
+  wires capture publish
+  wires capture publish plan
+  wires all
+  focus s3 s5 s8 dyn
+  focus barriers sop auth_barrier
+</pre>
+  <details class="snippet">
+    <summary>Interpreted stage table · AGE mapping · best practices</summary>
+    <pre tabindex="0">SPELLING
+  JuPedSim (Jülich Pedestrian Simulator) — not “JePedSim”.
+  Custom Python GP tool on AGE; no out-of-box Esri JuPedSim toolbox.
+
+STAGE → WHAT → WHO (fill) → NOTES
+  1  Nominate site
+     Facility owner / ops / pilot lead
+     Hosted feature layer of candidate sites (attributes: venue, event, floor, AOI)
+
+  2  Fly drone · reality mapping
+     Survey / Reality team (Drone2Map or ArcGIS Reality for ArcGIS Pro)
+     Ad-hoc missions; control points; CRS + vertical datum locked early
+
+  3  Point cloud from photos · Gaussian splat
+     Reality specialist
+     Prefer splat (or dense PC) for visual QA before committing to mesh.
+     Gaussian splat → 3D Tiles (.3tz); needs ArcGIS Enterprise 12.1+
+
+  4  Mesh generation
+     Reality / 3D GIS
+     Longer compute. Mesh = analysis-ready surface; splat = photoreal viz.
+     Often keep both.
+
+  5  Publish point cloud + mesh (+ splat)
+     Publisher / GIS admin
+     Point cloud &amp; mesh: SLPK → hosted scene layers.
+     Splat: Share as web layer / .3tz → AGE 12.1+ object store.
+
+  6  View: Scene Viewer or CIMS2 (JS Maps SDK 5.x)
+     Small planner cohort
+     WebScene in Scene Viewer; CIMS2 embeds SceneView / arcgis-scene (5.x).
+     SDK 5.0+ favors components; widgets deprecated toward 6.0.
+
+  7  Plan layers (furniture, barricades, assets, ingress/egress, fixtures, blockages)
+     Event / safety planners (Creator+)
+     Hosted feature layers; floor-aware if Indoors; edit in Scene / custom app.
+
+  8  GP → JuPedSim · realtime / time-aware outputs
+     Analyst + platform (custom GP service)
+     Export walkable polygons + stages from plan layers → JuPedSim geometry.
+     Write trajectories to time-aware features or Stream Layer.
+     WebSocket: optional via GeoEvent / stream service for live replay — not required
+     for batch “time slider” playback.
+
+  9  Iterate until plan OK
+     Planners + ops sign-off
+     Revise plan layers → re-run GP → compare density / egress time.
+
+EMERGENCY ROUTING (Wed + Action 29 · D5/C15 · Pilot 02 · HTC2 Thu)
+  Need: dynamic routing + real-time traffic for emergency vehicles across
+  indoor ↔ outdoor routable networks; HTC2 also wants dynamic rerouting.
+
+  AGE approach
+  · ArcGIS Indoors network (pathways + transitions) stitched to outdoor Network Dataset
+  · Publish Route / Closest Facility services on AGE
+  · Barriers: point / line / polygon — Restriction | Added Cost | Scaled Cost
+  · Indoors Viewer: floor-aware + time-aware barriers (START_TIME / END_TIME)
+  · “Dynamic”: editable barrier FL + re-solve route (barriers as NA inputs);
+    live traffic via traffic feed / GeoEvent when available — not magic on the ND alone
+
+BARRIER GOVERNANCE (gap from Wed)
+  Problem: no official point/line/polygon barrier source apparent.
+  Fallback: HTX / users self-draw (Julian hopes for authoritative layer elsewhere / SOP).
+
+  Best practices to maintain the barrier list
+  1. Authoritative hosted FL (or Indoors-compatible) — not only graphics
+  2. Ontology / coded domains: type (closure|hazard|event|construction),
+     geometry class (point|line|polygon), severity, mode (walk|vehicle|evac),
+     floor / facility, valid_from / valid_to, source_org, status (draft|active|expired)
+  3. SOP: who may create/approve/expire; review cadence; link to event tickets
+  4. Time-aware + floor-aware so routing only honors active barriers
+  5. Until official: self-draw writes into the same schema with status=draft,
+     promoted by ops — avoid a second throwaway sketch layer</pre>
+  </details>
+</body>
+</html>

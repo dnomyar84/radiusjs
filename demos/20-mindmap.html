@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="radius-learn" content="RADIUS.md" />
+  <title>20 Mindmap · shapes · table rows — Radius</title>
+  <link rel="stylesheet" href="demo.css" />
+  <script type="module" src="../dist/radius.js"></script>
+</head>
+<body>
+  <header class="demo-bar">
+    <a href="index.html">← Demos</a>
+    <strong>20 · Mindmap · shapes · table rows</strong>
+    <em>Curve wires · UML faces · row elements · → story</em>
+  </header>
+  <h1 class="demo-sub">Radial map with drill-in tables</h1>
+  <pre class="radius">
+theme: indigo
+template: mindmap
+route: curve
+frame: system
+ground: dots
+groundTone: muted
+glass: frost
+title: Product mindmap
+nodes:
+  hub[Product]{shape:circle}
+  mkt[Marketing]{parent:hub shape:oval}
+  eng[Engineering]{parent:hub shape:hex collapsed:false}
+  api[API]{parent:eng shape:parallelogram}
+  ui[UI]{parent:eng}
+  ops[Ops]{parent:hub shape:round collapsed:true}
+  deploy[Deploy]{parent:ops}
+  monitor[Monitor]{parent:ops}
+  risks[Risks]{parent:hub shape:table collapsed:false}
+  lat[Latency]{parent:risks}
+  auth[Auth gap]{parent:risks shape:diamond}
+  cost[Cost]{parent:risks}
+edges:
+  hub --> mkt: grow
+  hub --> eng
+  eng --> api: serve
+  eng --> ui
+  hub --> ops
+  ops --> deploy
+  ops --> monitor
+  hub --> risks
+  api --> lat: watch
+  auth --> deploy: gate
+story:
+  focus hub
+  expand eng
+  expand risks
+  expand ops
+  focus lat auth
+</pre>
+  <details class="snippet"><summary>What the AI writes</summary><pre></pre></details>
+</body>
+</html>

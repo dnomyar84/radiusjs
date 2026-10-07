@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="radius-learn" content="RADIUS.md" />
+  <title>17 eGIS ONE hybrid concept — Radius</title>
+  <link rel="stylesheet" href="demo.css" />
+  <script type="module" src="../dist/radius.js"></script>
+</head>
+<body class="demo-dark">
+  <header class="demo-bar">
+    <a href="index.html">← Demos</a>
+    <strong>17 · eGIS ONE hybrid</strong>
+    <em><code>indigo</code> · <code>aurora</code> · K8s · VMs · collab</em>
+  </header>
+  <h1 class="demo-sub">Singapore MHA GIS Architecture Refactoring – eGIS ONE – Conceptual Diagram</h1>
+  <!--
+    Reference: NoahCreatedHybridConcept.jpg
+    Built-in theme: indigo + ground: aurora (verified purple→green palette).
+  -->
+  <pre class="radius">
+theme: indigo
+template: cloud
+dir: lr
+frame: system
+ground: aurora
+groundTone: strong
+glass: frost
+look: elevated
+engine: native
+wires: all
+groups:
+  egis[eGIS ONE]{layer:conceptual kind:esri.enterprise virtual collapsed:false}
+  age_k8s[ArcGIS Enterprise on Kubernetes]{parent:egis layer:conceptual kind:esri.enterprise virtual collapsed:false}
+  loc[Location Services and Application Support System]{parent:age_k8s layer:logical kind:esri.server members:basemap geocode routing gp feature mapsvc image scene collapsed:false}
+  age_vm_rt[ArcGIS Enterprise on VMs]{parent:egis layer:conceptual kind:esri.enterprise virtual collapsed:false}
+  rt[Real-Time Data Streaming System]{parent:age_vm_rt layer:logical kind:esri.geoevent members:rt_svc collapsed:false}
+  age_vm_mis[ArcGIS Enterprise on VMs]{parent:egis layer:conceptual kind:esri.enterprise virtual collapsed:false}
+  mis[Mission System]{parent:age_vm_mis layer:logical kind:esri.mission members:mis_svc collapsed:false}
+nodes:
+  basemap[Basemap Services]{kind:esri.tilecache layer:logical}
+  geocode[Geocode Services]{kind:esri.server layer:logical}
+  routing[Routing Services]{kind:esri.network layer:logical}
+  gp[GP Services]{kind:esri.gp layer:logical}
+  feature[Feature Services]{kind:esri.feature layer:logical}
+  mapsvc[Map Services]{kind:esri.map layer:logical}
+  image[Image Services]{kind:esri.image layer:logical}
+  scene[Scene Services]{kind:esri.scene layer:logical}
+  rt_svc[Real-time Services]{kind:esri.geoevent layer:logical}
+  mis_svc[Mission Services]{kind:esri.mission layer:logical}
+edges:
+  age_k8s --> age_vm_rt: Collaboration by reference{wire:collab}
+  age_vm_rt --> age_k8s{wire:collab}
+  age_k8s --> age_vm_mis: Collaboration by reference{wire:collab}
+  age_vm_mis --> age_k8s{wire:collab}
+  age_vm_rt --> age_vm_mis: Collaboration by reference{wire:collab}
+  age_vm_mis --> age_vm_rt{wire:collab}
+story:
+  expand all
+  wires collab
+  focus age_k8s age_vm_rt age_vm_mis
+  focus loc rt mis
+  focus basemap feature rt_svc mis_svc
+</pre>
+  <details class="snippet">
+    <summary>Reference mapping</summary>
+    <pre tabindex="0">NoahCreatedHybridConcept.jpg → three AGE columns side by side:
+
+1. ArcGIS Enterprise on Kubernetes
+   └ Location Services and Application Support System
+     Basemap · Geocode · Routing · GP
+     Feature · Map · Image · Scene
+
+2. ArcGIS Enterprise on VMs
+   └ Real-Time Data Streaming System → Real-time Services
+
+3. ArcGIS Enterprise on VMs
+   └ Mission System → Mission Services
+
+Arcs between the three deployment environments:
+  Collaboration by reference (bidirectional)</pre>
+  </details>
+</body>
+</html>

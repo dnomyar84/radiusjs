@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="radius-learn" content="RADIUS.md" />
+  <title>19 Delivery architecture agent workflow — Radius</title>
+  <link rel="stylesheet" href="demo.css" />
+  <style>
+    /*
+      Edges above lane washes (so cross-lane wires stay visible),
+      but under node cards so strokes never paint over text.
+    */
+    body.edges-front .radius-group {
+      z-index: 1;
+    }
+    body.edges-front .radius-edges {
+      z-index: 3;
+      pointer-events: none;
+    }
+    body.edges-front .radius-edges .radius-edge-hit {
+      pointer-events: stroke;
+    }
+    body.edges-front .radius-edge-labels {
+      z-index: 4;
+      pointer-events: none;
+    }
+    body.edges-front .radius-nodes {
+      z-index: 5;
+    }
+    body.edges-front .radius-group-face,
+    body.edges-front .radius-fold-btn {
+      z-index: 6;
+      pointer-events: auto;
+    }
+    body.edges-front .radius-edge {
+      stroke-width: 2.25;
+      opacity: 0.92;
+    }
+    .demo-lede {
+      max-width: 1100px;
+      margin: 0.15rem auto 0.35rem;
+      padding: 0 1.25rem;
+      font-size: 0.95rem;
+      line-height: 1.45;
+      color: #57534e;
+    }
+    .demo-motto {
+      max-width: 1100px;
+      margin: 0 auto 0.25rem;
+      padding: 0.45rem 0.85rem;
+      width: fit-content;
+      max-width: calc(100% - 2.5rem);
+      box-sizing: border-box;
+      font-size: 0.8rem;
+      font-weight: 650;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #44403c;
+      background: #fffcf7;
+      border: 1px solid #e7e5e4;
+      border-radius: 6px;
+    }
+    .demo-foot,
+    .demo-foot-note {
+      max-width: 1100px;
+      margin: 0.35rem auto;
+      padding: 0 1.25rem;
+      font-size: 0.88rem;
+      line-height: 1.45;
+      color: #57534e;
+    }
+    .demo-foot-note {
+      font-size: 0.8rem;
+      color: #78716c;
+      font-style: italic;
+    }
+  </style>
+  <script type="module" src="../dist/radius.js"></script>
+</head>
+<body class="edges-front">
+  <header class="demo-bar">
+    <a href="index.html">← Demos</a>
+    <strong>19 · Delivery architecture agent workflow</strong>
+    <em>Esri Aus pattern · text cards · edges front · <code>paper</code></em>
+  </header>
+  <h1 class="demo-sub">Integrated Delivery Architecture Agent Workflow</h1>
+  <p class="demo-lede">Agents are connected components of one workflow, not independent Copilot tools. Each stage progressively increases response maturity.</p>
+  <p class="demo-motto">HUMANS approve · AGENTS prepare · SYSTEMS record</p>
+  <!--
+    Mimics Esri Australia swimlane diagram — copy synced from the reference.
+    No kind glyphs — text faces only. Edges brought forward for this board.
+  -->
+  <pre class="radius">
+theme: paper
+template: cloud
+dir: tb
+frame: system
+ground: wash
+groundTone: muted
+glass: frost
+look: elevated
+engine: native
+wires: all
+groups:
+  customer[CUSTOMER / SALES]{layer:conceptual members:opp commit deliver virtual collapsed:false}
+  maturity[DELIVERY ARCHITECTURE MATURITY FLOW]{layer:conceptual members:qual wbs est pkg human_gate virtual collapsed:false}
+  agents[AI AGENT WORKFLOW COMPONENTS]{layer:conceptual members:dsq wbs_ai est_ai pkg_ai res_ai control virtual collapsed:false}
+  human[HUMAN ACTIVITIES / DELIVERY SERVICES]{layer:conceptual members:clarify validate rev_wbs rev_est rev_prop commercial demand nominate virtual collapsed:false}
+  gov[GOVERNANCE / ASSURANCE]{layer:conceptual members:g1 g2 g3 g4 virtual collapsed:false}
+  systems[SYSTEMS &amp; KNOWLEDGE]{layer:conceptual members:sor export staging knowledge evidence virtual collapsed:false}
+nodes:
+  opp[Opportunity / DS Request · Salesforce opportunity + DS task]{layer:logical maxLines:3}
+  commit[Commercial commitment]{layer:logical}
+  deliver[Customer delivery]{layer:logical}
+  qual[Qualified Delivery Request · evidence · route + gaps]{layer:logical maxLines:3}
+  wbs[Proposed WBS · scope structure + activities]{layer:logical maxLines:3}
+  est[Delivery Estimate · effort · duration + roles]{layer:logical maxLines:3}
+  pkg[Work Package / Schedule PS · packaged using approved templates]{layer:logical maxLines:3}
+  human_gate[HUMAN DECISION · Human Review &amp; Approval]{layer:logical maxLines:2}
+  dsq[DSQ Routing Agent · QUALITY &amp; ROUTE · qualified requests · routing recommendations · evidence gaps]{layer:logical maxLines:4}
+  wbs_ai[WBS Intelligence Agent · SHAPE · proposed WBS · comparable patterns · complexity drivers · scope gaps]{layer:logical maxLines:4}
+  est_ai[Delivery Estimation Agent · ESTIMATE · evidence-informed effort · duration · roles · assumptions · confidence]{layer:logical maxLines:4}
+  pkg_ai[Work Package Proposal Agent · PACKAGE · drafts Work Package / Schedule PS using approved templates]{layer:logical maxLines:4}
+  res_ai[Delivery Resource Intelligence · RESOURCE · resource options · capacity scenarios · conflicts · confidence]{layer:logical maxLines:4}
+  control[CONTROL · Agents do not approve or commit]{layer:logical maxLines:2}
+  clarify[Clarify / Discover · retain validated inputs]{layer:logical maxLines:2}
+  validate[Validate routing · accountable human activity]{layer:logical maxLines:2}
+  rev_wbs[Review WBS · accountable human activity]{layer:logical maxLines:2}
+  rev_est[Review estimate · accountable human activity]{layer:logical maxLines:2}
+  rev_prop[Review proposal · accountable human activity]{layer:logical maxLines:2}
+  commercial[Commercial approval · accountable human activity]{layer:logical maxLines:2}
+  demand[Define / forecast demand · accountable human activity]{layer:logical maxLines:2}
+  nominate[Nominate &amp; book · Human selects · Workday records]{layer:logical maxLines:3}
+  g1[HUMAN DECISION · Qualified request accepted]{layer:logical maxLines:2}
+  g2[HUMAN DECISION · WBS and estimate reviewed]{layer:logical maxLines:2}
+  g3[HUMAN DECISION · Proposal approved for commitment]{layer:logical maxLines:2}
+  g4[HUMAN DECISION · Resource decision authorised]{layer:logical maxLines:2}
+  sor[Systems of Record · Salesforce (opportunity, customer, DS task) · Workday (demand, bookings, actuals, financials, resources)]{layer:logical maxLines:4}
+  export[Manual controlled export · approved point-in-time extract · no automated write-back]{layer:logical maxLines:3}
+  staging[Controlled staging area · Delivery Architecture data · point-in-time analytical staging · NOT a System of Record]{layer:logical maxLines:4}
+  knowledge[Controlled knowledge · Service Catalogue · Project Archetypes · WBS library · estimating methodology · approved templates · delivery standards · historical evidence]{layer:logical maxLines:4}
+  evidence[Approved delivery evidence · actual effort · duration · roles · outcomes · lessons · estimate versus actual]{layer:logical maxLines:4}
+edges:
+  opp --> qual: Single connected information flow{wire:flow}
+  qual --> wbs: Maturity increases →{wire:flow}
+  wbs --> est{wire:flow}
+  est --> pkg{wire:flow}
+  pkg --> human_gate{wire:flow}
+  human_gate --> commit: Human review &amp; approval{wire:approve}
+  commit --> deliver{wire:approve}
+  dsq --> qual: prepare{wire:agent}
+  wbs_ai --> wbs: prepare{wire:agent}
+  est_ai --> est: prepare{wire:agent}
+  pkg_ai --> pkg: prepare{wire:agent}
+  res_ai --> nominate: prepare · retained for mobilisation{wire:agent}
+  control --> human_gate: Agents do not approve or commit{wire:control}
+  clarify --> validate{wire:human}
+  validate --> rev_wbs{wire:human}
+  rev_wbs --> rev_est{wire:human}
+  rev_est --> rev_prop{wire:human}
+  rev_prop --> commercial{wire:human}
+  commercial --> demand{wire:human}
+  demand --> nominate{wire:human}
+  nominate --> rev_wbs: Rework returns to the relevant earlier workflow component{wire:rework}
+  g1 --> qual{wire:gov}
+  g2 --> wbs{wire:gov}
+  g2 --> est{wire:gov}
+  g3 --> commit{wire:gov}
+  g4 --> nominate{wire:gov}
+  clarify --> dsq: discover feeds agent{wire:human}
+  rev_wbs --> wbs_ai{wire:human}
+  rev_est --> est_ai{wire:human}
+  rev_prop --> pkg_ai{wire:human}
+  sor --> export{wire:sys}
+  export --> staging{wire:sys}
+  staging --> knowledge{wire:sys}
+  knowledge --> dsq: archetypes{wire:sys}
+  knowledge --> wbs_ai{wire:sys}
+  knowledge --> est_ai{wire:sys}
+  knowledge --> pkg_ai{wire:sys}
+  nominate --> evidence: actuals feedback{wire:sys}
+  evidence --> knowledge: learn{wire:sys}
+story:
+  expand all
+  wires flow
+  wires flow agent
+  wires flow agent human gov
+  wires all
+  focus dsq wbs_ai est_ai pkg_ai res_ai control
+  focus human_gate g1 g2 g3 g4
+  focus knowledge evidence
+</pre>
+  <p class="demo-foot">One connected workflow progressively matures the response. Agents prepare evidence and artefacts; accountable humans approve commitments.</p>
+  <p class="demo-foot-note">Delivery Resource Intelligence is retained downstream to support mobilisation after commercial commitment.</p>
+  <details class="snippet">
+    <summary>How this maps the Esri Aus original</summary>
+    <pre tabindex="0">Principle: HUMANS approve · AGENTS prepare · SYSTEMS record.
+
+Synced from the reference: stage blurbs, agent responsibilities, accountable
+human activities, SoR / export / staging / knowledge / evidence detail,
+motto, subtitle, footer, and mobilisation footnote.
+
+LANES (dir:tb)
+  1 CUSTOMER / SALES
+  2 DELIVERY ARCHITECTURE MATURITY FLOW → human gate
+  3 AI AGENT WORKFLOW COMPONENTS (+ control: no approve/commit)
+  4 HUMAN ACTIVITIES (+ rework loop)
+  5 GOVERNANCE / ASSURANCE (four human decisions)
+  6 SYSTEMS &amp; KNOWLEDGE (SoR → export → staging → knowledge → evidence)
+
+Hover / tap an edge to read its label as a tooltip.</pre>
+  </details>
+</body>
+</html>

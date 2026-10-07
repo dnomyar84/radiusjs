@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="radius-learn" content="RADIUS.md" />
+  <title>11 ArcGIS Enterprise on Kubernetes — Radius</title>
+  <link rel="stylesheet" href="demo.css" />
+  <script type="module" src="../dist/radius.js"></script>
+</head>
+<body class="demo-dark">
+  <header class="demo-bar">
+    <a href="index.html">← Demos</a>
+    <strong>11 · ArcGIS Enterprise on Kubernetes</strong>
+    <em>System architecture · pods · storage · profiles · <code>hex</code></em>
+  </header>
+  <h1 class="demo-sub">ArcGIS Enterprise on Kubernetes — microservices in the <code>arcgis</code> namespace</h1>
+  <!--
+    Sourced from Esri docs (doc.esri.com / enterprise-k8s.arcgis.com):
+    - System architecture (four pod categories in arcgis namespace)
+    - Understanding system deployments (manageable system deployments)
+    - Availability profiles (dev / standard HA / enhanced HA replicas & StatefulSets)
+    - Manage service deployments (GIS / system / utility; shared vs dedicated)
+    - Utility services (geometry, print, etc.)
+    Overview is intentional — Esri states the published diagram is not a complete inventory.
+  -->
+  <pre class="radius">
+theme: indigo
+template: cloud
+dir: lr
+frame: system
+ground: hex
+groundTone: muted
+glass: frost
+look: elevated
+engine: auto
+wires: all
+motion: tasteful
+groups:
+  cluster[Kubernetes cluster]{family:k8s virtual kind:k8s.cluster collapsed:true}
+  ns[arcgis namespace]{family:esri parent:cluster virtual kind:esri.enterprise collapsed:true}
+  framework[Framework pods]{family:esri parent:ns virtual kind:esri.lb collapsed:true}
+  admin[Administration pods]{family:esri parent:ns virtual kind:esri.manager collapsed:true}
+  gis[GIS · system · utility service pods]{family:esri parent:ns virtual kind:esri.server collapsed:true}
+  storage[System storage]{family:esri parent:ns virtual kind:esri.datastore collapsed:true}
+  workers[Worker nodes]{family:k8s parent:cluster virtual kind:k8s.node collapsed:true}
+  external[Outside the namespace]{family:esri parent:cluster virtual collapsed:true}
+  fwIngress[Ingress &amp; routing]{parent:framework virtual members:ingress priv_ingress collapsed:true}
+  fwApis[Framework APIs &amp; apps]{parent:framework virtual members:help services_api apps js_api web_styles collapsed:true}
+  fwLife[Lifecycle &amp; notebooks]{parent:framework virtual members:svc_lifecycle nb_auto usage_view usage_data collapsed:true}
+  admCore[Admin control plane]{parent:admin virtual members:admin_api manager collapsed:true}
+  admOrg[Organization &amp; sharing]{parent:admin virtual members:org portal_api collapsed:true}
+  gisUser[GIS service pods]{parent:gis virtual members:feat_svc map_svc geocode_svc gp_svc nb_svc tile_svc img_svc collapsed:true}
+  gisShared[Shared resources]{parent:gis virtual members:shared_feat shared_map shared_tile shared_img collapsed:true}
+  gisSystem[System service pods]{parent:gis virtual members:pub_tools rast_tools collapsed:true}
+  gisUtil[Utility service pods]{parent:gis virtual members:geom_svc print_svc collapsed:true}
+  storeObj[Object store]{parent:storage virtual members:obj_mixed obj_meta obj_data collapsed:true}
+  storeRel[Relational store]{parent:storage virtual members:rel_pri rel_std collapsed:true}
+  storeSt[Spatiotemporal &amp; index store]{parent:storage virtual members:st_mixed st_coord st_data collapsed:true}
+  storeOther[Other StatefulSets]{parent:storage virtual members:queue_store mem_cache item_pkg prometheus collapsed:true}
+  nodes[Nodes]{parent:workers virtual members:node1 node2 node3 node4 collapsed:true}
+  extData[Registered &amp; federated]{parent:external virtual members:user_ds fed_server cloud_obj cloud_rel collapsed:true}
+  profiles[Availability profiles]{parent:external virtual members:prof_dev prof_std prof_enh collapsed:true}
+nodes:
+  ingress[Ingress controller — external entry]{kind:esri.lb layer:logical}
+  priv_ingress[Private ingress controller — inter-pod proxy]{kind:esri.lb layer:logical}
+  help[Help documentation]{kind:esri.experience layer:logical}
+  services_api[Services API — GIS · system · utility]{kind:esri.server layer:logical}
+  apps[Apps — embedded organization apps]{kind:esri.experience layer:logical}
+  js_api[JavaScript API]{kind:esri.experience layer:logical}
+  web_styles[Web styles symbology]{kind:esri.experience layer:logical}
+  svc_lifecycle[Service lifecycle manager]{kind:esri.manager layer:logical}
+  nb_auto[Notebook automation service]{kind:esri.notebook layer:logical}
+  usage_view[Usage metrics viewer]{kind:esri.manager layer:logical}
+  usage_data[Usage metrics data]{kind:esri.datastore layer:logical}
+  admin_api[Administrator API — /admin]{kind:esri.manager layer:logical}
+  manager[Enterprise Manager — /manager]{kind:esri.manager layer:logical}
+  org[Organization UX — /home]{kind:esri.portal layer:logical}
+  portal_api[Portal sharing API — /sharing/rest]{kind:esri.portal layer:logical}
+  feat_svc[Feature services]{kind:esri.feature layer:logical stack:true}
+  map_svc[Map services]{kind:esri.map layer:logical stack:true}
+  geocode_svc[Geocode services]{kind:esri.server layer:logical}
+  gp_svc[Geoprocessing services]{kind:esri.gp layer:logical stack:2}
+  nb_svc[Notebook services]{kind:esri.notebook layer:logical}
+  tile_svc[Tile services]{kind:esri.tilecache layer:logical stack:true}
+  img_svc[Image services]{kind:esri.image layer:logical stack:true}
+  shared_feat[Shared feature service]{kind:esri.feature layer:logical stack:2}
+  shared_map[Shared map service]{kind:esri.map layer:logical stack:2}
+  shared_tile[Shared tile service]{kind:esri.tilecache layer:logical stack:2}
+  shared_img[Shared image service]{kind:esri.image layer:logical stack:2}
+  pub_tools[PublishingTools system GP]{kind:esri.gp layer:logical stack:3}
+  rast_tools[RasterAnalysisTools system GP]{kind:esri.raster layer:logical stack:2}
+  geom_svc[Geometry utility service]{kind:esri.server layer:logical}
+  print_svc[Printing utility service]{kind:esri.server layer:logical}
+  obj_mixed[Object store — mixed mode]{kind:esri.objectstore layer:logical stack:3}
+  obj_meta[Object store — metadata]{kind:esri.objectstore layer:logical stack:3}
+  obj_data[Object store — data]{kind:esri.objectstore layer:logical stack:true}
+  rel_pri[Relational store — primary]{kind:esri.relational layer:logical}
+  rel_std[Relational store — standby]{kind:esri.relational layer:logical}
+  st_mixed[Spatiotemporal &amp; index — mixed]{kind:esri.spatiotemporal layer:logical stack:3}
+  st_coord[Spatiotemporal — coordinator]{kind:esri.spatiotemporal layer:logical stack:3}
+  st_data[Spatiotemporal — data]{kind:esri.spatiotemporal layer:logical stack:2}
+  queue_store[Queue store — async GP jobs]{kind:esri.datastore layer:logical stack:2}
+  mem_cache[In-memory cache]{kind:esri.datastore layer:logical}
+  item_pkg[Item packages volume]{kind:esri.datastore layer:logical}
+  prometheus[Prometheus metrics]{kind:esri.datastore layer:logical}
+  node1[Worker node A]{kind:k8s.node layer:physical}
+  node2[Worker node B]{kind:k8s.node layer:physical}
+  node3[Worker node C]{kind:k8s.node layer:physical}
+  node4[Worker node D]{kind:k8s.node layer:physical}
+  user_ds[Registered user-managed data stores]{kind:esri.gdb layer:logical stack:true}
+  fed_server[Federated Windows / Linux server sites]{kind:esri.server layer:logical stack:true}
+  cloud_obj[Cloud object store integration]{kind:esri.objectstore layer:logical}
+  cloud_rel[Cloud relational store integration]{kind:esri.relational layer:logical}
+  prof_dev[Development &amp; test — minimal replicas]{kind:esri.enterprise layer:conceptual}
+  prof_std[Standard high availability — default]{kind:esri.enterprise layer:conceptual}
+  prof_enh[Enhanced high availability — max redundancy]{kind:esri.enterprise layer:conceptual}
+edges:
+  ingress --> org: /home{wire:entry}
+  ingress --> manager: /manager{wire:entry}
+  ingress --> admin_api: /admin{wire:entry}
+  ingress --> portal_api: /sharing/rest{wire:entry}
+  ingress --> services_api: /rest/services{wire:entry}
+  ingress --> help: /help{wire:entry}
+  priv_ingress --> admin_api{wire:entry}
+  priv_ingress --> services_api{wire:entry}
+  priv_ingress --> portal_api{wire:entry}
+  manager --> admin_api: manage · scale · health{wire:admin}
+  manager --> org{wire:admin}
+  admin_api --> svc_lifecycle{wire:admin}
+  admin_api --> rel_pri: config{wire:admin}
+  org --> portal_api: items · members · sharing{wire:share}
+  portal_api --> feat_svc{wire:share}
+  portal_api --> map_svc{wire:share}
+  portal_api --> item_pkg{wire:share}
+  services_api --> feat_svc{wire:gis}
+  services_api --> map_svc{wire:gis}
+  services_api --> geocode_svc{wire:gis}
+  services_api --> gp_svc{wire:gis}
+  services_api --> tile_svc{wire:gis}
+  services_api --> img_svc{wire:gis}
+  services_api --> nb_svc{wire:gis}
+  services_api --> shared_feat{wire:gis}
+  services_api --> shared_map{wire:gis}
+  services_api --> pub_tools{wire:gis}
+  services_api --> geom_svc{wire:gis}
+  services_api --> print_svc{wire:gis}
+  nb_auto --> nb_svc: notebook deployments{wire:gis}
+  svc_lifecycle --> feat_svc{wire:admin}
+  svc_lifecycle --> map_svc{wire:admin}
+  pub_tools --> queue_store: async jobs{wire:publish}
+  gp_svc --> queue_store{wire:publish}
+  feat_svc --> rel_pri: hosted features{wire:host}
+  feat_svc --> st_mixed: hosted features{wire:host}
+  feat_svc --> user_ds: referenced{wire:host}
+  map_svc --> user_ds: referenced{wire:host}
+  map_svc --> obj_mixed: caches{wire:host}
+  tile_svc --> obj_mixed: tile caches{wire:host}
+  img_svc --> obj_mixed: image caches{wire:host}
+  gp_svc --> obj_mixed: GP output{wire:host}
+  org --> obj_mixed: uploads &amp; content{wire:host}
+  portal_api --> st_mixed: indexes &amp; logs{wire:host}
+  usage_data --> prometheus{wire:admin}
+  usage_view --> usage_data{wire:admin}
+  rel_pri --> rel_std: HA standby{wire:host}
+  obj_meta --> obj_data: enhanced profile{wire:host}
+  st_coord --> st_data: enhanced profile{wire:host}
+  cloud_obj --> obj_mixed: optional cloud{wire:host}
+  cloud_rel --> rel_pri: optional cloud{wire:host}
+  fed_server --> org: federate capabilities{wire:share}
+  framework --> workers: schedule pods{wire:place}
+  admin --> workers{wire:place}
+  gis --> workers{wire:place}
+  storage --> workers: StatefulSets + PVs{wire:place}
+  prof_std --> ns: default production{wire:profile}
+  prof_enh --> storage: split object &amp; ST roles{wire:profile}
+  prof_dev --> ns: non-production only{wire:profile}
+story:
+  expand cluster
+  expand ns
+  wires entry
+  wires entry admin share
+  wires entry admin share gis host
+  wires all
+  focus framework admin gis storage
+  expand framework
+  focus ingress services_api
+  expand admin
+  focus manager org portal_api admin_api
+  expand gis
+  focus feat_svc map_svc pub_tools shared_map
+  expand storage
+  focus rel_pri obj_mixed st_mixed queue_store
+  expand workers
+  expand external
+  focus prof_std fed_server user_ds
+</pre>
+  <details class="snippet">
+    <summary>Esri system architecture (researched)</summary>
+    <pre tabindex="0">Source: ArcGIS Enterprise on Kubernetes documentation — System architecture,
+Understanding system deployments, Availability profiles, Manage service deployments.
+
+Organization: Kubernetes cluster → namespace "arcgis" → four pod categories
+(plus supporting system deployments Esri lists separately).
+
+1. Framework — ingress + private ingress; Help; Services API; Apps; JavaScript API;
+   Notebook automation; Service lifecycle manager; Web styles; usage metrics.
+
+2. Administration — Administrator API (/admin); Enterprise Manager (/manager);
+   Organization UX (/home); Portal sharing API (/sharing/rest).
+
+3. GIS / system / utility — map, feature, geocode, GP, notebook, tile, image services;
+   shared feature/map/tile/image resources; system PublishingTools &amp; RasterAnalysisTools;
+   utility geometry &amp; printing. Shared vs dedicated scaling via Manager / Admin API.
+   Optional: federate Windows/Linux server sites; register user-managed data stores.
+
+4. System storage (StatefulSets + PVs, or cloud for object/relational) —
+   Object store (uploads, tile/image caches, GP output);
+   Relational store primary + standby (hosted features, config);
+   Spatiotemporal &amp; index store (logs, indexes, hosted features);
+   Queue store; in-memory cache; item packages; Prometheus.
+   Replicas / PV sizes set by availability profile (Development · Standard HA · Enhanced HA).
+   System storage pods are not independently scaled at this release.
+
+Pods distribute across worker nodes. Diagram is detailed but still an overview —
+Esri’s published architecture diagram is also “not a complete inventory.”</pre>
+  </details>
+</body>
+</html>

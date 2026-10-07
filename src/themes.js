@@ -20,6 +20,23 @@ export const THEMES = {
     card: '#121821',
     shadow: 'rgba(0, 0, 0, 0.45)',
   },
+  /**
+   * Indigo — dark purple→green architecture void (verified eGIS / pilot boards).
+   * Default ground: aurora. Amber accent; cyan / violet / emerald glows.
+   */
+  indigo: {
+    surface: '#0a0c18',
+    surface2: '#12102a',
+    ink: '#f1f5f9',
+    muted: '#a5b4c8',
+    accent: '#fbbf24',
+    glow2: '#22d3ee',
+    glow3: '#8b5cf6',
+    glow4: '#34d399',
+    line: '#3d3a68',
+    card: '#1c1a34',
+    shadow: 'rgba(26, 20, 60, 0.5)',
+  },
   ios: {
     surface: '#f2f2f7',
     surface2: '#e5e5ea',

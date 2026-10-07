@@ -12,15 +12,15 @@
   <header class="demo-bar">
     <a href="index.html">← Demos</a>
     <strong>05 · NKP fleet</strong>
-    <em>Hub-spoke + platform services + containers</em>
+    <em>Hub-spoke fleet · mesh ground</em>
   </header>
+  <h1 class="demo-sub">NKP management plane &amp; workloads</h1>
   <pre class="radius">
 theme: nutanix
 template: cloud
 frame: system
-ground: hex
+ground: mesh
 look: elevated
-title: NKP management plane & workloads
 groups:
   mgt[Management cluster]{family:nkp members:mgmt konvoy kommander capi}
   platform[Platform apps]{family:nkp parent:mgt members:flux dex prom grafana velero csi collapsed:true}
@@ -59,7 +59,7 @@ edges:
   csi --> wkprod
   prom --> grafana
 </pre>
-  <details class="snippet" open>
+  <details class="snippet">
     <summary>What the AI writes</summary>
     <pre tabindex="0" data-radius-snippet></pre>
   </details>

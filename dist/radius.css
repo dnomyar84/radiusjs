@@ -1,4 +1,4 @@
-/* Radius v0.1 — HTML5 board styles */
+/* Radius v0.5 — HTML5 board styles */
 
 .radius-root,
 .radius-mount {
@@ -8,8 +8,9 @@
   --radius-hot-scale: 1.02;
   display: block;
   width: 100%;
-  max-width: 1100px;
+  max-width: 100%;
   margin: 0 auto;
+  box-sizing: border-box;
   font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   color: var(--radius-ink, #1c1917);
 }
@@ -22,8 +23,9 @@
 .radius-board {
   position: relative;
   width: 100%;
+  max-width: 100%;
   aspect-ratio: 16 / 9;
-  max-height: 720px;
+  max-height: min(72vh, 720px);
   background: var(--radius-surface, #f7f4ef);
   border-radius: 12px;
   overflow: hidden;
@@ -45,10 +47,18 @@
   background: color-mix(in srgb, var(--radius-card) 88%, transparent);
 }
 
+/* Expanded parents: no body fill unless pastel wash is assigned */
+.radius-group.is-expanded[data-depth="1"]:not(.has-wash),
+.radius-group.is-expanded[data-depth="2"]:not(.has-wash),
+.radius-group.is-expanded:not(.has-wash) {
+  background: transparent;
+}
+
 .frame-system .radius-board {
   aspect-ratio: auto;
-  min-height: 640px;
+  min-height: min(280px, 50vh);
   height: var(--radius-board-h, 720px);
+  max-height: none;
 }
 
 .radius-ground {
@@ -74,29 +84,215 @@
   background: var(--radius-surface);
 }
 
-.radius-ground-matrix {
-  background:
-    linear-gradient(var(--radius-surface), var(--radius-surface-2));
-  font-family: ui-monospace, monospace;
-  font-size: 10px;
-  color: color-mix(in srgb, var(--radius-muted) 35%, transparent);
-  letter-spacing: 0.15em;
+.radius-ground-hatch {
+  inset: 0;
   overflow: hidden;
+  background: var(--radius-surface);
 }
 
-.radius-ground-matrix::before {
-  content: "010011010110 101100101001 010110100110 101001011010 011010010110";
+.radius-hatch-wash {
   position: absolute;
-  inset: 8% 6%;
-  line-height: 1.7;
-  word-break: break-all;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  /* Clear diagonal sweep — accent corner → mid → cooler ink edge */
+  background:
+    radial-gradient(
+      90% 70% at 8% 0%,
+      color-mix(in srgb, var(--radius-accent) 28%, transparent),
+      transparent 58%
+    ),
+    radial-gradient(
+      70% 55% at 100% 100%,
+      color-mix(in srgb, var(--radius-ink) 10%, transparent),
+      transparent 55%
+    ),
+    linear-gradient(
+      128deg,
+      color-mix(in srgb, var(--radius-surface) 72%, var(--radius-accent)) 0%,
+      var(--radius-surface) 38%,
+      var(--radius-surface-2) 72%,
+      color-mix(in srgb, var(--radius-surface-2) 78%, var(--radius-ink)) 100%
+    );
+}
+
+.radius-hatch-lines {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* Don't multiply away the wash — soft overlay only */
+  mix-blend-mode: normal;
   opacity: 0.7;
+}
+
+/* Indigo default — purple → green architecture wash */
+.radius-ground-aurora {
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(95% 80% at 0% 0%, color-mix(in srgb, var(--aurora-violet, #8b5cf6) 48%, transparent), transparent 58%),
+    radial-gradient(90% 75% at 100% 15%, color-mix(in srgb, var(--aurora-cyan, #22d3ee) 32%, transparent), transparent 55%),
+    radial-gradient(85% 70% at 45% 100%, color-mix(in srgb, var(--aurora-emerald, #34d399) 40%, transparent), transparent 58%),
+    linear-gradient(145deg, #1a1035 0%, #0c1a28 48%, #0a221c 100%);
+}
+
+.radius-root[data-theme="indigo"] .radius-group {
+  border-color: color-mix(in srgb, var(--radius-glow-2, #22d3ee) 35%, var(--radius-line)) !important;
+}
+.radius-root[data-theme="indigo"] .radius-group.is-virtual.is-expanded {
+  border-color: color-mix(in srgb, var(--radius-accent) 32%, var(--radius-line)) !important;
+}
+.radius-root[data-theme="indigo"] .radius-group.is-expanded:not(.is-virtual) {
+  border-color: color-mix(in srgb, var(--radius-glow-4, #34d399) 32%, var(--radius-line)) !important;
+}
+.radius-root[data-theme="indigo"] .radius-group.is-expanded:not(.is-virtual) > .radius-group-face {
+  color: var(--radius-ink) !important;
+}
+.radius-root[data-theme="indigo"] .radius-group.is-virtual.is-expanded > .radius-group-face,
+.radius-root[data-theme="indigo"] .radius-group.is-virtual.is-expanded > .radius-group-face .radius-label {
+  color: color-mix(in srgb, var(--radius-accent) 55%, var(--radius-ink)) !important;
+}
+.radius-root[data-theme="indigo"] .radius-edge {
+  stroke: color-mix(in srgb, var(--radius-muted) 70%, var(--radius-glow-2, #22d3ee));
+}
+.radius-root[data-theme="indigo"] .radius-edges marker path {
+  fill: color-mix(in srgb, var(--radius-muted) 70%, var(--radius-glow-2, #22d3ee));
+}
+
+.radius-ground-hex {
+  inset: 0;
+  overflow: hidden;
+  background: #0a0c18;
+}
+
+.radius-hex-wash {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(85% 65% at 12% 8%, rgba(88, 70, 180, 0.45), transparent 58%),
+    radial-gradient(70% 55% at 92% 88%, rgba(30, 90, 180, 0.38), transparent 55%),
+    radial-gradient(50% 40% at 55% 45%, rgba(60, 40, 120, 0.25), transparent 70%),
+    linear-gradient(
+      145deg,
+      #12102a 0%,
+      #1a1540 32%,
+      #0e1a38 68%,
+      #0a1228 100%
+    );
+}
+
+.radius-hex-lines {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  mix-blend-mode: screen;
+  opacity: 0.62;
+}
+
+.radius-root[data-ground="hex"] .radius-title,
+.radius-root[data-theme="indigo"] .radius-title {
+  color: #e8eefc;
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.55);
+}
+
+.radius-root[data-theme="indigo"].glass-frost .radius-node,
+.radius-root[data-theme="indigo"].glass-frost .radius-group.is-collapsed {
+  background-color: color-mix(in srgb, var(--radius-card) 52%, transparent);
+}
+
+.radius-ground-matrix {
+  inset: 0;
+  overflow: hidden;
+  background: #030805;
+}
+
+.radius-matrix-wash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* muted black → deep green — keep diagram readable */
+  background:
+    radial-gradient(100% 70% at 50% 120%, rgba(0, 120, 40, 0.18), transparent 55%),
+    radial-gradient(70% 40% at 50% -5%, rgba(0, 40, 18, 0.25), transparent 50%),
+    linear-gradient(
+      180deg,
+      #000000 0%,
+      #020604 28%,
+      #041208 55%,
+      #062014 78%,
+      #0a2e1a 100%
+    );
+}
+
+.radius-matrix-rain {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0.45;
+  mix-blend-mode: screen;
 }
 
 .radius-ground-globe {
   position: absolute;
   pointer-events: none;
   z-index: 0;
+}
+
+.radius-ground-worldmap {
+  inset: 0;
+  overflow: hidden;
+  background: #0c1024;
+}
+
+.radius-worldmap-wash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* ocean: deep blue → soft purple */
+  background:
+    radial-gradient(90% 70% at 70% 30%, rgba(120, 90, 180, 0.22), transparent 55%),
+    radial-gradient(80% 60% at 20% 70%, rgba(40, 90, 170, 0.28), transparent 50%),
+    linear-gradient(
+      145deg,
+      #0a0e22 0%,
+      #121a3a 32%,
+      #1a2450 58%,
+      #2a1f4a 82%,
+      #1e1640 100%
+    );
+}
+
+.radius-worldmap-land {
+  position: absolute;
+  inset: 6% 2% 4% 2%;
+  pointer-events: none;
+  background: linear-gradient(145deg, #6b7fc4 0%, #7a6aad 55%, #5a4f8a 100%);
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  opacity: 0.4;
+}
+
+.radius-worldmap-svg {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
 
 .radius-title {
@@ -110,44 +306,392 @@
   color: var(--radius-ink);
 }
 
+/* Dark grounds: title must read on the void, not theme ink (often dark-on-light). */
+.radius-root[data-ground="matrix"] .radius-title,
+.radius-root[data-ground="worldmap"] .radius-title {
+  color: #eef6f0;
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.65);
+}
+
+.radius-root[data-ground="matrix"] .radius-title {
+  color: #d8ffe8;
+  text-shadow:
+    0 0 10px rgba(40, 180, 90, 0.35),
+    0 1px 12px rgba(0, 0, 0, 0.7);
+}
+
 .radius-edges {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  z-index: 1;
+  z-index: 0; /* under headers / cards — lines pass behind translucent faces */
   pointer-events: none;
 }
 
+/* Timeline rail — under cards, above ground */
+.radius-axis {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.radius-axis-line {
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.55;
+}
+
+.radius-axis-line.is-uturn {
+  stroke-dasharray: 5 5;
+  opacity: 0.45;
+}
+
+.radius-axis-stem {
+  stroke-width: 1.5;
+  opacity: 0.7;
+}
+
+.radius-axis-dot {
+  stroke-width: 1.25;
+}
+
+.radius-axis-tick-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  opacity: 0.75;
+}
+
+.radius-edge-hit {
+  pointer-events: stroke;
+  cursor: pointer;
+  fill: none;
+  stroke: transparent;
+  stroke-width: 14;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .radius-edge {
+  pointer-events: none;
   stroke: var(--radius-muted);
   stroke-width: 1.6;
   stroke-linecap: round;
   stroke-linejoin: round;
   opacity: 0.85;
+  transition:
+    stroke 160ms var(--radius-ease),
+    stroke-width 160ms var(--radius-ease),
+    opacity 280ms var(--radius-ease),
+    filter 160ms var(--radius-ease);
+}
+
+.radius-edge-pipe {
+  transition: opacity 280ms var(--radius-ease);
+}
+
+.radius-edge.is-wire-off,
+.radius-edge-hit.is-wire-off,
+.radius-edge-pipe.is-wire-off,
+.radius-edge-label.is-wire-off {
+  display: none !important;
+}
+
+.radius-edge.is-hot,
+.radius-edge.is-accent {
+  stroke: var(--radius-accent);
+  stroke-width: 2.6;
+  opacity: 1;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--radius-accent) 55%, transparent));
+}
+
+/* Beat theme rules like `[data-theme=neon] .radius-edge { opacity: 1 }` */
+.radius-root .radius-edge-hit.is-hidden,
+.radius-root .radius-edge.is-hidden,
+.radius-root .radius-edge-pipe.is-hidden,
+.radius-root[data-theme] .radius-edge-hit.is-hidden,
+.radius-root[data-theme] .radius-edge.is-hidden,
+.radius-root[data-theme] .radius-edge-pipe.is-hidden {
+  opacity: 0 !important;
+  pointer-events: none;
+  filter: none;
+}
+
+.radius-root .radius-edge-label.is-hidden,
+.radius-root[data-theme] .radius-edge-label.is-hidden {
+  opacity: 0 !important;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Edge label tooltip (hover + tap) — board-local, above fit-scale world */
+.radius-edge-tip {
+  position: absolute;
+  z-index: 30;
+  left: 0;
+  top: 0;
+  max-width: min(240px, 70%);
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--radius-ink) 92%, transparent);
+  color: var(--radius-surface, #fff);
+  font-size: 0.75rem;
+  font-weight: 550;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--radius-ink) 22%, transparent);
+  pointer-events: none;
+  transform: translate(-50%, calc(-100% - 12px));
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 140ms var(--radius-ease),
+    visibility 140ms var(--radius-ease);
+}
+
+.radius-edge-tip.is-on {
+  opacity: 1;
+  visibility: visible;
+}
+
+.radius-edge-tip::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  margin-left: -5px;
+  border: 5px solid transparent;
+  border-top-color: color-mix(in srgb, var(--radius-ink) 92%, transparent);
 }
 
 .radius-nodes {
   position: absolute;
   inset: 0;
-  z-index: 2;
+  z-index: 3;
   pointer-events: none;
 }
 
 .radius-group {
   position: absolute;
-  z-index: 1;
+  z-index: 2;
   border: 1.5px dashed var(--radius-line);
   border-radius: 14px;
   background: color-mix(in srgb, var(--radius-card) 55%, transparent);
   box-sizing: border-box;
-  overflow: visible;
-  transition: height 320ms var(--radius-ease), box-shadow 220ms var(--radius-ease);
+  overflow: hidden;
+  transition: height 320ms var(--radius-ease), width 320ms var(--radius-ease), box-shadow 220ms var(--radius-ease);
   pointer-events: none; /* body must not steal node clicks */
 }
 
 .radius-group.is-expandable {
   border-style: solid;
+}
+
+/* Default expanded: open body for edges; pastel wash via --radius-group-wash */
+.radius-group.is-expanded {
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
+/* Virtual grouping (virtual:true): AWS-style dotted region + pastel backing */
+.radius-group.is-virtual.is-expanded,
+.radius-group.is-virtual.is-expanded.is-expandable {
+  border-style: dashed;
+  background: transparent;
+  box-shadow: none;
+}
+
+.radius-group.is-virtual.is-expanded.has-wash,
+.radius-group.is-virtual.is-expanded.is-expandable.has-wash {
+  background-color: color-mix(
+    in srgb,
+    var(--radius-group-wash, transparent) var(--radius-group-wash-mix, 28%),
+    transparent
+  );
+  background-image: none;
+}
+
+.radius-group.is-collapsed {
+  border-radius: 12px;
+  background: var(--radius-card);
+  border-style: solid;
+  box-shadow:
+    0 1px 0 color-mix(in srgb, #fff 40%, transparent) inset,
+    0 8px 20px -12px var(--radius-shadow);
+  overflow: hidden;
+}
+
+.radius-element-face,
+.radius-group-face,
+.radius-node-face {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 10px 12px;
+  box-sizing: border-box;
+  min-height: 48px;
+  width: 100%;
+  user-select: none;
+  pointer-events: auto;
+  position: relative;
+  z-index: 5;
+  cursor: pointer;
+}
+
+/* Text-only milestones (timeline, no kind) — centered wrap, no chip */
+.radius-node.is-text > .radius-node-face {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  padding: 8px 10px;
+  min-height: 0;
+  text-align: center;
+}
+
+.radius-node.is-text .radius-label {
+  flex: 0 1 auto;
+  width: 100%;
+  text-align: center;
+  font-size: var(--radius-label-px, 0.8rem);
+  font-weight: 550;
+  line-height: 1.25;
+}
+
+/* Kind glyph — icon above centered caption */
+.radius-node.is-glyph > .radius-node-face {
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px 10px;
+  min-height: 0;
+  height: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  overflow: visible;
+}
+
+.radius-node.is-glyph .radius-label {
+  flex: 0 0 auto;
+  width: 100%;
+  text-align: center;
+  font-size: var(--radius-label-px, 0.75rem);
+  font-weight: 550;
+  line-height: 1.25;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  display: block;
+  -webkit-line-clamp: unset;
+  -webkit-box-orient: unset;
+}
+
+.radius-node.is-glyph .radius-label.is-single {
+  white-space: normal;
+  text-overflow: clip;
+}
+
+.radius-node.is-glyph .radius-label.is-multiline {
+  display: block;
+  -webkit-line-clamp: unset;
+  overflow: visible;
+}
+
+.radius-group-face {
+  border-radius: 10px;
+}
+
+/* Solid expanded parent: slim frosted top label strip (must stay shorter than headPad) */
+.radius-group.is-expanded:not(.is-virtual) > .radius-group-face {
+  background: color-mix(in srgb, var(--radius-card) 72%, transparent);
+  backdrop-filter: blur(10px) saturate(1.15);
+  -webkit-backdrop-filter: blur(10px) saturate(1.15);
+  border-bottom: 1px solid color-mix(in srgb, var(--radius-line) 55%, transparent);
+  border-radius: 12px 12px 0 0;
+  flex: 0 0 auto;
+  isolation: isolate;
+  padding: 6px 10px;
+  min-height: 0;
+  gap: 8px;
+}
+
+.radius-group.is-expanded:not(.is-virtual) > .radius-group-face .radius-chip,
+.radius-group.is-expanded:not(.is-virtual) > .radius-group-face .radius-chip.radius-chip-icon,
+.radius-group.is-expanded:not(.is-virtual) > .radius-group-face .radius-chip.radius-chip-tile {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+}
+
+.radius-group.is-expanded:not(.is-virtual) > .radius-group-face .radius-chip.radius-chip-icon img {
+  width: 14px;
+  height: 14px;
+}
+
+.radius-group.is-expanded:not(.is-virtual) > .radius-group-face .radius-label {
+  font-size: var(--radius-label-px, 12px);
+  font-weight: 550;
+  line-height: 1.2;
+}
+
+/* Virtual expanded: tiny bare caption — no chip, no fill */
+.radius-group.is-virtual.is-expanded > .radius-group-face {
+  position: absolute;
+  top: 4px;
+  left: 8px;
+  width: auto;
+  max-width: calc(100% - 16px);
+  min-height: 0;
+  height: auto;
+  padding: 0 2px;
+  margin: 0;
+  gap: 4px;
+  border: none;
+  border-radius: 0;
+  border-bottom: none;
+  background: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+  flex: 0 0 auto;
+  isolation: isolate;
+  z-index: 5;
+  opacity: 0.75;
+}
+
+.radius-group.is-virtual.is-expanded > .radius-group-face .radius-label {
+  font-size: var(--radius-label-px, 0.62rem);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  flex: 0 1 auto;
+}
+
+.radius-group.is-virtual.is-expanded > .radius-group-face .radius-label.is-single {
+  white-space: nowrap;
+  text-overflow: clip;
+}
+
+.radius-group.is-virtual.is-expanded > .radius-group-face .radius-label.is-multiline {
+  white-space: normal;
+  max-width: 100%;
+}
+
+.radius-group.is-virtual.is-expanded > .radius-group-face .radius-fold-btn {
+  font-size: 0.65rem;
+  padding: 0;
+  opacity: 0.7;
 }
 
 .radius-group-head {
@@ -177,6 +721,8 @@
   line-height: 1;
   padding: 0 2px;
   cursor: pointer;
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .radius-group-title {
@@ -192,8 +738,45 @@
   font-variant-numeric: tabular-nums;
 }
 
-.radius-group.is-collapsed {
-  box-shadow: 0 6px 16px -12px var(--radius-shadow);
+.radius-chip-neutral {
+  background: color-mix(in srgb, var(--radius-muted) 25%, transparent);
+  color: var(--radius-ink);
+}
+
+.radius-edge-labels {
+  position: absolute;
+  inset: 0;
+  z-index: 1; /* above edge strokes, still under group headers */
+  pointer-events: none; /* children re-enable for tip / hot */
+}
+
+.radius-edge-label {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  max-width: 120px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--radius-surface) 88%, transparent);
+  color: var(--radius-muted);
+  font-size: 0.68rem;
+  font-weight: 550;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition:
+    color 160ms var(--radius-ease),
+    background 160ms var(--radius-ease),
+    box-shadow 160ms var(--radius-ease),
+    opacity 280ms var(--radius-ease),
+    visibility 280ms var(--radius-ease);
+}
+
+.radius-edge-label.is-hot,
+.radius-edge-label.is-accent {
+  color: var(--radius-accent);
+  background: color-mix(in srgb, var(--radius-surface) 82%, var(--radius-accent));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--radius-accent) 45%, transparent);
+  font-weight: 650;
 }
 
 .radius-node.is-folded {
@@ -203,17 +786,13 @@
   visibility: hidden;
 }
 
-.radius-edge.is-hidden {
-  opacity: 0;
-  pointer-events: none;
-}
-
 .radius-node {
   position: absolute;
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
   box-sizing: border-box;
   background: var(--radius-card);
   color: var(--radius-ink);
@@ -222,14 +801,287 @@
   cursor: default;
   transform-origin: center bottom;
   pointer-events: auto;
+  overflow: hidden;
   transition:
     box-shadow 220ms var(--radius-ease),
     transform 220ms var(--radius-ease),
     opacity 280ms var(--radius-ease),
-    filter 280ms var(--radius-ease);
+    filter 280ms var(--radius-ease),
+    height 320ms var(--radius-ease),
+    width 320ms var(--radius-ease);
 }
 
-.look-elevated .radius-node {
+/* UML / flowchart faces — shape: on any template (mindmap, cloud, flow, …) */
+.radius-node.is-shape-round,
+.radius-node.is-shape-round > .radius-node-face {
+  border-radius: 18px;
+}
+.radius-node.is-shape-oval,
+.radius-node.is-shape-oval > .radius-node-face,
+.radius-node.is-shape-circle,
+.radius-node.is-shape-circle > .radius-node-face {
+  border-radius: 999px;
+}
+.radius-node.is-shape-diamond {
+  background: transparent !important;
+  border: none !important;
+  overflow: visible;
+}
+.radius-node.is-shape-diamond > .radius-node-face {
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  border-radius: 0;
+  background: var(--radius-card);
+  border: 1px solid color-mix(in srgb, var(--radius-line) 90%, transparent);
+  justify-content: center;
+  min-height: 100%;
+}
+.radius-node.is-shape-parallelogram {
+  background: transparent !important;
+  border: none !important;
+  overflow: visible;
+}
+.radius-node.is-shape-parallelogram > .radius-node-face {
+  clip-path: polygon(12% 0%, 100% 0%, 88% 100%, 0% 100%);
+  border-radius: 0;
+  background: var(--radius-card);
+  border: 1px solid color-mix(in srgb, var(--radius-line) 90%, transparent);
+}
+.radius-node.is-shape-hex {
+  background: transparent !important;
+  border: none !important;
+  overflow: visible;
+}
+.radius-node.is-shape-hex > .radius-node-face {
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  border-radius: 0;
+  background: var(--radius-card);
+  border: 1px solid color-mix(in srgb, var(--radius-line) 90%, transparent);
+  justify-content: center;
+  min-height: 100%;
+}
+/* Table parent: header strip; each child row is its own .radius-node element */
+.radius-node.is-shape-table {
+  border-radius: 8px;
+  border-width: 1.5px;
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--radius-line) 55%, transparent);
+}
+.radius-node.is-shape-table > .radius-node-face {
+  border-radius: 7px 7px 0 0;
+  font-weight: 650;
+  background: color-mix(in srgb, var(--radius-muted) 12%, var(--radius-card));
+}
+.radius-node.is-shape-table.is-expandable-node:not(.is-collapsed-node) {
+  background: color-mix(in srgb, var(--radius-surface) 70%, var(--radius-card));
+  border-style: solid;
+}
+/* Table rows are ordinary nodes (edges, drill, tips) — flat strip under the header */
+.radius-node.is-table-row {
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+  box-shadow: none;
+}
+.radius-node.is-table-row > .radius-node-face {
+  border-radius: 0;
+  min-height: 100%;
+}
+
+/* AWS-style glyph — icon + label, no card boundary */
+.radius-node.is-glyph {
+  background: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  border-radius: 0;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  overflow: visible;
+}
+
+.radius-node.is-glyph > .radius-resize {
+  opacity: 0;
+}
+
+.radius-node.is-glyph:hover > .radius-resize,
+.radius-node.is-glyph:focus-visible > .radius-resize {
+  opacity: 0.55;
+}
+
+/* Multiplicity — duplicate plates down-right (“many” of this element) */
+.radius-node.is-stack {
+  overflow: visible;
+  z-index: 2;
+}
+
+.radius-stack-plate {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--radius-card) 88%, var(--radius-surface-2));
+  border: 1px solid color-mix(in srgb, var(--radius-line) 70%, transparent);
+  box-shadow: 0 4px 12px -8px var(--radius-shadow);
+  transform: translate(var(--stack-x, 5px), var(--stack-y, 5px));
+  z-index: 0;
+  pointer-events: none;
+  opacity: calc(0.92 - var(--stack-i, 0) * 0.18);
+}
+
+.radius-node.is-glyph.is-stack > .radius-stack-plate {
+  inset: auto;
+  top: 4px;
+  left: 50%;
+  width: 48px;
+  height: 48px;
+  margin: 0;
+  right: auto;
+  transform: translate(calc(-50% + var(--stack-x, 5px)), var(--stack-y, 5px));
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--radius-card) 35%, var(--radius-line));
+  border: 1px solid color-mix(in srgb, var(--radius-line) 45%, transparent);
+  box-shadow: none;
+}
+
+.radius-node.is-stack > .radius-node-face,
+.radius-node.is-stack > .radius-resize {
+  position: relative;
+  z-index: 2;
+}
+
+.glass-frost .radius-stack-plate {
+  background: color-mix(in srgb, var(--radius-card) 40%, transparent);
+  backdrop-filter: blur(10px) saturate(1.2);
+  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  border-color: color-mix(in srgb, var(--radius-line) 40%, transparent);
+}
+
+.glass-frost .radius-node.is-glyph,
+.look-elevated .radius-node.is-glyph,
+.look-elevated.glass-frost .radius-node.is-glyph,
+.glass-frost.look-elevated .radius-node.is-glyph,
+.radius-root[data-theme="neon"].glass-frost .radius-node.is-glyph {
+  background: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.radius-node.is-expandable-node {
+  cursor: pointer;
+}
+
+/* Frosted glass — translucent + blur so grounds still read through */
+.glass-frost .radius-node,
+.glass-frost .radius-group.is-collapsed {
+  background-color: color-mix(in srgb, var(--radius-card) 46%, transparent);
+  background-image: none;
+  backdrop-filter: blur(16px) saturate(1.3);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  border-color: color-mix(in srgb, var(--radius-line) 45%, transparent);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, #fff 22%, transparent) inset,
+    0 8px 24px -14px var(--radius-shadow);
+}
+
+.glass-frost .radius-group:not(.is-collapsed):not(.has-wash) {
+  /* Body open — edges route to children; frost lives on the face only */
+  background-color: transparent;
+  background-image: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+}
+
+/* AWS virtual regions: pastel backing + frost when glass:frost */
+.glass-frost .radius-group.is-virtual.has-wash:not(.is-collapsed) {
+  background-color: color-mix(
+    in srgb,
+    var(--radius-group-wash, transparent) var(--radius-group-wash-mix, 26%),
+    transparent
+  );
+  background-image: none;
+  backdrop-filter: blur(14px) saturate(1.25);
+  -webkit-backdrop-filter: blur(14px) saturate(1.25);
+  box-shadow: 0 1px 0 color-mix(in srgb, #fff 12%, transparent) inset;
+}
+
+.glass-frost .radius-group[data-depth="1"]:not(.is-collapsed):not(.has-wash),
+.glass-frost .radius-group[data-depth="2"]:not(.is-collapsed):not(.has-wash) {
+  background-color: transparent;
+}
+
+/* Solid expanded: frosted strip */
+.glass-frost .radius-group.is-expanded:not(.is-virtual) > .radius-group-face {
+  background: color-mix(in srgb, var(--radius-card) 68%, transparent);
+  background-image: none;
+  backdrop-filter: blur(12px) saturate(1.2);
+  -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  box-shadow: 0 1px 0 color-mix(in srgb, #fff 18%, transparent) inset;
+}
+
+.glass-frost .radius-group.is-virtual.is-expanded > .radius-group-face {
+  background: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+.radius-root[data-theme="night"].glass-frost .radius-group.is-expanded:not(.is-virtual) > .radius-group-face,
+.radius-root[data-theme="esri"].glass-frost .radius-group.is-expanded:not(.is-virtual) > .radius-group-face {
+  background: color-mix(in srgb, var(--radius-card) 62%, transparent);
+}
+
+/* Expanded parent nodes: clear body, frosted top label only */
+.glass-frost .radius-node.is-expandable-node:not(.is-collapsed-node) {
+  background-color: transparent;
+  background-image: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--radius-line) 50%, transparent);
+}
+
+.glass-frost .radius-node.is-expandable-node:not(.is-collapsed-node) > .radius-node-face {
+  background: color-mix(in srgb, var(--radius-card) 70%, transparent);
+  background-image: none;
+  backdrop-filter: blur(10px) saturate(1.15);
+  -webkit-backdrop-filter: blur(10px) saturate(1.15);
+  border-bottom: 1px solid color-mix(in srgb, var(--radius-line) 55%, transparent);
+  border-radius: 12px 12px 0 0;
+}
+
+/* Win over .look-elevated opaque gradient */
+.look-elevated.glass-frost .radius-node,
+.look-elevated.glass-frost .radius-group.is-collapsed,
+.glass-frost.look-elevated .radius-node,
+.glass-frost.look-elevated .radius-group.is-collapsed {
+  background-image: none;
+  background-color: color-mix(in srgb, var(--radius-card) 48%, transparent);
+  backdrop-filter: blur(16px) saturate(1.3);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+}
+
+.radius-root[data-theme="night"].glass-frost .radius-node,
+.radius-root[data-theme="night"].glass-frost .radius-group.is-collapsed,
+.radius-root[data-theme="night"].look-elevated.glass-frost .radius-node,
+.radius-root[data-theme="night"].look-elevated.glass-frost .radius-group.is-collapsed {
+  background-image: none;
+  background-color: color-mix(in srgb, var(--radius-card) 50%, transparent);
+  border-color: color-mix(in srgb, var(--radius-line) 55%, transparent);
+}
+
+.radius-root[data-theme="neon"].glass-frost .radius-node {
+  background-image: none;
+  background-color: color-mix(in srgb, #12102a 42%, transparent);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+}
+
+.look-elevated:not(.glass-frost) .radius-node,
+.look-elevated:not(.glass-frost) .radius-group.is-collapsed {
   box-shadow:
     0 1px 0 color-mix(in srgb, #fff 40%, transparent) inset,
     0 8px 20px -12px var(--radius-shadow);
@@ -261,25 +1113,99 @@
   letter-spacing: 0.02em;
 }
 
+.radius-chip.radius-chip-icon {
+  width: 2rem;
+  height: 2rem;
+  min-width: 2rem;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 6px;
+}
+
+.radius-chip.radius-chip-icon img {
+  display: block;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+
+/* Glyph nodes — category color box; size follows pack slot via --radius-icon-px */
+.radius-node.is-glyph > .radius-node-face > .radius-chip,
+.radius-node.is-glyph > .radius-node-face > .radius-chip.radius-chip-icon,
+.radius-node.is-glyph > .radius-node-face > .radius-chip.radius-chip-tile {
+  width: var(--radius-icon-px, 48px);
+  height: var(--radius-icon-px, 48px);
+  min-width: var(--radius-icon-px, 48px);
+  padding: 0;
+  border-radius: 6px;
+  box-shadow: 0 1px 2px color-mix(in srgb, #000 18%, transparent);
+  transition: box-shadow 160ms var(--radius-ease);
+}
+
+/* Glyph hot — accent ring on the tile only (no scale; keeps layout stable) */
+.radius-node.is-glyph.is-hot > .radius-node-face > .radius-chip,
+.radius-node.is-glyph.is-focus > .radius-node-face > .radius-chip,
+.radius-node.is-glyph:hover > .radius-node-face > .radius-chip,
+.radius-node.is-glyph:focus-visible > .radius-node-face > .radius-chip {
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--radius-accent) 78%, transparent),
+    0 4px 14px -4px color-mix(in srgb, var(--radius-accent) 40%, transparent),
+    0 1px 2px color-mix(in srgb, #000 18%, transparent);
+}
+
+.radius-node.is-glyph > .radius-node-face > .radius-chip.radius-chip-icon img {
+  width: calc(var(--radius-icon-px, 48px) * 2 / 3);
+  height: calc(var(--radius-icon-px, 48px) * 2 / 3);
+}
+
+.radius-node.is-glyph > .radius-node-face > .radius-chip.radius-chip-tile {
+  font-size: calc(var(--radius-icon-px, 48px) * 0.28);
+}
+
 .radius-label {
-  font-size: 0.88rem;
+  flex: 1;
+  min-width: 0;
+  font-size: var(--radius-label-px, 0.88rem);
   font-weight: 550;
   line-height: 1.25;
   overflow: hidden;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.radius-label.is-single {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.radius-label.is-multiline {
+  white-space: normal;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  overflow-wrap: anywhere;
 }
 
-/* Appear */
-.radius-node.will-appear {
+/* Appear — nodes and collapsed group faces share the same stagger */
+.radius-node.will-appear,
+.radius-group.is-collapsed.will-appear {
   opacity: 0;
-  transform: translateY(var(--radius-rise));
+  transform: translateY(var(--radius-rise, 8px));
 }
 
-.radius-node.is-shown {
+.radius-node.is-shown,
+.radius-group.is-collapsed.is-shown {
   opacity: 1;
   transform: none;
+}
+
+.radius-group.is-collapsed {
+  transition:
+    box-shadow 220ms var(--radius-ease),
+    transform 220ms var(--radius-ease),
+    opacity 280ms var(--radius-ease),
+    height 320ms var(--radius-ease),
+    width 320ms var(--radius-ease);
 }
 
 .look-perspective .radius-node.will-appear {
@@ -290,25 +1216,75 @@
   transform: perspective(900px) rotateX(4deg);
 }
 
-/* Hot / story */
-.radius-node.is-hot,
-.radius-node:focus-visible {
+/* Quiet fold reflow — no size tween flash while swapping DOM */
+.radius-root.is-reflowing .radius-node,
+.radius-root.is-reflowing .radius-group {
+  transition: none !important;
+}
+
+/* Zoom-to-parent (double-click expanded body) */
+.radius-root.is-zoomed .radius-group.is-zoom-target {
+  outline: 1px solid color-mix(in srgb, var(--radius-accent) 45%, transparent);
+  outline-offset: 2px;
+}
+
+/* FLIP expand — only the folded parent scales/elevates; siblings stay under children */
+.radius-node.is-flipping-focus,
+.radius-group.is-flipping-focus {
+  z-index: 5;
+  will-change: transform;
+  pointer-events: none;
+}
+
+.radius-node.is-flipping-soft,
+.radius-group.is-flipping-soft {
+  will-change: transform;
+  pointer-events: none;
+  /* keep natural stacking — never jump above revealed children */
+}
+
+.radius-node.is-fold-enter,
+.radius-group.is-fold-enter {
+  z-index: 7;
+}
+
+/* Hot / story — no scale (keeps layout stable; glyphs accent via tile ring) */
+.radius-node.is-hot:not(.is-glyph),
+.radius-node:focus-visible:not(.is-glyph) {
   outline: none;
   box-shadow:
     0 0 0 2px color-mix(in srgb, var(--radius-accent) 70%, transparent),
     0 10px 24px -10px var(--radius-shadow);
-  transform: scale(var(--radius-hot-scale));
+  z-index: 5;
+}
+
+.radius-node.is-glyph.is-hot,
+.radius-node.is-glyph:focus-visible {
+  outline: none;
   z-index: 5;
 }
 
 .look-perspective .radius-node.is-hot {
-  transform: perspective(900px) rotateX(4deg) scale(var(--radius-hot-scale));
+  transform: perspective(900px) rotateX(4deg);
 }
 
-.radius-node.is-focus {
+.radius-node.is-focus:not(.is-glyph) {
   box-shadow:
     0 0 0 2px var(--radius-accent),
     0 12px 28px -12px var(--radius-shadow);
+  z-index: 4;
+}
+
+.radius-group.is-hot.is-collapsed {
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--radius-accent) 70%, transparent),
+    0 8px 20px -12px var(--radius-shadow);
+  z-index: 5;
+}
+
+.radius-group.is-hot.is-expanded {
+  border-color: color-mix(in srgb, var(--radius-accent) 62%, var(--radius-line));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--radius-accent) 35%, transparent);
   z-index: 4;
 }
 
@@ -340,6 +1316,35 @@
   border-radius: 6px;
 }
 
+.radius-zoom-out {
+  position: absolute;
+  left: 14px;
+  bottom: 12px;
+  z-index: 8;
+  margin: 0;
+  padding: 6px 12px;
+  border: 1px solid color-mix(in srgb, var(--radius-accent) 45%, var(--radius-line));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--radius-card) 88%, var(--radius-accent));
+  color: var(--radius-ink);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px -8px var(--radius-shadow);
+  pointer-events: auto;
+}
+
+.radius-zoom-out:hover {
+  border-color: color-mix(in srgb, var(--radius-accent) 70%, var(--radius-line));
+  background: color-mix(in srgb, var(--radius-card) 70%, var(--radius-accent));
+}
+
+.radius-zoom-out:focus-visible {
+  outline: 2px solid var(--radius-accent);
+  outline-offset: 2px;
+}
+
 .radius-error-box {
   margin: 0;
   padding: 1rem 1.25rem;
@@ -365,20 +1370,24 @@
 
 .radius-ground-chip {
   inset: 0;
+  overflow: hidden;
+}
+
+.radius-ground-chip .radius-ground-svg,
+.radius-ground-chip > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .radius-chip-glow {
   position: absolute;
-  left: 50%;
-  top: 48%;
-  width: 42%;
-  height: 42%;
-  transform: translate(-50%, -50%);
+  inset: -10%;
   background:
-    radial-gradient(circle, color-mix(in srgb, var(--radius-accent) 35%, transparent), transparent 68%),
-    radial-gradient(circle at 30% 40%, color-mix(in srgb, var(--radius-glow-3) 28%, transparent), transparent 60%),
-    radial-gradient(circle at 70% 60%, color-mix(in srgb, var(--radius-glow-2) 25%, transparent), transparent 60%);
-  filter: blur(8px);
+    radial-gradient(50% 40% at 30% 35%, color-mix(in srgb, var(--radius-accent) 22%, transparent), transparent 70%),
+    radial-gradient(45% 40% at 70% 60%, color-mix(in srgb, var(--radius-glow-3) 18%, transparent), transparent 70%),
+    radial-gradient(40% 35% at 55% 25%, color-mix(in srgb, var(--radius-glow-2) 14%, transparent), transparent 65%);
+  filter: blur(12px);
   pointer-events: none;
 }
 
@@ -392,13 +1401,6 @@
   font-size: 0.95rem;
 }
 
-.radius-root[data-theme="neon"] .radius-edge {
-  stroke: var(--radius-accent);
-  stroke-width: 1.8;
-  filter: drop-shadow(0 0 3px var(--radius-accent)) drop-shadow(0 0 6px var(--radius-glow-3));
-  opacity: 0.95;
-}
-
 .radius-root[data-theme="neon"] .radius-node {
   background: linear-gradient(145deg, #161a36, #0a0d1c 55%, #12102a);
   border: 1px solid color-mix(in srgb, var(--radius-accent) 55%, transparent);
@@ -410,39 +1412,208 @@
   backdrop-filter: blur(2px);
 }
 
-/* Isometric tilt is on nodes/groups only — board/ground stays axis-aligned */
-.radius-root[data-theme="neon"].look-perspective .radius-node.is-shown {
-  transform: perspective(900px) rotateX(8deg) rotateY(-6deg) skewX(-4deg);
+/*
+ * Neon 2.5D isometric — layout stays flat so the full diagram stays on-canvas.
+ * Blocks: extruded left/bottom faces (depth down-left = face left).
+ * Edges: pipe shell (.radius-edge-pipe) under neon core.
+ * Board-level rotateX/Z removed — it clipped half the scene.
+ */
+.radius-root[data-theme="neon"].look-perspective {
+  --radius-iso-depth: 11px;
+  --radius-iso-face: color-mix(in srgb, #1a2040 70%, var(--radius-accent));
+  --radius-iso-side: color-mix(in srgb, #0a0d1c 85%, var(--radius-accent));
+  --radius-iso-bottom: #060812;
+}
+
+.radius-root[data-theme="neon"].look-perspective .radius-board {
+  overflow: hidden;
+  transform-style: flat;
+  perspective: none;
+}
+
+.radius-iso-world {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  /* Fit AABB into the slide: translate then scale (origin 0,0) — keeps shrinking until it fits */
+  transform: translate(var(--radius-fit-x, 0px), var(--radius-fit-y, 0px))
+    scale(var(--radius-fit-scale, 1));
+  transform-origin: 0 0;
+  transition: transform 280ms var(--radius-ease);
+}
+
+.radius-iso-world .radius-node,
+.radius-iso-world .radius-group-face,
+.radius-iso-world .radius-group.is-collapsed,
+.radius-iso-world .radius-edge-hit,
+.radius-iso-world .radius-resize {
+  pointer-events: auto;
+}
+
+.radius-root[data-theme="neon"].look-perspective .radius-node,
+.radius-root[data-theme="neon"].look-perspective .radius-group.is-collapsed {
+  transform: none;
+  overflow: visible;
+  background: linear-gradient(155deg, #1c2348 0%, #10162e 48%, #0a0d1c 100%);
+  border: 1px solid color-mix(in srgb, var(--radius-accent) 60%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--radius-glow-3) 22%, transparent) inset,
+    0 0 18px -4px color-mix(in srgb, var(--radius-accent) 40%, transparent),
+    calc(var(--radius-iso-depth) * -0.35) var(--radius-iso-depth) 0 0 var(--radius-iso-side),
+    calc(var(--radius-iso-depth) * -0.7) calc(var(--radius-iso-depth) * 1.05) 0 0 var(--radius-iso-bottom),
+    calc(var(--radius-iso-depth) * -0.7) calc(var(--radius-iso-depth) * 1.05) 0 1px
+      color-mix(in srgb, var(--radius-accent) 35%, transparent),
+    -2px 14px 28px -10px rgba(0, 0, 0, 0.75);
+}
+
+.radius-root[data-theme="neon"].look-perspective .radius-node::before,
+.radius-root[data-theme="neon"].look-perspective .radius-group.is-collapsed::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: calc(var(--radius-iso-depth) * -0.85);
+  top: calc(var(--radius-iso-depth) * 0.35);
+  width: var(--radius-iso-depth);
+  height: calc(100% - 2px);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--radius-iso-face) 80%, #2a3a6a),
+    var(--radius-iso-side) 55%,
+    var(--radius-iso-bottom)
+  );
+  border: 1px solid color-mix(in srgb, var(--radius-accent) 30%, transparent);
+  border-right: 0;
+  border-radius: 4px 0 0 6px;
+  transform: skewY(-26deg);
+  transform-origin: right center;
+  pointer-events: none;
+  box-shadow: inset 1px 0 0 color-mix(in srgb, #fff 8%, transparent);
+}
+
+.radius-root[data-theme="neon"].look-perspective .radius-node::after,
+.radius-root[data-theme="neon"].look-perspective .radius-group.is-collapsed::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: 2px;
+  bottom: calc(var(--radius-iso-depth) * -0.75);
+  width: calc(100% - 4px);
+  height: var(--radius-iso-depth);
+  background: linear-gradient(
+    90deg,
+    var(--radius-iso-bottom),
+    color-mix(in srgb, var(--radius-iso-side) 70%, #000) 40%,
+    var(--radius-iso-bottom)
+  );
+  border: 1px solid color-mix(in srgb, var(--radius-accent) 28%, transparent);
+  border-top: 0;
+  border-radius: 0 0 8px 4px;
+  transform: skewX(-26deg);
+  transform-origin: top left;
+  pointer-events: none;
+}
+
+.radius-root[data-theme="neon"].look-perspective .radius-group:not(.is-collapsed) {
+  transform: none;
+  overflow: visible;
+  background: transparent;
+  border-color: color-mix(in srgb, var(--radius-accent) 45%, transparent);
+  box-shadow: none;
+}
+
+.radius-root[data-theme="neon"].look-perspective .radius-group.is-expanded:not(.is-virtual) > .radius-group-face {
+  background: linear-gradient(155deg, #1c2348, #10162e);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, #fff 12%, transparent) inset,
+    calc(var(--radius-iso-depth) * -0.25) calc(var(--radius-iso-depth) * 0.45) 0 0 var(--radius-iso-side);
+}
+
+.radius-root[data-theme="neon"].look-perspective .radius-group.is-virtual.is-expanded > .radius-group-face {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.radius-root[data-theme="neon"].look-perspective .radius-node.is-shown,
+.radius-root[data-theme="neon"].look-perspective .radius-node.is-hot,
+.radius-root[data-theme="neon"].look-perspective .radius-node.is-focus {
+  transform: none;
 }
 
 .radius-root[data-theme="neon"].look-perspective .radius-node.will-appear {
-  transform: perspective(900px) rotateX(8deg) rotateY(-6deg) skewX(-4deg) translateY(var(--radius-rise));
-}
-
-.radius-root[data-theme="neon"].look-perspective .radius-group {
-  transform: perspective(900px) rotateX(4deg) rotateY(-3deg);
-  transform-origin: center bottom;
+  transform: translateY(var(--radius-rise));
 }
 
 .radius-root[data-theme="neon"] .radius-node.is-hot,
 .radius-root[data-theme="neon"] .radius-node.is-focus {
   border-color: var(--radius-glow-2);
-  box-shadow:
-    0 0 0 2px color-mix(in srgb, var(--radius-glow-2) 70%, transparent),
-    0 0 28px color-mix(in srgb, var(--radius-accent) 55%, transparent),
-    0 0 40px color-mix(in srgb, var(--radius-glow-3) 35%, transparent);
 }
 
 .radius-root[data-theme="neon"].look-perspective .radius-node.is-hot,
 .radius-root[data-theme="neon"].look-perspective .radius-node.is-focus {
-  transform: perspective(900px) rotateX(8deg) rotateY(-6deg) skewX(-4deg) scale(var(--radius-hot-scale));
+  border-color: var(--radius-glow-2);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--radius-glow-2) 70%, transparent),
+    0 0 28px color-mix(in srgb, var(--radius-accent) 55%, transparent),
+    calc(var(--radius-iso-depth) * -0.35) var(--radius-iso-depth) 0 0 var(--radius-iso-side),
+    calc(var(--radius-iso-depth) * -0.7) calc(var(--radius-iso-depth) * 1.05) 0 0 var(--radius-iso-bottom);
 }
 
-.radius-root[data-theme="neon"] .radius-group {
+.radius-root[data-theme="neon"] .radius-edge-pipe {
+  fill: none;
+  stroke: color-mix(in srgb, #04060f 55%, var(--radius-accent));
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+  opacity: 0.92;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--radius-accent) 35%, transparent));
+}
+
+.radius-root[data-theme="neon"] .radius-edge {
+  stroke: var(--radius-accent);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 3px var(--radius-accent)) drop-shadow(0 0 6px var(--radius-glow-3));
+  opacity: 1;
+}
+
+.radius-root[data-theme="neon"] .radius-edge.is-hot,
+.radius-root[data-theme="neon"] .radius-edge.is-accent {
+  stroke: var(--radius-glow-2);
+  stroke-width: 3;
+  filter:
+    drop-shadow(0 0 4px var(--radius-glow-2))
+    drop-shadow(0 0 10px var(--radius-accent));
+}
+
+.radius-root[data-theme="neon"] .radius-edge-label.is-hot,
+.radius-root[data-theme="neon"] .radius-edge-label.is-accent {
+  color: var(--radius-glow-2);
+  background: color-mix(in srgb, #0a0d1c 75%, var(--radius-accent));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--radius-accent) 55%, transparent),
+    0 0 10px color-mix(in srgb, var(--radius-accent) 40%, transparent);
+}
+
+.radius-root[data-theme="neon"] .radius-group.is-collapsed {
   border-style: solid;
   border-color: color-mix(in srgb, var(--radius-accent) 40%, transparent);
   background: color-mix(in srgb, #0a0d1c 70%, transparent);
   box-shadow: inset 0 0 24px color-mix(in srgb, var(--radius-glow-3) 12%, transparent);
+}
+
+.radius-root[data-theme="neon"] .radius-group.is-expanded:not(.has-wash) {
+  background: transparent;
+  box-shadow: none;
+  border-color: color-mix(in srgb, var(--radius-accent) 40%, transparent);
+}
+
+.radius-root[data-theme="neon"] .radius-group.is-expanded.has-wash {
+  box-shadow: none;
+  border-color: color-mix(in srgb, var(--radius-accent) 40%, transparent);
 }
 
 .radius-root[data-theme="neon"] .radius-chip {
@@ -455,10 +1626,53 @@
   color: var(--radius-muted);
 }
 
+/* Constellation — 3D relationship cloud (projected) */
+.radius-board.is-orbit {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.radius-board.is-orbit-dragging {
+  cursor: grabbing;
+}
+.radius-board.is-orbit .radius-node {
+  transform-origin: center center;
+  will-change: transform, left, top, opacity;
+  transition: none;
+}
+.radius-board.is-orbit .radius-resize {
+  display: none;
+}
+.radius-board.is-orbit .radius-edges {
+  pointer-events: none;
+}
+.radius-board.is-orbit .radius-edge-hit {
+  pointer-events: stroke;
+}
+.radius-orbit-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  z-index: 40;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--radius-muted);
+  background: color-mix(in srgb, var(--radius-card) 82%, transparent);
+  border: 1px solid color-mix(in srgb, var(--radius-line) 70%, transparent);
+  pointer-events: none;
+  opacity: 0.85;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .radius-node,
   .radius-node.will-appear,
-  .radius-node.is-shown {
+  .radius-node.is-shown,
+  .radius-group.is-collapsed.will-appear,
+  .radius-group.is-collapsed.is-shown {
     transition: none !important;
     transform: none !important;
     opacity: 1 !important;

@@ -1,4 +1,6 @@
-/** Kind registry — family-colored chips (MIT originals). Licensed SVG overlay later. */
+/** Kind registry — family-colored chips (MIT originals + optional SVG icons). */
+
+import { kindIconHref } from './icons.js';
 
 export const FAMILIES = {
   esri: { fill: '#0079c1', on: '#fff', label: 'Esri' },
@@ -16,6 +18,13 @@ export const FAMILIES = {
 const ALIASES = {
   'azure.stackhci': 'azure.hci',
   'azure.local': 'azure.hci',
+  'azure.activedirectory': 'azure.entra',
+  'azure.ad': 'azure.entra',
+  'aws.elb': 'aws.alb',
+  'aws.elbv2': 'aws.alb',
+  'aws.api_gateway': 'aws.apigateway',
+  'aws.api-gateway': 'aws.apigateway',
+  'aws.ddb': 'aws.dynamodb',
 };
 
 /** Short monogram for chip face */
@@ -29,6 +38,29 @@ const MONO = {
   'aws.ec2': 'EC2',
   'aws.lambda': 'λ',
   'aws.vpc': 'VPC',
+  'aws.alb': 'ALB',
+  'aws.nlb': 'NLB',
+  'aws.apigateway': 'API',
+  'aws.cloudfront': 'CF',
+  'aws.route53': 'R53',
+  'aws.rds': 'RDS',
+  'aws.aurora': 'Aur',
+  'aws.dynamodb': 'DDB',
+  'aws.elasticache': 'Cache',
+  'aws.ecs': 'ECS',
+  'aws.eks': 'EKS',
+  'aws.fargate': 'Farg',
+  'aws.ecr': 'ECR',
+  'aws.sqs': 'SQS',
+  'aws.sns': 'SNS',
+  'aws.iam': 'IAM',
+  'aws.cloudwatch': 'CW',
+  'aws.secretsmanager': 'Sec',
+  'aws.cognito': 'Cog',
+  'aws.waf': 'WAF',
+  'aws.subnet': 'Sub',
+  'aws.nat': 'NAT',
+  'aws.asg': 'ASG',
   'azure.hci': 'HCI',
   'azure.arc': 'Arc',
   'azure.vm': 'VM',
@@ -37,6 +69,36 @@ const MONO = {
   'azure.vnet': 'VNet',
   'azure.keyvault': 'KV',
   'azure.monitor': 'Mon',
+  'azure.appservice': 'App',
+  'azure.functions': 'Fx',
+  'azure.sql': 'SQL',
+  'azure.cosmos': 'Cos',
+  'azure.frontdoor': 'AFD',
+  'azure.appgateway': 'AGW',
+  'azure.loadbalancer': 'LB',
+  'azure.entra': 'Entra',
+  'azure.aad': 'Entra',
+  'azure.redis': 'Redis',
+  'azure.eventhubs': 'EH',
+  'azure.servicebus': 'SB',
+  'azure.containerapps': 'ACA',
+  'azure.acr': 'ACR',
+  'azure.appinsights': 'AI',
+  'azure.bastion': 'Bas',
+  'azure.firewall': 'FW',
+  'azure.subnet': 'Sub',
+  'azure.nsg': 'NSG',
+  'azure.privateendpoint': 'PE',
+  'azure.devops': 'ADO',
+  'azure.pipelines': 'Pipe',
+  'azure.dns': 'DNS',
+  'azure.cdn': 'CDN',
+  'azure.blob': 'Blob',
+  'azure.files': 'Files',
+  'azure.postgresql': 'PG',
+  'azure.mysql': 'MySQL',
+  'azure.vmss': 'VMSS',
+  'azure.apim': 'APIM',
   'gcp.gke': 'GKE',
   'gcp.compute': 'CE',
   'oci.compute': 'C',
@@ -85,6 +147,39 @@ const MONO = {
   'esri.server': 'Srv',
   'esri.datastore': 'DS',
   'esri.experience': 'EX',
+  'esri.enterprise': 'AGE',
+  'esri.manager': 'Mgr',
+  'esri.identity': 'IdP',
+  'esri.relational': 'RDS',
+  'esri.spatiotemporal': 'ST',
+  'esri.objectstore': 'OS',
+  'esri.raster': 'RA',
+  'esri.gp': 'GP',
+  'esri.webadaptor': 'WA',
+  'esri.tilecache': 'TC',
+  'esri.geoevent': 'GE',
+  'esri.geoanalytics': 'GA',
+  'esri.image': 'Img',
+  'esri.mission': 'Mis',
+  'esri.knowledge': 'KG',
+  'esri.workflow': 'WFM',
+  'esri.hosting': 'Host',
+  'esri.lb': 'LB',
+  'esri.viewer': 'View',
+  'esri.contributor': 'Edit',
+  'esri.mobileworker': 'Field',
+  'esri.creator': 'Make',
+  'esri.professional': 'Pro',
+  'esri.professionalplus': 'Pro+',
+  'esri.nameduser': 'NU',
+  'esri.spatial': 'SA',
+  'esri.network': 'NA',
+  'esri.analyst3d': '3DA',
+  'esri.imageanalyst': 'IA',
+  'esri.geostat': 'GA',
+  'esri.interop': 'DI',
+  'esri.publisher': 'Pub',
+  'esri.insights': 'Ins',
   'it.step': '•',
   'it.person': 'P',
   'it.db': 'DB',
@@ -107,6 +202,37 @@ export function familyOf(kind) {
   return FAMILIES[prefix] || FAMILIES.it;
 }
 
+/** Official-ish AWS Architecture category colors (icon sits on this square). */
+const KIND_FILL = {
+  'aws.ec2': '#ED7100',
+  'aws.lambda': '#ED7100',
+  'aws.ecs': '#ED7100',
+  'aws.eks': '#ED7100',
+  'aws.fargate': '#ED7100',
+  'aws.asg': '#ED7100',
+  'aws.ecr': '#ED7100',
+  'aws.s3': '#3F8624',
+  'aws.rds': '#C925D1',
+  'aws.aurora': '#C925D1',
+  'aws.dynamodb': '#C925D1',
+  'aws.elasticache': '#C925D1',
+  'aws.vpc': '#8C4FFF',
+  'aws.alb': '#8C4FFF',
+  'aws.nlb': '#8C4FFF',
+  'aws.cloudfront': '#8C4FFF',
+  'aws.route53': '#8C4FFF',
+  'aws.apigateway': '#8C4FFF',
+  'aws.nat': '#8C4FFF',
+  'aws.subnet': '#8C4FFF',
+  'aws.waf': '#DD344C',
+  'aws.iam': '#DD344C',
+  'aws.cognito': '#DD344C',
+  'aws.secretsmanager': '#DD344C',
+  'aws.cloudwatch': '#E7157B',
+  'aws.sqs': '#E7157B',
+  'aws.sns': '#E7157B',
+};
+
 export function chipLabel(kind) {
   const k = normalizeKind(kind);
   if (!k) return '?';
@@ -117,12 +243,16 @@ export function chipLabel(kind) {
 
 export function kindMeta(kind) {
   const id = normalizeKind(kind);
-  const family = familyOf(id);
+  const family = familyOf(id) || FAMILIES.it;
+  const fill = (id && KIND_FILL[id]) || family.fill;
+  // White strokes on category squares; dark ink only on light fills (e.g. AWS orange monogram legacy)
+  const on = KIND_FILL[id] ? '#fff' : family.on;
   return {
     id,
     family: id ? id.split('.')[0] : 'it',
-    fill: family.fill,
-    on: family.on,
+    fill,
+    on,
     mono: chipLabel(id),
+    icon: kindIconHref(id),
   };
 }

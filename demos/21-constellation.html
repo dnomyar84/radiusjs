@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="radius-learn" content="RADIUS.md" />
+  <title>21 Constellation · 3D relationship cloud — Radius</title>
+  <link rel="stylesheet" href="demo.css" />
+  <script type="module" src="../dist/radius.js"></script>
+</head>
+<body class="demo-dark">
+  <header class="demo-bar">
+    <a href="index.html#/demo/21-constellation">← Examples</a>
+    <strong>21 · Constellation</strong>
+    <em>3D cloud · slow spin · drag to orbit</em>
+  </header>
+  <h1 class="demo-sub">Dense relationships in orbit</h1>
+  <pre class="radius">
+theme: indigo
+template: constellation
+frame: system
+ground: aurora
+glass: frost
+motion: tasteful
+title: Capability mesh
+nodes:
+  id[Identity]{shape:circle}
+  api[API gateway]{shape:hex}
+  data[Data lake]{shape:parallelogram}
+  ml[Models]{shape:oval}
+  ops[Ops]{shape:round}
+  edge[Edge sites]{shape:diamond}
+  policy[Policy]{shape:hex}
+  bus[Event bus]
+  cache[Cache]
+  search[Search]
+  notify[Notify]
+  audit[Audit]
+edges:
+  id --> api: auth
+  api --> data
+  data --> ml: train
+  ml --> api: score
+  ops --> api
+  ops --> edge
+  policy --> id
+  policy --> api
+  edge --> data: sync
+  api --> bus
+  bus --> notify
+  bus --> search
+  data --> cache
+  cache --> api
+  audit --> api
+  audit --> policy
+  search --> data
+  notify --> edge
+</pre>
+  <details class="snippet">
+    <summary>What the AI writes</summary>
+    <pre></pre>
+  </details>
+  <script type="module" src="demo-snippet.js"></script>
+</body>
+</html>

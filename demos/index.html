@@ -3,41 +3,63 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Radius demos</title>
-  <style>
-    :root { color-scheme: light; --ink:#1c1917; --muted:#78716c; --bg:#f7f4ef; --card:#fffcf7; --line:#e7e5e4; }
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: "Segoe UI", ui-sans-serif, system-ui, sans-serif; background:
-      radial-gradient(90% 60% at 0% 0%, #e8d5a8 0%, transparent 50%),
-      var(--bg); color: var(--ink); }
-    main { max-width: 880px; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
-    h1 { font-size: 2rem; letter-spacing: -0.03em; margin: 0 0 0.35rem; }
-    .brand { font-weight: 700; }
-    p { color: var(--muted); line-height: 1.5; max-width: 40rem; }
-    ul { list-style: none; padding: 0; margin: 2rem 0 0; display: grid; gap: 0.75rem; }
-    a.card { display: block; padding: 1rem 1.15rem; background: var(--card); border: 1px solid var(--line);
-      border-radius: 12px; text-decoration: none; color: inherit; transition: transform 180ms ease, box-shadow 180ms ease; }
-    a.card:hover { transform: translateY(-2px); box-shadow: 0 12px 28px -18px rgba(28,25,23,.35); }
-    a.card strong { display: block; margin-bottom: 0.2rem; }
-    a.card span { color: var(--muted); font-size: 0.92rem; }
-    footer { margin-top: 2.5rem; font-size: 0.85rem; color: var(--muted); }
-    code { font-size: 0.9em; }
-  </style>
+  <title>Radius examples</title>
+  <meta name="description" content="Radius diagram examples — categorized gallery, diagram-first preview, styling playground." />
+  <link rel="stylesheet" href="gallery.css" />
 </head>
 <body>
-  <main>
-    <h1><span class="brand">Radius</span> demos</h1>
-    <p>Local MVP 0.1.0 — denser nested samples. Hover nodes, click group headers to expand, use ← → for story.</p>
-    <ul>
-      <li><a class="card" href="01-deck-slide.html"><strong>01 · Deck slide</strong><span>6-step agent pipeline · appear stagger</span></a></li>
-      <li><a class="card" href="02-gis-esri.html"><strong>02 · GIS / Esri</strong><span>Nested apps/maps/data/services</span></a></li>
-      <li><a class="card" href="03-azure-to-nutanix.html"><strong>03 · Azure HCI → Nutanix</strong><span>Deep nest · HCI to NCI/NKP</span></a></li>
-      <li><a class="card" href="04-story-replace.html"><strong>04 · Story replace</strong><span>5-phase cutover narrative</span></a></li>
-      <li><a class="card" href="05-nkp.html"><strong>05 · NKP fleet</strong><span>Platform apps + workload + containers</span></a></li>
-      <li><a class="card" href="06-neon.html"><strong>06 · Neon isometric</strong><span>Inference fabric · chip ground</span></a></li>
-      <li><a class="card" href="07-expand.html"><strong>07 · Expand / nest</strong><span>Multi-level fold · story drill-down</span></a></li>
-    </ul>
-    <footer>Schema: <code>RADIUS.md</code> · Serve with <code>.\serve.ps1</code></footer>
-  </main>
+  <div class="gallery" id="gallery">
+    <header class="gallery-top">
+      <div class="brand">Radius <span>examples</span></div>
+      <div class="meta">
+        v<span id="gallery-version">0.5.0</span>
+        · <a href="../RADIUS.md">RADIUS.md</a>
+        · static GitHub Pages ready
+      </div>
+      <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Toggle categories">Categories</button>
+    </header>
+
+    <aside class="gallery-nav" id="gallery-nav-wrap" aria-label="Example categories">
+      <input
+        class="nav-search"
+        id="nav-search"
+        type="search"
+        placeholder="Filter examples…"
+        autocomplete="off"
+      />
+      <div id="gallery-nav"></div>
+    </aside>
+
+    <main class="gallery-stage">
+      <div class="stage-head">
+        <h1 id="stage-title">Loading…</h1>
+        <p id="stage-blurb"></p>
+      </div>
+      <div class="stage-body">
+        <iframe
+          class="stage-frame"
+          id="stage-frame"
+          title="Diagram preview"
+          loading="lazy"
+        ></iframe>
+
+        <div class="stage-panel" id="stage-playground" aria-label="Styling playground">
+          <div class="play-layout">
+            <div class="play-controls" id="play-controls"></div>
+            <div class="play-preview">
+              <div id="play-mount" class="radius-mount"></div>
+              <div class="play-error" id="play-error" role="alert"></div>
+              <details class="play-source">
+                <summary>What the AI writes</summary>
+                <pre id="play-source-pre"></pre>
+              </details>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module" src="gallery.js"></script>
 </body>
 </html>

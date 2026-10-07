@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="radius-learn" content="RADIUS.md" />
+  <title>16 Singapore MHA — Radius</title>
+  <link rel="stylesheet" href="demo.css" />
+  <script type="module" src="../dist/radius.js"></script>
+</head>
+<body class="demo-dark">
+  <header class="demo-bar">
+    <a href="index.html">← Demos</a>
+    <strong>16 · Singapore MHA · Home Team</strong>
+    <em>HQ · 7 departments · 3 boards · expand · → story</em>
+  </header>
+  <h1 class="demo-sub">Singapore Ministry of Home Affairs — the Home Team</h1>
+  <!--
+    Sources (public): mha.gov.sg/who-we-are, mha.gov.sg/who-we-are/our-organisation
+    (updated Sep 2026); SPF Annual Report 2025 org chart; scdf.gov.sg; htx.gov.sg.
+    GRA succeeded CRA as the gambling regulator. ISD shown at department level only.
+    Page title is outside the Radius board so it does not consume model space.
+  -->
+  <pre class="radius">
+theme: night
+template: cloud
+dir: lr
+frame: system
+ground: hatch
+groundTone: muted
+glass: frost
+look: elevated
+wires: all
+motion: tasteful
+groups:
+  mha[Ministry of Home Affairs]{virtual collapsed:true}
+  lead[Political &amp; ministry leadership]{parent:mha virtual members:sm mha2law mha2mfa sms mos ps secPs dsPol dsDev dsCorp collapsed:true}
+  hq[MHA Headquarters divisions]{parent:mha virtual members:cpc fad htms htpsy hrd icp legal jog pod pdd tpg ros rsd rmag tcd collapsed:true}
+  htd[Home Team Departments]{parent:mha virtual collapsed:true}
+  boards[Statutory boards]{parent:mha virtual collapsed:true}
+  spf[Singapore Police Force]{parent:htd virtual collapsed:true}
+  spfLand[SPF land divisions]{parent:spf virtual members:divA divD divE divF divG divJ divL collapsed:true}
+  spfSpec[SPF specialist &amp; line units]{parent:spf virtual members:apd gc htsci pcg pocc procom transcom seccom soc tp tracom cyber collapsed:true}
+  spfStaff[SPF specialist staff]{parent:spf virtual members:cad cid ppsd otd pid collapsed:true}
+  spfCorp[SPF staff departments]{parent:spf virtual members:afd cps cpd irm icd man ocha ops po prd pld pns pad sdd tcdSpf vsc collapsed:true}
+  isd[Internal Security Department]{parent:htd virtual members:isdMsn collapsed:true}
+  scdf[Singapore Civil Defence Force]{parent:htd virtual collapsed:true}
+  scdfClus[SCDF strategic clusters]{parent:scdf virtual members:scdfOps scdfFut scdfCorp collapsed:true}
+  scdfDiv[SCDF division HQs]{parent:scdf virtual members:scdf1 scdf2 scdf3 scdf4 scdfMar cda nstc collapsed:true}
+  sps[Singapore Prison Service]{parent:htd virtual collapsed:true}
+  spsStaff[SPS staff divisions]{parent:sps virtual members:spsOps spsRehab collapsed:true}
+  spsClA[Cluster A]{parent:sps virtual members:instA1 instA2 instA3 instA4 instA5 collapsed:true}
+  spsClB[Cluster B]{parent:sps virtual members:instB1 instB2 instB3 instB4 instB5 collapsed:true}
+  spsClC[Cluster C]{parent:sps virtual members:instC1 instS1 instS2 instTM1 instTM2 collapsed:true}
+  spsCCC[Community Corrections Command]{parent:sps virtual members:spcsc crc collapsed:true}
+  spsOSC[Operations &amp; Security Command]{parent:sps virtual members:spsOscUnit collapsed:true}
+  ica[Immigration &amp; Checkpoints Authority]{parent:htd virtual members:icaLand icaAir icaSea icaReg icaCorp collapsed:true}
+  cnb[Central Narcotics Bureau]{parent:htd virtual members:cnbEnf cnbInv cnbIntel cnbPrev collapsed:true}
+  hta[Home Team Academy]{parent:htd virtual members:htaTrain htaLead htaJoint collapsed:true}
+  htx[Home Team Science and Technology Agency]{parent:boards virtual collapsed:true}
+  htxCoe[HTX centres of expertise]{parent:htx virtual members:bio cbrne coehub dif dto forens hfs pss qteam raus sense vws collapsed:true}
+  gra[Gambling Regulatory Authority]{parent:boards virtual members:graLic graComp graPol collapsed:true}
+  yrsg[Yellow Ribbon Singapore]{parent:boards virtual members:yrsEmp yrsTrain yrsComm collapsed:true}
+nodes:
+  sm[Senior Minister &amp; Minister for Home Affairs — K Shanmugam]{layer:conceptual}
+  mha2law[Second Minister for Home Affairs — Edwin Tong]{layer:conceptual}
+  mha2mfa[Second Minister for Home Affairs — Sim Ann]{layer:conceptual}
+  sms[Senior Minister of State — Goh Pei Ming]{layer:conceptual}
+  mos[Minister of State — Zhulkarnain Abdul Rahim]{layer:conceptual}
+  ps[Permanent Secretary (Home Affairs) — Tan Chye Hee]{layer:conceptual}
+  secPs[Second Permanent Secretary — Wong Kang Jet]{layer:conceptual}
+  dsPol[Deputy Secretary (Policy) — Ngiam Shih Chun]{layer:conceptual}
+  dsDev[Deputy Secretary (Development) — Chan Tsan]{layer:conceptual}
+  dsCorp[Deputy Secretary (Corporate) — Shie Yong Lee]{layer:conceptual}
+  cpc[Community Partnership &amp; Communications Group]{layer:logical}
+  fad[Finance &amp; Admin Division]{layer:logical}
+  htms[Home Team Medical Services Division]{layer:logical}
+  htpsy[Home Team Psychology Division]{layer:logical}
+  hrd[Human Resource Division]{layer:logical}
+  icp[International Cooperation and Partnerships Division]{layer:logical}
+  legal[Legal Division]{layer:logical}
+  jog[Joint Operations Group]{layer:logical}
+  pod[Planning and Organisation Division]{layer:logical}
+  pdd[Policy Development Division]{layer:logical}
+  tpg[Technology Policy Group]{layer:logical}
+  ros[Registry of Societies]{layer:logical}
+  rsd[Research and Statistics Division]{layer:logical}
+  rmag[Risk Management and Audit Group]{layer:logical}
+  tcd[Training and Competency Development Division]{layer:logical}
+  divA[Central Police Division A]{layer:physical}
+  divD[Clementi Police Division D]{layer:physical}
+  divE[Tanglin Police Division E]{layer:physical}
+  divF[Ang Mo Kio Police Division F]{layer:physical}
+  divG[Bedok Police Division G]{layer:physical}
+  divJ[Jurong Police Division J]{layer:physical}
+  divL[Woodlands Police Division L]{layer:physical}
+  apd[Airport Police Division]{layer:physical}
+  gc[Gurkha Contingent]{layer:physical}
+  htsci[Home Team School of Criminal Investigation]{layer:physical}
+  pcg[Police Coast Guard]{layer:physical}
+  pocc[Police Operations Command Centre]{layer:physical}
+  procom[Protective Security Command]{layer:physical}
+  transcom[Public Transport Security Command]{layer:physical}
+  seccom[Police Security Command]{layer:physical}
+  soc[Special Operations Command]{layer:physical}
+  tp[Traffic Police]{layer:physical}
+  tracom[Training Command]{layer:physical}
+  cyber[Cyber Command]{layer:physical}
+  cad[Commercial Affairs Department]{layer:logical}
+  cid[Criminal Investigation Department]{layer:logical}
+  ppsd[Police Psychological Services Department]{layer:logical}
+  otd[Ops-Tech Department]{layer:logical}
+  pid[Police Intelligence Department]{layer:logical}
+  afd[Administration and Finance Department]{layer:logical}
+  cps[Centre for Protective Security]{layer:logical}
+  cpd[Community Partnership Department]{layer:logical}
+  irm[Inspectorate and Risk Management Department]{layer:logical}
+  icd[International Cooperation Department]{layer:logical}
+  man[Manpower Department]{layer:logical}
+  ocha[Online Criminal Harms Act Office]{layer:logical}
+  ops[Operations Department]{layer:logical}
+  po[Planning and Organisation Department]{layer:logical}
+  prd[Police Regulatory Department]{layer:logical}
+  pld[Police Logistics Department]{layer:logical}
+  pns[Police National Service Department]{layer:logical}
+  pad[Public Affairs Department]{layer:logical}
+  sdd[Service Delivery Department]{layer:logical}
+  tcdSpf[Training and Capability Development Department]{layer:logical}
+  vsc[Volunteer Special Constabulary]{layer:logical}
+  isdMsn[Counter internal security threats — keep Singapore safe &amp; sovereign]{layer:conceptual}
+  scdfOps[Operations &amp; Resilience cluster]{layer:logical}
+  scdfFut[Future Technology &amp; Public Safety cluster]{layer:logical}
+  scdfCorp[Strategy &amp; Corporate Services cluster]{layer:logical}
+  scdf1[1st SCDF Division HQ]{layer:physical}
+  scdf2[2nd SCDF Division HQ]{layer:physical}
+  scdf3[3rd SCDF Division HQ]{layer:physical}
+  scdf4[4th SCDF Division HQ]{layer:physical}
+  scdfMar[SCDF Marine Division]{layer:physical}
+  cda[Civil Defence Academy]{layer:physical}
+  nstc[National Service Training Centre]{layer:physical}
+  spsOps[Operations Division]{layer:logical}
+  spsRehab[Rehabilitation &amp; Reintegration Division]{layer:logical}
+  instA1[Institution A1]{layer:physical}
+  instA2[Institution A2]{layer:physical}
+  instA3[Institution A3]{layer:physical}
+  instA4[Institution A4]{layer:physical}
+  instA5[Institution A5]{layer:physical}
+  instB1[Institution B1]{layer:physical}
+  instB2[Institution B2]{layer:physical}
+  instB3[Institution B3]{layer:physical}
+  instB4[Institution B4]{layer:physical}
+  instB5[Institution B5]{layer:physical}
+  instC1[Institution C1]{layer:physical}
+  instS1[Institution S1]{layer:physical}
+  instS2[Institution S2]{layer:physical}
+  instTM1[Institution TM1 — Tanah Merah]{layer:physical}
+  instTM2[Institution TM2 — Tanah Merah]{layer:physical}
+  spcsc[Selarang Park Community Supervision Centre]{layer:physical}
+  crc[Community Rehabilitation Centre]{layer:physical}
+  spsOscUnit[Ops &amp; security line units]{layer:logical}
+  icaLand[Land checkpoints]{layer:physical}
+  icaAir[Air checkpoints]{layer:physical}
+  icaSea[Sea checkpoints]{layer:physical}
+  icaReg[Registration &amp; identity]{layer:logical}
+  icaCorp[Corporate &amp; border policy]{layer:logical}
+  cnbEnf[Drug enforcement]{layer:logical}
+  cnbInv[Investigation]{layer:logical}
+  cnbIntel[Intelligence]{layer:logical}
+  cnbPrev[Prevention &amp; engagement]{layer:logical}
+  htaTrain[Home Team training schools]{layer:logical}
+  htaLead[Leadership &amp; doctrine]{layer:logical}
+  htaJoint[Joint Home Team courses]{layer:logical}
+  bio[Biometrics &amp; Profiling]{layer:logical}
+  cbrne[CBRNE]{layer:logical}
+  coehub[COE Hub]{layer:logical}
+  dif[Digital &amp; Information Forensics]{layer:logical}
+  dto[Disruptive Technologies Office]{layer:logical}
+  forens[Forensics]{layer:logical}
+  hfs[Human Factors &amp; Simulation]{layer:logical}
+  pss[Protective Security &amp; Safety]{layer:logical}
+  qteam[Q Team]{layer:logical}
+  raus[Robotics Automation &amp; Unmanned Systems]{layer:logical}
+  sense[Sensors and Sensemaking]{layer:logical}
+  vws[Vehicle &amp; Weapon Systems]{layer:logical}
+  graLic[Licensing &amp; authorisation]{layer:logical}
+  graComp[Compliance &amp; supervision]{layer:logical}
+  graPol[Gambling policy &amp; regulation]{layer:logical}
+  yrsEmp[Employment &amp; placement]{layer:logical}
+  yrsTrain[Skills &amp; training]{layer:logical}
+  yrsComm[Community &amp; Yellow Ribbon]{layer:logical}
+edges:
+  sm --> ps: directs{wire:command}
+  mha2law --> ps{wire:command}
+  mha2mfa --> ps{wire:command}
+  ps --> dsPol: policy{wire:command}
+  ps --> dsDev: development{wire:command}
+  ps --> dsCorp: corporate{wire:command}
+  dsPol --> pdd{wire:command}
+  dsPol --> jog{wire:command}
+  dsDev --> tpg{wire:command}
+  dsDev --> tcd{wire:command}
+  dsCorp --> hrd{wire:command}
+  dsCorp --> fad{wire:command}
+  jog --> spf: ops coord{wire:ops}
+  jog --> isd{wire:ops}
+  jog --> scdf{wire:ops}
+  jog --> ica{wire:ops}
+  jog --> cnb{wire:ops}
+  jog --> sps{wire:ops}
+  pdd --> spf{wire:policy}
+  pdd --> ica: immigration{wire:policy}
+  pdd --> sps: rehab &amp; criminal law{wire:policy}
+  pdd --> gra: gambling{wire:policy}
+  pdd --> cnb{wire:policy}
+  tpg --> htx: S&amp;T force multiplier{wire:tech}
+  htx --> spf{wire:tech}
+  htx --> scdf{wire:tech}
+  htx --> ica{wire:tech}
+  htx --> cnb{wire:tech}
+  tcd --> hta: training standards{wire:train}
+  hta --> spf{wire:train}
+  hta --> scdf{wire:train}
+  hta --> ica{wire:train}
+  hta --> sps{wire:train}
+  hta --> cnb{wire:train}
+  sps --> yrsg: reintegration{wire:rehab}
+  spsRehab --> yrsg{wire:rehab}
+  cpc --> spf{wire:engage}
+  cpc --> scdf{wire:engage}
+  ros --> pdd{wire:policy}
+story:
+  expand mha
+  wires command
+  wires command ops
+  wires command ops policy tech
+  wires all
+  focus lead hq
+  focus htd
+  focus boards
+  focus spf
+  expand all
+  collapse all
+</pre>
+  <details class="snippet"><summary>Fence source</summary><pre></pre></details>
+  <p class="demo-note" style="max-width:52rem;margin:1rem auto;padding:0 1rem;color:#9aa3b2;font-size:0.85rem;line-height:1.45">
+    Structure follows <a href="https://www.mha.gov.sg/who-we-are/" style="color:#9db0c3">mha.gov.sg</a>:
+    MHA HQ + 7 Home Team departments (SPF, ISD, SCDF, SPS, ICA, CNB, HTA) + 3 statutory boards (HTX, GRA, YRSG).
+    SPF from SPF Annual Report 2025; SCDF from scdf.gov.sg; HTX CoEs from htx.gov.sg;
+    SPS institutions/clusters from <a href="https://www.sps.gov.sg/organisation/" style="color:#9db0c3">sps.gov.sg</a> / SGDI (Clusters A–C, Community Corrections, Ops &amp; Security).
+    Expand faces to drill in. Office-holder names as published on MHA’s organisation page (Sep 2026).
+  </p>
+</body>
+</html>

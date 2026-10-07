@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="radius-learn" content="RADIUS.md" />
+  <title>14 ArcGIS Enterprise 12.3 HA — Radius</title>
+  <link rel="stylesheet" href="demo.css" />
+  <script type="module" src="../dist/radius.js"></script>
+</head>
+<body>
+  <header class="demo-bar">
+    <a href="index.html">← Demos</a>
+    <strong>14 · ArcGIS Enterprise 12.3 HA</strong>
+    <em>Diagramming example — not technically accurate · <code>esri</code> · <code>matrix</code></em>
+  </header>
+  <h1 class="demo-sub">ArcGIS Enterprise 12.3 — HA by network tier</h1>
+  <pre class="radius">
+theme: esri
+template: cloud
+frame: system
+ground: matrix
+groundTone: muted
+glass: frost
+look: elevated
+engine: auto
+groups:
+  users[User network]{family:esri layer:conceptual kind:esri.experience members:browser apps collapsed:true virtual:true}
+  infra[Infra common services]{family:esri layer:conceptual kind:esri.lb members:lb idp dns collapsed:true virtual:true}
+  web[Web tier]{family:esri layer:conceptual kind:esri.webadaptor members:wa_portal wa_server collapsed:true virtual:true}
+  app[App tier]{family:esri layer:conceptual kind:esri.server members:portal_ha hosting_ha specialty collapsed:true virtual:true}
+  portal_ha[Portal for ArcGIS]{family:esri parent:app layer:logical kind:esri.portal members:portal_p portal_s collapsed:true virtual:true}
+  hosting_ha[Hosting GIS Server]{family:esri parent:app layer:logical kind:esri.hosting members:gis_p gis_s collapsed:true virtual:true}
+  specialty[Specialty servers]{family:esri parent:app layer:logical kind:esri.server members:img_role ga_role ge_role nb_role mission_role know_role wfm_role collapsed:true virtual:true}
+  data[Data tier]{family:esri layer:conceptual kind:esri.datastore members:rel_ha tile_ha st_ha obj_ha collapsed:true virtual:true}
+  rel_ha[Relational]{family:esri parent:data layer:logical kind:esri.relational members:rel_pri rel_stb collapsed:true virtual:true}
+  tile_ha[Tile cache]{family:esri parent:data layer:logical kind:esri.tilecache members:tc_pri tc_stb collapsed:true virtual:true}
+  st_ha[Spatiotemporal]{family:esri parent:data layer:logical kind:esri.spatiotemporal members:st_n1 st_n2 st_n3 collapsed:true virtual:true}
+  obj_ha[Object store · HA 3]{family:esri parent:data layer:logical kind:esri.objectstore members:obj_n1 obj_n2 obj_n3 collapsed:true virtual:true}
+nodes:
+  browser[Browser map viewers]{kind:esri.map layer:conceptual}
+  apps[ArcGIS Pro · Field Maps · Experience]{kind:esri.experience layer:conceptual}
+  lb[Load balancer / reverse proxy]{kind:esri.lb layer:conceptual}
+  idp[SAML / OIDC IdP]{kind:esri.identity layer:conceptual}
+  dns[DNS]{kind:it.api layer:conceptual}
+  wa_portal[Web Adaptor — Portal]{kind:esri.webadaptor layer:logical}
+  wa_server[Web Adaptor — Server]{kind:esri.webadaptor layer:logical}
+  portal_p[Portal primary]{kind:esri.portal layer:logical}
+  portal_s[Portal standby]{kind:esri.portal layer:logical}
+  gis_p[GIS Server primary]{kind:esri.server layer:logical}
+  gis_s[GIS Server standby]{kind:esri.server layer:logical}
+  img_role[Image Server]{kind:esri.image layer:logical}
+  ga_role[GeoAnalytics Server]{kind:esri.geoanalytics layer:logical}
+  ge_role[GeoEvent Server]{kind:esri.geoevent layer:logical}
+  nb_role[Notebook Server]{kind:esri.notebook layer:logical}
+  mission_role[Mission Server]{kind:esri.mission layer:logical}
+  know_role[Knowledge Server]{kind:esri.knowledge layer:logical}
+  wfm_role[Workflow Manager Server]{kind:esri.workflow layer:logical}
+  rel_pri[Relational primary]{kind:esri.relational layer:logical}
+  rel_stb[Relational standby]{kind:esri.relational layer:logical}
+  tc_pri[Tile cache primary]{kind:esri.tilecache layer:logical}
+  tc_stb[Tile cache standby]{kind:esri.tilecache layer:logical}
+  st_n1[Spatiotemporal node 1]{kind:esri.spatiotemporal layer:logical}
+  st_n2[Spatiotemporal node 2]{kind:esri.spatiotemporal layer:logical}
+  st_n3[Spatiotemporal node 3]{kind:esri.spatiotemporal layer:logical}
+  obj_n1[Object node 1]{kind:esri.objectstore layer:logical}
+  obj_n2[Object node 2]{kind:esri.objectstore layer:logical}
+  obj_n3[Object node 3]{kind:esri.objectstore layer:logical}
+edges:
+  browser --> lb: 443
+  apps --> lb: 443
+  dns --> lb: 53
+  lb --> wa_portal: 443
+  lb --> wa_server: 443
+  wa_portal --> portal_p: 7443
+  wa_portal --> portal_s: 7443
+  portal_p --> portal_s: 7443
+  wa_server --> gis_p: 6443
+  wa_server --> gis_s: 6443
+  gis_p --> gis_s: 6443
+  portal_p --> gis_p: 6443
+  portal_s --> gis_s: 6443
+  idp --> portal_p: 443
+  idp --> portal_s: 443
+  portal_p --> img_role: 6443
+  portal_p --> ga_role: 6443
+  portal_p --> ge_role: 6143
+  portal_p --> nb_role: 11443
+  portal_p --> mission_role: 20443
+  portal_p --> know_role: 6443
+  portal_p --> wfm_role: 13443
+  gis_p --> rel_pri: 2443 · 9876
+  gis_p --> tc_pri: 2443 · 29081
+  gis_p --> st_n1: 2443 · 9220
+  gis_p --> obj_n1: 2443 · 29879
+  rel_pri --> gis_p: 6443
+  tc_pri --> gis_p: 6443
+  st_n1 --> gis_p: 6443
+  obj_n1 --> gis_p: 6443
+  img_role --> tc_pri: 29081
+  img_role --> obj_n1: 29879
+  ga_role --> st_n1: 9220
+  ge_role --> st_n1: 9220
+  nb_role --> rel_pri: 9876
+  know_role --> rel_pri: 9876
+  rel_pri --> rel_stb: 9876
+  tc_pri --> tc_stb: 29081
+  st_n1 --> st_n2: 9220 · 9320
+  st_n2 --> st_n3: 9220 · 9320
+  obj_n1 --> obj_n2: 2443
+  obj_n2 --> obj_n3: 2443
+story:
+  expand users
+  expand infra
+  expand web
+  expand app
+  expand data
+  expand portal_ha
+  expand hosting_ha
+  expand rel_ha
+  expand obj_ha
+  focus portal_p gis_p rel_pri
+</pre>
+  <details class="snippet"><summary>What the AI writes</summary><pre></pre></details>
+</body>
+</html>

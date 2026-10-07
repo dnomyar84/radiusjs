@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="radius-learn" content="RADIUS.md" />
+  <title>13 Azure architecture — Radius</title>
+  <link rel="stylesheet" href="demo.css" />
+  <script type="module" src="../dist/radius.js"></script>
+</head>
+<body>
+  <header class="demo-bar">
+    <a href="index.html">← Demos</a>
+    <strong>13 · Azure landing zone</strong>
+    <em>Azure kinds · contour ground · → story</em>
+  </header>
+  <h1 class="demo-sub">Azure hub-spoke landing zone</h1>
+  <pre class="radius">
+theme: azure
+template: cloud
+frame: system
+ground: contour
+groundTone: muted
+glass: frost
+look: elevated
+groups:
+  identity[Identity]{family:azure layer:conceptual kind:azure.entra members:entra kv collapsed:true}
+  hub[Hub network]{family:azure layer:conceptual kind:azure.vnet members:fw bastion dns agw collapsed:true}
+  spoke[App spoke]{family:azure layer:conceptual kind:azure.aks members:front compute data collapsed:true}
+  front[Front door]{family:azure parent:spoke layer:logical kind:azure.frontdoor members:afd apim collapsed:true}
+  compute[Compute]{family:azure parent:spoke layer:logical kind:azure.aks members:aks aca functions collapsed:true}
+  data[Data]{family:azure parent:spoke layer:logical kind:azure.sql members:sql cosmos redis blob collapsed:true}
+  observe[Observability]{family:azure layer:conceptual kind:azure.monitor members:mon insights collapsed:true}
+nodes:
+  entra[Microsoft Entra ID]{kind:azure.entra layer:conceptual}
+  kv[Key Vault]{kind:azure.keyvault layer:conceptual}
+  fw[Azure Firewall]{kind:azure.firewall layer:logical}
+  bastion[Bastion]{kind:azure.bastion layer:logical}
+  dns[Private DNS]{kind:azure.dns layer:logical}
+  agw[Application Gateway]{kind:azure.appgateway layer:logical}
+  afd[Front Door]{kind:azure.frontdoor layer:logical}
+  apim[API Management]{kind:azure.apim layer:logical}
+  aks[AKS]{kind:azure.aks layer:logical}
+  aca[Container Apps]{kind:azure.containerapps layer:logical}
+  functions[Functions]{kind:azure.functions layer:logical}
+  sql[Azure SQL]{kind:azure.sql layer:logical}
+  cosmos[Cosmos DB]{kind:azure.cosmos layer:logical}
+  redis[Azure Cache for Redis]{kind:azure.redis layer:logical}
+  blob[Blob Storage]{kind:azure.blob layer:logical}
+  mon[Monitor]{kind:azure.monitor layer:conceptual}
+  insights[Application Insights]{kind:azure.appinsights layer:conceptual}
+edges:
+  entra --> aks: auth
+  entra --> afd
+  kv --> aks
+  kv --> functions
+  afd --> apim
+  apim --> aks
+  apim --> aca
+  agw --> aks
+  aks --> sql
+  aks --> cosmos
+  aks --> redis
+  aks --> blob
+  aca --> sql
+  functions --> cosmos
+  functions --> blob
+  fw --> agw: inspect
+  bastion --> aks
+  dns --> sql
+  mon --> aks
+  insights --> aks
+  insights --> functions
+  hub --> spoke: peered
+story:
+  expand spoke
+  expand hub
+  expand compute
+  expand data
+  focus afd aks sql
+</pre>
+  <details class="snippet"><summary>What the AI writes</summary><pre></pre></details>
+</body>
+</html>

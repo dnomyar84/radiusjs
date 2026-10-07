@@ -30,7 +30,7 @@ describe('parse L0', () => {
     assert.ok(spec.story.some((s) => s.type === 'collapse'));
   });
 
-  it('defaults neon to chip ground and perspective look', () => {
+  it('defaults neon to chip ground and elevated look', () => {
     const spec = parse(`
 theme: neon
 template: hub
@@ -42,7 +42,7 @@ edges:
 `);
     assert.equal(spec.theme, 'neon');
     assert.equal(spec.ground, 'chip');
-    assert.equal(spec.look, 'perspective');
+    assert.equal(spec.look, 'elevated');
   });
 
   it('accepts azure.hci aliases', () => {
@@ -78,5 +78,64 @@ nodes:
     }));
     assert.equal(spec.template, 'nkp');
     assert.equal(spec.nodes[0].kind, 'nkp.management');
+  });
+
+  it('parses mindmap, shapes, route, and table alias', () => {
+    const spec = parse(`
+theme: indigo
+template: mindmap
+route: curve
+nodes:
+  hub[Hub]{shape:circle}
+  risks[Risks]{parent:hub shape:table}
+  r1[Latency]{parent:risks}
+  decide[Go?]{parent:hub shape:diamond}
+edges:
+  hub --> decide
+`);
+    assert.equal(spec.template, 'mindmap');
+    assert.equal(spec.route, 'curve');
+    assert.equal(spec.nodes.find((n) => n.id === 'hub').shape, 'circle');
+    assert.equal(spec.nodes.find((n) => n.id === 'risks').shape, 'table');
+    assert.equal(spec.nodes.find((n) => n.id === 'decide').shape, 'diamond');
+    const alias = parse(`
+template: flow
+nodes:
+  t[T]{shape:rows}
+`);
+    assert.equal(alias.nodes[0].shape, 'table');
+  });
+
+  it('parses constellation template with aurora ground default', () => {
+    const spec = parse(`
+theme: indigo
+template: constellation
+nodes:
+  a[A]
+  b[B]
+edges:
+  a --> b
+`);
+    assert.equal(spec.template, 'constellation');
+    assert.equal(spec.ground, 'aurora');
+  });
+
+  it('bare virtual flag does not swallow into parent id', () => {
+    const spec = parse(`
+theme: paper
+template: cloud
+groups:
+  mha[Ministry]{virtual collapsed:true}
+  htd[Departments]{parent:mha virtual collapsed:true}
+  scdf[SCDF]{parent:htd virtual collapsed:true}
+  scdfDiv[Divisions]{parent:scdf virtual members:a collapsed:true}
+nodes:
+  a[One]
+`);
+    assert.equal(spec.groups.find((g) => g.id === 'htd').parent, 'mha');
+    assert.equal(spec.groups.find((g) => g.id === 'scdf').parent, 'htd');
+    assert.equal(spec.groups.find((g) => g.id === 'scdfDiv').parent, 'scdf');
+    assert.equal(spec.groups.find((g) => g.id === 'mha').virtual, true);
+    assert.equal(spec.groups.find((g) => g.id === 'htd').virtual, true);
   });
 });

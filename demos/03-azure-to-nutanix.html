@@ -12,15 +12,15 @@
   <header class="demo-bar">
     <a href="index.html">← Demos</a>
     <strong>03 · Azure HCI → Nutanix</strong>
-    <em>Nested groups · family tints · migration edges</em>
+    <em>Nested groups · family tints · circuit ground</em>
   </header>
+  <h1 class="demo-sub">Migrate Azure Stack HCI into Nutanix + NKP</h1>
   <pre class="radius">
 theme: paper
 template: cloud
 frame: system
 look: elevated
 ground: circuit
-title: Migrate Azure Stack HCI into Nutanix + NKP
 groups:
   src[On-prem Azure HCI]{family:azure members:hci arc vnet mon}
   compute[Compute & guests]{family:azure parent:src members:vms aks collapsed:true}
@@ -62,7 +62,7 @@ edges:
   prom --> nkpmgt
   mon --> prom: cutover metrics
 </pre>
-  <details class="snippet" open>
+  <details class="snippet">
     <summary>What the AI writes</summary>
     <pre tabindex="0" data-radius-snippet></pre>
   </details>

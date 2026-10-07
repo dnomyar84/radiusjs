@@ -1,2 +1,18 @@
-/** Re-export entry for CDN-shaped paths: ../dist/radius.js → src */
-export { default, version, render, mountAll, help, parse, layout, layoutReport, paint, bindInteract, Radius } from '../src/radius.js';
+/*! Radius 0.5.0 — see ../src/radius.js */
+export {
+  default,
+  version,
+  render,
+  renderSync,
+  reflow,
+  mountAll,
+  help,
+  parse,
+  layout,
+  layoutAsync,
+  layoutReport,
+  paint,
+  bindInteract,
+  boardSize,
+  Radius,
+} from '../src/radius.js';

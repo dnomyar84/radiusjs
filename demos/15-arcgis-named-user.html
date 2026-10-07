@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="radius-learn" content="RADIUS.md" />
+  <title>15 ArcGIS Named User — Radius</title>
+  <link rel="stylesheet" href="demo.css" />
+  <script type="module" src="../dist/radius.js"></script>
+</head>
+<body class="demo-dark">
+  <header class="demo-bar">
+    <a href="index.html">← Demos</a>
+    <strong>15 · Named User · types · extensions</strong>
+    <em>Esri license model · wire groups · → story</em>
+  </header>
+  <h1 class="demo-sub">ArcGIS Named User — user types &amp; extensions</h1>
+  <pre class="radius">
+theme: esri
+template: cloud
+dir: tb
+frame: system
+ground: parcels
+groundTone: muted
+glass: frost
+look: elevated
+wires: all
+groups:
+  org[Organization]{family:esri layer:conceptual kind:esri.identity members:named portal agol collapsed:true virtual:true rank:0}
+  types[User types]{family:esri layer:conceptual kind:esri.creator members:viewer contributor mobile creator pro proplus collapsed:true virtual:true rank:1}
+  apps[Included capabilities]{family:esri layer:logical kind:esri.map members:mapviewer fieldmaps exp dash notebooks proapp collapsed:true virtual:true rank:2}
+  ext[ArcGIS Pro extensions]{family:esri layer:logical kind:esri.gp members:spatial network a3d imagea geostat interop collapsed:true virtual:true rank:3}
+nodes:
+  named[Named User]{kind:esri.nameduser layer:conceptual}
+  portal[Portal / Enterprise]{kind:esri.portal layer:conceptual}
+  agol[ArcGIS Online]{kind:esri.agol layer:conceptual}
+  viewer[Viewer]{kind:esri.viewer layer:conceptual}
+  contributor[Contributor]{kind:esri.contributor layer:conceptual}
+  mobile[Mobile Worker]{kind:esri.mobileworker layer:conceptual}
+  creator[Creator]{kind:esri.creator layer:conceptual}
+  pro[Professional]{kind:esri.professional layer:conceptual}
+  proplus[Professional Plus]{kind:esri.professionalplus layer:conceptual}
+  mapviewer[Map Viewer]{kind:esri.map layer:logical}
+  fieldmaps[Field Maps]{kind:esri.mission layer:logical}
+  exp[Experience Builder]{kind:esri.experience layer:logical}
+  dash[Dashboards]{kind:esri.manager layer:logical}
+  notebooks[Notebooks]{kind:esri.notebook layer:logical}
+  proapp[ArcGIS Pro]{kind:esri.gp layer:logical}
+  spatial[Spatial Analyst]{kind:esri.spatial layer:logical}
+  network[Network Analyst]{kind:esri.network layer:logical}
+  a3d[3D Analyst]{kind:esri.analyst3d layer:logical}
+  imagea[Image Analyst]{kind:esri.imageanalyst layer:logical}
+  geostat[Geostatistical]{kind:esri.geostat layer:logical}
+  interop[Data Interoperability]{kind:esri.interop layer:logical}
+edges:
+  # Parent → parent, top→bottom stack (dir:tb)
+  org --> types: assigns{wire:identity}
+  types --> apps: includes{wire:entitle}
+  apps --> ext: add-ons{wire:extend}
+  # Inside organization
+  named --> portal{wire:identity}
+  named --> agol{wire:identity}
+story:
+  wires off
+  expand org
+  expand types
+  wires identity
+  focus named
+  expand apps
+  wires entitle
+  expand ext
+  wires extend
+  wires all
+  focus named proplus
+</pre>
+  <details class="snippet">
+    <summary>What the AI writes</summary>
+    <pre tabindex="0" data-radius-snippet></pre>
+  </details>
+  <script type="module" src="demo-snippet.js"></script>
+</body>
+</html>

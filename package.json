@@ -1,6 +1,6 @@
 {
   "name": "radiusjs",
-  "version": "0.1.0",
+  "version": "0.5.0",
   "description": "Raymond's Agentic Diagramming Unified System (Radius)",
   "type": "module",
   "license": "MIT",
@@ -10,12 +10,18 @@
     "./css": "./dist/radius.css"
   },
   "scripts": {
-    "test": "node --test test/parse.test.js test/layout.test.js test/kinds.test.js",
+    "test": "node --test test/parse.test.js test/layout.test.js test/kinds.test.js test/fold.test.js test/regressions.test.js test/catalog.test.js",
     "test:parse": "node --test test/parse.test.js",
     "test:layout": "node --test test/layout.test.js",
+    "test:fold": "node --test test/fold.test.js",
+    "test:regressions": "node --test test/regressions.test.js",
+    "test:catalog": "node --test test/catalog.test.js",
     "serve": "powershell -NoProfile -ExecutionPolicy Bypass -File ./serve.ps1"
   },
   "engines": {
     "node": ">=20"
+  },
+  "dependencies": {
+    "elkjs": "0.9.3"
   }
 }
