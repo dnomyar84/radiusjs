@@ -2,27 +2,28 @@
 
 **R**aymond's **A**gentic **D**iagramming **U**nified **S**ystem — AI-native diagrams (HTML5). Agents learn [RADIUS.md](RADIUS.md), emit ` ```radius `, you pin a versioned script.
 
-## Local preview
+## Examples
+
+The gallery is static HTML. Open [`demos/index.html`](demos/index.html). The repository root redirects there.
+
+- Playground: `demos/#/playground`
+- A diagram: `demos/#/demo/20-mindmap`
+
+On Cloud Agents, open that file. Do not start a static server.
+
+GitHub Pages, if enabled from the repository root (there is no `/docs` folder):
+
+- https://dnomyar84.github.io/radiusjs/demos/
+- https://dnomyar84.github.io/radiusjs/demos/#/playground
+- https://dnomyar84.github.io/radiusjs/demos/#/demo/20-mindmap
+
+Windows local preview only, optional:
 
 ```powershell
-.\npm.cmd test
 .\serve.ps1
 ```
 
-Open [http://127.0.0.1:8765/demos/](http://127.0.0.1:8765/demos/) — categorized left nav, diagram-first stage, and a **styling playground** (`#/playground`).
-
-Portable Node + MinGit live under `.tools/` (gitignored). Use project wrappers:
-
-```powershell
-.\node.cmd -v
-.\npm.cmd test
-.\git.cmd status
-.\gh.cmd auth status
-```
-
-## GitHub Pages
-
-The `demos/` folder is static. Point Pages at `/docs` (copy/symlink demos) or the repo root and open `/demos/`. Deep links: `#/demo/20-mindmap`, `#/playground`.
+That serves http://127.0.0.1:8765/demos/
 
 ## Agent 30-second path
 

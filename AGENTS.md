@@ -11,3 +11,5 @@ Visual taste gate: [VISUAL.md](VISUAL.md). Dev loop: [TEST.md](TEST.md).
 .\npm.cmd test
 .\serve.ps1
 ```
+
+Cloud Agents: open `demos/index.html` (`#/playground`, `#/demo/<id>`). Do not start a static server. `serve.ps1` is the optional Windows preview only.
