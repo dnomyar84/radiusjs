@@ -811,6 +811,13 @@
     width 320ms var(--radius-ease);
 }
 
+.radius-edge.is-lifeline {
+  stroke: var(--radius-line);
+  stroke-width: 1.25;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
 /* UML / flowchart faces — shape: on any template (mindmap, cloud, flow, …) */
 .radius-node.is-shape-round,
 .radius-node.is-shape-round > .radius-node-face {

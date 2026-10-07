@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="radius-learn" content="RADIUS.md" />
+  <title>23 Hierarchy — Radius</title>
+  <link rel="stylesheet" href="demo.css" />
+  <script type="module" src="../dist/radius.js"></script>
+</head>
+<body>
+  <header class="demo-bar">
+    <a href="index.html">← Demos</a>
+    <strong>23 · Hierarchy</strong>
+    <em>Generations down the board · collapse a face to fold its children</em>
+  </header>
+  <h1 class="demo-sub">Delivery org</h1>
+  <pre class="radius">
+theme: indigo
+template: hierarchy
+dir: tb
+frame: system
+ground: dots
+glass: frost
+motion: tasteful
+title: Delivery org
+nodes:
+  org[Delivery]{shape:circle collapsed:false}
+  eng[Engineering]{parent:org collapsed:false}
+  mkt[Marketing]{parent:org shape:oval}
+  api[API]{parent:eng shape:parallelogram}
+  ui[UI]{parent:eng}
+  field[Field]{parent:mkt}
+edges:
+  org --> eng
+  org --> mkt
+  eng --> api
+  eng --> ui
+  mkt --> field
+</pre>
+  <details class="snippet">
+    <summary>What the AI writes</summary>
+    <pre tabindex="0" data-radius-snippet></pre>
+  </details>
+  <script type="module" src="demo-snippet.js"></script>
+</body>
+</html>

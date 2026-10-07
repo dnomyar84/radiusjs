@@ -137,6 +137,11 @@ function navigate(mode, demoId) {
   syncNavActive();
 }
 
+/** Iframe URL next to this module, so `/demos` and `/demos/` both hit `demos/<file>`. */
+export function demoFrameUrl(file, base = import.meta.url) {
+  return new URL(`${file}?embed=1`, base).href;
+}
+
 function renderStage() {
   const frame = $('#stage-frame');
   const play = $('#stage-playground');
@@ -160,7 +165,7 @@ function renderStage() {
   if (!demo) return;
   title.textContent = demo.title;
   blurb.textContent = demo.blurb;
-  const src = `${demo.file}?embed=1`;
+  const src = demoFrameUrl(demo.file);
   if (frame.dataset.src !== src) {
     frame.dataset.src = src;
     frame.src = src;
@@ -305,4 +310,4 @@ function init() {
   syncNavActive();
 }
 
-init();
+if (typeof document !== 'undefined') init();

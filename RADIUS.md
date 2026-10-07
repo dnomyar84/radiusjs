@@ -257,6 +257,38 @@ edges:
   hub --> risks
 ```
 
+## Sequence
+
+`template: sequence` places each node as a lifeline head. Edges are messages in document order. With the default `dir: lr`, heads run left to right and messages stack downward. `dir: tb` turns the chart: heads run top to bottom and messages step to the right. A self-edge draws a loop. `engine: auto` keeps this packer (set `engine: elk` to hand the graph to elkjs).
+
+```radius
+template: sequence
+title: Checkout
+nodes:
+  client[Client]
+  api[API]
+  db[DB]
+edges:
+  client --> api: place order
+  api --> db: insert
+  db --> api: ok
+  api --> client: receipt
+```
+
+## Hierarchy
+
+`template: hierarchy` is an orthogonal tree. Children come from `parent:` and from edges (`from` → `to`). Generations step down the board. `dir: lr` grows to the right. `dir: bt` and `dir: rl` reverse the axis. `collapsed:true` folds a parent’s children onto its face.
+
+```radius
+template: hierarchy
+dir: tb
+title: Org
+nodes:
+  root[Org]{collapsed:false}
+  eng[Engineering]{parent:root}
+  mkt[Marketing]{parent:root}
+```
+
 ## Drill-in
 
 Same expand tree, two vocabularies:

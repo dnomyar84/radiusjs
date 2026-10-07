@@ -93,6 +93,7 @@ export function paint(host, spec, laid) {
   host.className = `radius-root look-${spec.look} motion-${spec.motion} frame-${spec.frame} font-${spec.font} glass-${spec.glass || 'frost'}`;
   host.dataset.theme = spec.theme;
   host.dataset.template = spec.template;
+  host.dataset.dir = spec.dir || 'lr';
   host.dataset.ground = spec.ground;
   host.dataset.glass = spec.glass || 'frost';
   host.dataset.engine = laid.engine || 'native';
@@ -190,6 +191,9 @@ export function paint(host, spec, laid) {
       if (!r.d || r.hidden) return '';
       // Timeline rail already shows sequence — only paint labeled gate strokes
       if (r.routeMode === 'timeline-axis' && !r.label) return '';
+      if (r.routeMode === 'sequence-life') {
+        return `<path class="radius-edge is-lifeline${holdAppear}" data-from="${esc(r.from)}" data-to="${esc(r.to)}" d="${r.d}" fill="none" stroke-dasharray="4 5" marker-end="none"/>`;
+      }
       const wire = r.wire || 'main';
       const off = wireVisible(wire, wires) ? '' : ' is-wire-off';
       const attachFrom = r.resolvedFrom || r.from;
