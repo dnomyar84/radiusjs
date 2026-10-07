@@ -1,7 +1,7 @@
 {
   "name": "radiusjs",
   "version": "0.5.0",
-  "description": "Raymond's Agentic Diagramming Unified System (Radius)",
+  "description": "Open-source HTML5 diagramming system for AI agents: one text language, automatic layout, many templates."
   "type": "module",
   "license": "MIT",
   "private": true,

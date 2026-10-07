@@ -316,4 +316,4 @@ Demos: `12-aws-architecture.html`, `13-azure-architecture.html`.
 
 ## Version
 
-`Radius.version` is **0.5.0**. Pin `…/radiusjs@0.5.0/dist/radius.js` when published. Never `@latest`.
+`Radius.version` is **0.5.0**. Load `dist/radius.js` from a fixed commit of this repository. Never `@latest`.
