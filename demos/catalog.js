@@ -166,7 +166,7 @@ export const CATEGORIES = [
     id: 'playground',
     label: 'Styling playground',
     special: 'playground',
-    hint: 'Themes · grounds · live preview',
+    hint: 'Look · diagram style · live preview',
   },
   {
     id: 'new',
@@ -227,3 +227,180 @@ edges:
   hub --> risks
   api --> lat
 `;
+
+/**
+ * Beauty rail — one snap chooses a color and a background together.
+ * `label` is the color name; the rail shows "label · ground".
+ */
+export const BEAUTY_PRESETS = [
+  { id: 'indigo', label: 'Indigo', theme: 'indigo', ground: 'dots' },
+  { id: 'aurora', label: 'Aurora', theme: 'indigo', ground: 'aurora' },
+  { id: 'paper', label: 'Paper', theme: 'paper', ground: 'dots' },
+  { id: 'night', label: 'Night', theme: 'night', ground: 'grid' },
+  { id: 'ios', label: 'iOS', theme: 'ios', ground: 'solid' },
+  { id: 'material', label: 'Material', theme: 'material', ground: 'wash' },
+  { id: 'esri', label: 'Esri', theme: 'esri', ground: 'parcels' },
+  { id: 'neon', label: 'Neon', theme: 'neon', ground: 'chip' },
+  { id: 'copper', label: 'Copper', theme: 'aws', ground: 'hex' },
+  { id: 'sky', label: 'Sky', theme: 'azure', ground: 'wash' },
+  { id: 'glacier', label: 'Glacier', theme: 'gcp', ground: 'grid' },
+  { id: 'clay', label: 'Clay', theme: 'oci', ground: 'diagonal' },
+  { id: 'helm', label: 'Helm', theme: 'k8s', ground: 'circuit' },
+  { id: 'tide', label: 'Tide', theme: 'nutanix', ground: 'mesh' },
+];
+
+/**
+ * Diagram rail — structure only. Color and background stay on the beauty rail.
+ * `route` is applied when the style is chosen.
+ */
+export const STYLE_PRESETS = [
+  { id: 'mindmap', label: 'Mind map', route: 'curve', fence: PLAYGROUND_BASE },
+  {
+    id: 'flow',
+    label: 'Flow chart',
+    route: 'ortho',
+    fence: `template: flow
+dir: lr
+title: Flow chart
+nodes:
+  start[Start]{shape:round}
+  check[Ready?]{shape:diamond}
+  build[Build]
+  ship[Ship]{shape:oval}
+edges:
+  start --> check
+  check --> build: yes
+  build --> ship
+`,
+  },
+  {
+    id: 'uml',
+    label: 'UML',
+    route: 'ortho',
+    fence: `template: flow
+dir: lr
+title: UML
+nodes:
+  actor[Actor]{shape:oval}
+  input[Request]{shape:parallelogram}
+  gate[Allowed?]{shape:diamond}
+  action[Update]{shape:rect}
+  store[Record]{shape:table}
+edges:
+  actor --> input
+  input --> gate
+  gate --> action: yes
+  action --> store
+`,
+  },
+  {
+    id: 'architecture',
+    label: 'Architecture',
+    route: 'ortho',
+    fence: `template: cloud
+title: Architecture
+groups:
+  edge[Edge]{virtual members:cdn gw collapsed:false}
+  core[Core]{virtual members:api worker collapsed:false}
+  data[Data]{virtual members:db collapsed:false}
+nodes:
+  cdn[CDN]
+  gw[Gateway]
+  api[API]
+  worker[Worker]
+  db[Database]
+edges:
+  cdn --> gw
+  gw --> api
+  api --> worker
+  api --> db
+`,
+  },
+  {
+    id: 'aws',
+    label: 'AWS',
+    route: 'ortho',
+    fence: `template: cloud
+title: AWS
+groups:
+  vpc[VPC]{family:aws virtual members:alb ecs rds collapsed:false}
+nodes:
+  alb[Load balancer]{kind:aws.alb}
+  ecs[Service]{kind:aws.ecs}
+  rds[Database]{kind:aws.rds}
+edges:
+  alb --> ecs
+  ecs --> rds
+`,
+  },
+  {
+    id: 'azure',
+    label: 'Azure',
+    route: 'ortho',
+    fence: `template: cloud
+title: Azure
+groups:
+  rg[Resource group]{family:azure virtual members:app db vault collapsed:false}
+nodes:
+  app[App Service]{kind:azure.appservice}
+  db[SQL]{kind:azure.sql}
+  vault[Key Vault]{kind:azure.keyvault}
+edges:
+  app --> db
+  app --> vault
+`,
+  },
+  {
+    id: 'timeline',
+    label: 'Timeline',
+    route: 'ortho',
+    fence: `template: timeline
+dir: lr
+title: Timeline
+nodes:
+  assess[Assess]{rank:0 time:2025 Q1}
+  pilot[Pilot]{rank:1 time:2025 Q2}
+  scale[Scale]{rank:2 time:2025 Q3}
+  live[Go live]{rank:3 time:2025 Q4}
+edges:
+  assess --> pilot
+  pilot --> scale
+  scale --> live: gate
+`,
+  },
+  {
+    id: 'hub',
+    label: 'Hub',
+    route: 'curve',
+    fence: `template: hub
+title: Hub
+nodes:
+  core[Core]
+  api[API]
+  ui[UI]
+  data[Data]
+edges:
+  core --> api
+  core --> ui
+  core --> data
+`,
+  },
+  {
+    id: 'constellation',
+    label: 'Constellation',
+    route: 'straight',
+    fence: `template: constellation
+title: Constellation
+nodes:
+  a[Atlas]
+  b[Bridge]
+  c[Core]
+  d[Drift]
+edges:
+  a --> b
+  b --> c
+  c --> a
+  a --> d
+`,
+  },
+];
