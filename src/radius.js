@@ -291,6 +291,10 @@ export async function render(el, source, opts = {}) {
 
   if (opts.theme) spec.theme = opts.theme;
   if (opts.engine) spec.engine = opts.engine;
+  // Playground rails skin an imported diagram without rewriting its text.
+  for (const key of ['ground', 'look', 'glass', 'font', 'motion', 'route', 'frame']) {
+    if (opts[key]) spec[key] = opts[key];
+  }
 
   el.style.width = '100%';
   el.style.maxWidth = '100%';
@@ -339,7 +343,9 @@ function applyEmbedClass() {
 export async function mountAll(root = document) {
   applyEmbedClass();
   ensureCSS();
-  const nodes = root.querySelectorAll('pre.radius, [data-radius], code.language-radius');
+  const nodes = root.querySelectorAll(
+    'pre.radius, pre.mermaid, [data-radius], code.language-radius, code.language-mermaid',
+  );
   const out = [];
   for (const node of nodes) {
     const source = node.textContent;

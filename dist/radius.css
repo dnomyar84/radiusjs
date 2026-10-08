@@ -403,6 +403,27 @@
   display: none !important;
 }
 
+.radius-edge.is-line-dotted,
+.radius-edge.is-lifeline {
+  stroke-dasharray: 4 4;
+}
+.radius-edge.is-lifeline {
+  stroke-dasharray: 2 5;
+  opacity: 0.4;
+}
+.radius-edge.is-line-thick {
+  stroke-width: 3.2;
+}
+.radius-seq-frame {
+  fill: color-mix(in srgb, var(--radius-accent) 7%, transparent);
+  stroke: color-mix(in srgb, var(--radius-muted) 55%, transparent);
+  stroke-width: 1;
+}
+.radius-seq-label {
+  fill: var(--radius-muted);
+  font-size: 11px;
+  font-weight: 650;
+}
 .radius-edge.is-hot,
 .radius-edge.is-accent {
   stroke: var(--radius-accent);
@@ -858,6 +879,65 @@
   border: 1px solid color-mix(in srgb, var(--radius-line) 90%, transparent);
   justify-content: center;
   min-height: 100%;
+}
+.radius-node.is-shape-cylinder {
+  background: transparent !important;
+  border: none !important;
+  overflow: visible;
+}
+.radius-node.is-shape-cylinder > .radius-node-face {
+  border-radius: 18px 18px 10px 10px;
+  background:
+    radial-gradient(ellipse 50% 8px at 50% 9px, transparent 68%, var(--radius-line) 70% 74%, transparent 76%),
+    var(--radius-card);
+  border: 1px solid color-mix(in srgb, var(--radius-line) 90%, transparent);
+}
+.radius-node.is-shape-sub {
+  box-shadow: inset 0 0 0 3px var(--radius-card), inset 0 0 0 4px color-mix(in srgb, var(--radius-line) 80%, transparent);
+}
+.radius-node.is-shape-trap,
+.radius-node.is-shape-flag,
+.radius-node.is-shape-note {
+  background: transparent !important;
+  border: none !important;
+  overflow: visible;
+}
+.radius-node.is-shape-trap > .radius-node-face {
+  clip-path: polygon(14% 0%, 100% 0%, 86% 100%, 0% 100%);
+  border-radius: 0;
+  background: var(--radius-card);
+  border: 1px solid color-mix(in srgb, var(--radius-line) 90%, transparent);
+}
+.radius-node.is-shape-flag > .radius-node-face {
+  clip-path: polygon(0 0, 100% 0, 84% 50%, 100% 100%, 0 100%);
+  border-radius: 0;
+  background: var(--radius-card);
+  border: 1px solid color-mix(in srgb, var(--radius-line) 90%, transparent);
+}
+.radius-node.is-shape-dbl {
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 3px var(--radius-card), inset 0 0 0 5px color-mix(in srgb, var(--radius-line) 85%, transparent);
+}
+.radius-node.is-shape-dbl > .radius-node-face {
+  border-radius: 999px;
+}
+.radius-node.is-shape-note > .radius-node-face {
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+  border-radius: 2px 0 2px 2px;
+  background: var(--radius-card);
+  border: 1px solid color-mix(in srgb, var(--radius-line) 90%, transparent);
+}
+.radius-node.is-role-bar {
+  background: color-mix(in srgb, var(--radius-muted) 80%, var(--radius-accent));
+  border: none;
+  border-radius: 3px;
+  box-shadow: none;
+  pointer-events: none;
+  z-index: 1;
+}
+.radius-node.is-role-bar > .radius-node-face,
+.radius-node.is-role-bar > .radius-resize {
+  display: none;
 }
 /* Table parent: header strip; each child row is its own .radius-node element */
 .radius-node.is-shape-table {

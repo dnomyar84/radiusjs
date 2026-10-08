@@ -8,6 +8,20 @@ export const VERSION = '0.5.0';
 
 /** @type {Record<string, DemoEntry>} */
 export const DEMOS = {
+  '24-mermaid-flow': {
+    id: '24-mermaid-flow',
+    file: '24-mermaid-flow.html',
+    title: 'From Mermaid',
+    blurb: 'Pasted flowchart · shapes · subgraph',
+    tags: ['mermaid', 'flow'],
+  },
+  '23-sequence': {
+    id: '23-sequence',
+    file: '23-sequence.html',
+    title: 'Sequence',
+    blurb: 'Lifelines · notes · alt · dotted reply',
+    tags: ['sequence', 'mermaid'],
+  },
   '22-age-velocity-ha': {
     id: '22-age-velocity-ha',
     file: '22-arcgis-enterprise-velocity-ha.html',
@@ -178,7 +192,7 @@ export const CATEGORIES = [
   {
     id: 'new',
     label: 'New',
-    demos: ['22-age-velocity-ha', '21-constellation', '20-mindmap', '19-delivery-arch', '18-reality-jupedsim'],
+    demos: ['24-mermaid-flow', '23-sequence', '22-age-velocity-ha', '21-constellation', '20-mindmap', '19-delivery-arch'],
   },
   {
     id: 'architecture',
@@ -198,12 +212,12 @@ export const CATEGORIES = [
   {
     id: 'narrative',
     label: 'Narrative & time',
-    demos: ['01-deck', '04-story-replace', '09-timeline'],
+    demos: ['23-sequence', '01-deck', '04-story-replace', '09-timeline'],
   },
   {
     id: 'layout',
     label: 'Layout & fold',
-    demos: ['21-constellation', '20-mindmap', '07-expand', '10-layout-hints'],
+    demos: ['24-mermaid-flow', '23-sequence', '21-constellation', '20-mindmap', '07-expand', '10-layout-hints'],
   },
   {
     id: 'look',
@@ -262,6 +276,41 @@ export const BEAUTY_PRESETS = [
  */
 export const STYLE_PRESETS = [
   { id: 'mindmap', label: 'Mind map', route: 'curve', fence: PLAYGROUND_BASE },
+  {
+    id: 'sequence',
+    label: 'Sequence',
+    route: 'straight',
+    fence: `template: sequence
+title: Checkout
+nodes:
+  alice[Alice]{shape:oval}
+  api[API]
+  db[Orders]{shape:cylinder}
+  note1[In stock?]{role:note shape:note lane:api side:right rank:0}
+edges:
+  alice --> api: Place order
+  api --> db: Insert
+  db --> api: ok{line:dotted}
+  api --> alice: Confirmed
+groups:
+  stock[alt in stock]{rank:1 span:2 virtual:true expandable:false}
+`,
+  },
+  {
+    id: 'mermaid',
+    label: 'Mermaid',
+    route: 'ortho',
+    fence: `flowchart TB
+  start([Start]) --> gate{Ready?}
+  gate -->|Yes| work[Build]
+  gate -->|No| stop([Stop])
+  work --> db[(Save)]
+  subgraph ship [Release]
+    work
+    db
+  end
+`,
+  },
   {
     id: 'flow',
     label: 'Flow chart',

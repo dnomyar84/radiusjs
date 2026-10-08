@@ -6,6 +6,7 @@ import { BEAUTY_PRESETS, CATEGORIES, DEMOS, STYLE_PRESETS, VERSION } from './cat
 import { THEMES } from '../src/themes.js';
 import { ENUMS } from '../src/parse.js';
 import { reflow as radiusReflow, render as radiusRender } from '../dist/radius.js';
+import { looksLikeMermaid } from '../src/mermaid.js';
 
 const THEME_IDS = Object.keys(THEMES);
 const GROUNDS = [...ENUMS.GROUNDS];
@@ -30,6 +31,7 @@ const state = {
     motion: 'tasteful',
     route: 'curve',
     frame: 'system',
+    custom: null,
   },
 };
 
@@ -227,7 +229,7 @@ function renderStage() {
     frame.removeAttribute('src');
     play.classList.add('is-visible');
     title.textContent = 'Styling playground';
-    blurb.textContent = 'Snap a look, then a diagram style. The source stays folded until you open it.';
+    blurb.textContent = 'Snap a look, then a diagram. Paste Radius or Mermaid in Diagram text.';
     ensurePlaygroundBuilt();
     renderPlayground();
     return;
@@ -345,6 +347,7 @@ function applyStyle(id, { recenter = false } = {}) {
     return;
   }
   state.play.style = preset.id;
+  state.play.custom = null;
   if (preset.route) state.play.route = preset.route;
   syncRails({ recenter });
   renderPlayground();
@@ -453,7 +456,26 @@ function composePlayFence() {
     /^(theme|ground|look|glass|font|motion|route|frame|groundTone|groundtone)\s*:.*$/gim,
     '',
   ).trim();
+  if (looksLikeMermaid(body)) return body;
   return `${meta}\n${body}`;
+}
+
+let playTimer = 0;
+
+function bindSourceEditor() {
+  const area = $('#play-source-edit');
+  const box = document.querySelector('.play-source');
+  if (box && !box.dataset.ready) {
+    box.dataset.ready = '1';
+    box.open = !narrowQuery.matches;
+  }
+  if (!area || area.dataset.bound) return;
+  area.dataset.bound = '1';
+  area.addEventListener('input', () => {
+    state.play.custom = area.value;
+    window.clearTimeout(playTimer);
+    playTimer = window.setTimeout(() => renderPlayground(), 160);
+  });
 }
 
 let playSeq = 0;
@@ -473,15 +495,27 @@ async function fitPlayBoard(mount, seq) {
 
 async function renderPlayground() {
   const mount = $('#play-mount');
-  const source = $('#play-source-pre');
   const errEl = $('#play-error');
   if (!mount) return;
-  const fence = composePlayFence();
-  if (source) source.textContent = fence;
+  bindSourceEditor();
+  const fence = state.play.custom != null ? state.play.custom : composePlayFence();
+  const area = $('#play-source-edit');
+  if (area && document.activeElement !== area && area.value !== fence) area.value = fence;
   const seq = ++playSeq;
   errEl?.classList.remove('is-visible');
+  const skin = state.play;
   try {
-    await radiusRender(mount, fence, { animate: false });
+    await radiusRender(mount, fence, {
+      animate: false,
+      theme: skin.theme,
+      ground: skin.ground,
+      look: skin.look,
+      glass: skin.glass,
+      font: skin.font,
+      motion: skin.motion,
+      route: skin.route,
+      frame: skin.frame,
+    });
     if (seq !== playSeq) return;
     await fitPlayBoard(mount, seq);
   } catch (e) {

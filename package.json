@@ -10,7 +10,7 @@
     "./css": "./dist/radius.css"
   },
   "scripts": {
-    "test": "node --test test/parse.test.js test/layout.test.js test/kinds.test.js test/fold.test.js test/regressions.test.js test/catalog.test.js",
+    "test": "node --test test/parse.test.js test/layout.test.js test/kinds.test.js test/fold.test.js test/regressions.test.js test/catalog.test.js test/mermaid.test.js",
     "test:parse": "node --test test/parse.test.js",
     "test:layout": "node --test test/layout.test.js",
     "test:fold": "node --test test/fold.test.js",

@@ -5,6 +5,62 @@ import { normalizeWires, wireVisible } from './parse.js';
 import { pastelForKey, pastelMixPct } from './pastels.js';
 import { contentFitTransform } from './layout.js';
 
+let paintSeq = 0;
+
+function markerDef(id, kind, color) {
+  const common = `id="${id}-${kind}" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="8" markerHeight="8" orient="auto-start-reverse"`;
+  if (kind === 'arrow') {
+    return `<marker ${common}><path d="M 0 1 L 11 6 L 0 11 z" fill="${color}"/></marker>`;
+  }
+  if (kind === 'open') {
+    return `<marker ${common}><path d="M 1 1.5 L 10 6 L 1 10.5" fill="none" stroke="${color}" stroke-width="1.4"/></marker>`;
+  }
+  if (kind === 'circle') {
+    return `<marker ${common}><circle cx="6" cy="6" r="3.2" fill="none" stroke="${color}" stroke-width="1.4"/></marker>`;
+  }
+  if (kind === 'cross') {
+    return `<marker ${common}><path d="M 2.5 2.5 L 9.5 9.5 M 9.5 2.5 L 2.5 9.5" fill="none" stroke="${color}" stroke-width="1.5"/></marker>`;
+  }
+  if (kind === 'triangle') {
+    return `<marker ${common}><path d="M 1 1.5 L 11 6 L 1 10.5 z" fill="none" stroke="${color}" stroke-width="1.3"/></marker>`;
+  }
+  if (kind === 'diamond') {
+    return `<marker ${common}><path d="M 1 6 L 6 1.5 L 11 6 L 6 10.5 z" fill="${color}"/></marker>`;
+  }
+  if (kind === 'odiamond') {
+    return `<marker ${common}><path d="M 1 6 L 6 1.5 L 11 6 L 6 10.5 z" fill="var(--radius-card)" stroke="${color}" stroke-width="1.2"/></marker>`;
+  }
+  return '';
+}
+
+function svgExtent(board, laid) {
+  let w = board?.w || 0;
+  let h = board?.h || 0;
+  const grow = (b) => {
+    if (!b || b.folded) return;
+    w = Math.max(w, (b.x || 0) + (b.w || 0) + 12);
+    h = Math.max(h, (b.y || 0) + (b.h || 0) + 12);
+  };
+  for (const b of Object.values(laid?.boxes || {})) grow(b);
+  for (const b of Object.values(laid?.groupBoxes || {})) grow(b);
+  for (const b of laid?.frames || []) grow(b);
+  return { w: Math.ceil(w), h: Math.ceil(h) };
+}
+
+function edgePaint(r, markerId) {
+  const line = r.line || 'solid';
+  const head = r.head || 'arrow';
+  const tail = r.tail || 'none';
+  const cls = [
+    line === 'dotted' ? 'is-line-dotted' : '',
+    line === 'thick' ? 'is-line-thick' : '',
+    r.routeMode === 'lifeline' ? 'is-lifeline' : '',
+  ].filter(Boolean).join(' ');
+  const end = head !== 'none' ? ` marker-end="url(#${markerId}-${head})"` : '';
+  const start = tail !== 'none' ? ` marker-start="url(#${markerId}-${tail})"` : '';
+  return { cls, end, start };
+}
+
 function esc(s) {
   return String(s ?? '')
     .replace(/&/g, '&amp;')
@@ -125,6 +181,7 @@ export function paint(host, spec, laid) {
     { glow2: theme.glow2, glow3: theme.glow3, glow4: theme.glow4 },
   );
 
+  const svgBox = svgExtent(board, laid);
   const washMix = pastelMixPct(spec.theme);
   const groupEls = Object.entries(laid.groupBoxes || {})
     .map(([id, g]) => {
@@ -180,6 +237,7 @@ export function paint(host, spec, laid) {
     })
     .join('');
 
+  const markerId = `rm${++paintSeq}`;
   const pipes = spec.theme === 'neon' || spec.look === 'perspective';
   const axisSvg = axisHTML(laid.axis, board, theme);
   const wires = normalizeWires(spec.wires);
@@ -208,11 +266,12 @@ export function paint(host, spec, laid) {
         ? ` data-label="${esc(tipText)}" title="${esc(tipText)}"`
         : '';
       const meta = `class="radius-edge-hit${off}${holdAppear}" data-wire="${esc(wire)}" data-from="${esc(attachFrom)}" data-to="${esc(attachTo)}" data-logical-from="${esc(logicalFrom)}" data-logical-to="${esc(logicalTo)}" data-from-endpoint="${esc(r.fromEndpoint || 'node')}" data-to-endpoint="${esc(r.toEndpoint || 'node')}" data-from-group="${esc(fromG || '')}" data-to-group="${esc(toG || '')}" data-edge-id="${eid}" data-merged="${r.mergedCount || 1}"${tipAttr}`;
-      const edgeMeta = `class="radius-edge${off}${holdAppear}" data-wire="${esc(wire)}" data-from="${esc(attachFrom)}" data-to="${esc(attachTo)}" data-logical-from="${esc(logicalFrom)}" data-logical-to="${esc(logicalTo)}" data-from-endpoint="${esc(r.fromEndpoint || 'node')}" data-to-endpoint="${esc(r.toEndpoint || 'node')}" data-from-group="${esc(fromG || '')}" data-to-group="${esc(toG || '')}" data-edge-id="${eid}" data-merged="${r.mergedCount || 1}"`;
+      const ink = edgePaint(r, markerId);
+      const edgeMeta = `class="radius-edge${off}${holdAppear}${ink.cls ? ` ${ink.cls}` : ''}" data-wire="${esc(wire)}" data-from="${esc(attachFrom)}" data-to="${esc(attachTo)}" data-logical-from="${esc(logicalFrom)}" data-logical-to="${esc(logicalTo)}" data-from-endpoint="${esc(r.fromEndpoint || 'node')}" data-to-endpoint="${esc(r.toEndpoint || 'node')}" data-from-group="${esc(fromG || '')}" data-to-group="${esc(toG || '')}" data-edge-id="${eid}" data-merged="${r.mergedCount || 1}"`;
       const shell = pipes
         ? `<path class="radius-edge-pipe${off}${holdAppear}" data-wire="${esc(wire)}" data-edge-id="${eid}" d="${r.d}" fill="none"/>`
         : '';
-      return `${shell}<path ${meta} d="${r.d}" fill="none" stroke="transparent" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/><path ${edgeMeta} d="${r.d}" fill="none" marker-end="url(#radius-arrow)"/>`;
+      return `${shell}<path ${meta} d="${r.d}" fill="none" stroke="transparent" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/><path ${edgeMeta} d="${r.d}" fill="none"${ink.start}${ink.end}/>`;
     })
     .join('');
 
@@ -225,7 +284,8 @@ export function paint(host, spec, laid) {
       const attachFrom = r.resolvedFrom || r.from;
       const attachTo = r.resolvedTo || r.to;
       const eid = `e${i}_${esc(attachFrom)}_${esc(attachTo)}`;
-      return `<div class="radius-edge-label${off}${holdAppear}" data-wire="${esc(wire)}" data-edge-id="${eid}" data-from="${esc(attachFrom)}" data-to="${esc(attachTo)}" style="left:${r.labelX}px;top:${r.labelY || 0}px" title="${esc(r.label)}">${esc(r.label)}</div>`;
+      const labelW = r.labelW ? `max-width:${Math.round(r.labelW)}px;` : '';
+      return `<div class="radius-edge-label${off}${holdAppear}" data-wire="${esc(wire)}" data-edge-id="${eid}" data-from="${esc(attachFrom)}" data-to="${esc(attachTo)}" style="left:${r.labelX}px;top:${r.labelY || 0}px;${labelW}" title="${esc(r.label)}">${esc(r.label)}</div>`;
     })
     .join('');
 
@@ -268,7 +328,9 @@ export function paint(host, spec, laid) {
           }).join('')
         : '';
       const shape = n.shape || b.shape || 'rect';
+      const role = n.role || b.role || '';
       const shapeCls = shape !== 'rect' ? ` is-shape-${esc(shape)}` : '';
+      const roleCls = role ? ` is-role-${esc(role)}` : '';
       const parentBox = b.parentNode ? laid.boxes[b.parentNode] : null;
       const tableRow =
         parentBox && (parentBox.shape === 'table' || spec.nodes.find((p) => p.id === b.parentNode)?.shape === 'table')
@@ -278,7 +340,7 @@ export function paint(host, spec, laid) {
         faceH != null ? `height:${b.h}px;` : '',
         glyphCls.includes('is-glyph') ? `--radius-icon-px:${iconPx}px;` : '',
       ].join('');
-      return `<div class="radius-node${folded}${parentFolded}${expandable}${collapsed}${stackCls}${glyphCls}${shapeCls}${tableRow}" data-id="${esc(n.id)}" data-kind="${esc(n.kind || '')}" data-shape="${esc(shape)}" data-group="${esc(b.group || '')}" data-parent-node="${esc(b.parentNode || '')}" data-appear-index="${appearIdx}" data-collapsed="${b.collapsed ? 'true' : 'false'}" data-expandable="${b.expandable ? 'true' : 'false'}"${stackAttr}${layer} tabindex="0" style="left:${b.x}px;top:${b.y}px;width:${b.w}px;height:${b.isParent && !b.collapsed ? b.h : b.h}px;${styleExtra}">
+      return `<div class="radius-node${folded}${parentFolded}${expandable}${collapsed}${stackCls}${glyphCls}${shapeCls}${roleCls}${tableRow}" data-id="${esc(n.id)}" data-kind="${esc(n.kind || '')}" data-shape="${esc(shape)}" data-role="${esc(role)}" data-group="${esc(b.group || '')}" data-parent-node="${esc(b.parentNode || '')}" data-appear-index="${appearIdx}" data-collapsed="${b.collapsed ? 'true' : 'false'}" data-expandable="${b.expandable ? 'true' : 'false'}"${stackAttr}${layer} tabindex="0" style="left:${b.x}px;top:${b.y}px;width:${b.w}px;height:${b.isParent && !b.collapsed ? b.h : b.h}px;${styleExtra}">
         ${plates}
         <div class="radius-node-face radius-element-face">
           ${chip}
@@ -300,12 +362,11 @@ export function paint(host, spec, laid) {
       ${title}
       <div class="radius-iso-world" style="--radius-fit-scale:${fit.scale};--radius-fit-x:${fit.tx}px;--radius-fit-y:${fit.ty}px">
         ${axisSvg}
-        <svg class="radius-edges" width="${board.w}" height="${board.h}">
+        <svg class="radius-edges" width="${svgBox.w}" height="${svgBox.h}">
           <defs>
-            <marker id="radius-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-              <path d="M 0 0 L 10 5 L 0 10 z" fill="${theme.muted}"/>
-            </marker>
+            ${['arrow', 'open', 'circle', 'cross', 'triangle', 'diamond', 'odiamond'].map((k) => markerDef(markerId, k, theme.muted)).join('')}
           </defs>
+          ${(laid.frames || []).map((f) => `<rect class="radius-seq-frame" x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" rx="8"/><text class="radius-seq-label" x="${f.x + 8}" y="${f.y + 13}">${esc(String(f.label || '').slice(0, 48))}</text>`).join('')}
           ${edges}
         </svg>
         <div class="radius-edge-labels">${edgeLabels}</div>

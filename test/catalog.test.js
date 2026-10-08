@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { BEAUTY_PRESETS, CATEGORIES, DEMOS, STYLE_PRESETS, VERSION } from '../demos/catalog.js';
 import { ENUMS, parse } from '../src/parse.js';
+import { looksLikeMermaid } from '../src/mermaid.js';
 import { layout } from '../src/layout.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -21,7 +22,7 @@ describe('gallery catalog', () => {
   it('stacks newest demos first under New', () => {
     const neu = CATEGORIES.find((c) => c.id === 'new');
     assert.ok(neu?.demos?.length);
-    assert.equal(neu.demos[0], '22-age-velocity-ha', 'newest demo leads New');
+    assert.equal(neu.demos[0], '24-mermaid-flow', 'newest demo leads New');
     assert.ok(neu.demos.includes('21-constellation'));
     assert.ok(neu.demos.includes('20-mindmap'));
     // Numeric order in the New list should be descending for leading ids
@@ -59,7 +60,10 @@ describe('gallery catalog', () => {
       assert.ok(ENUMS.GROUNDS.has(look.ground), look.id);
     }
     for (const style of STYLE_PRESETS) {
-      const spec = parse(`theme: indigo\nground: dots\nroute: ${style.route}\nframe: system\n${style.fence}`);
+      const raw = String(style.fence || '').trim();
+      const spec = looksLikeMermaid(raw)
+        ? parse(raw)
+        : parse(`theme: indigo\nground: dots\nroute: ${style.route}\nframe: system\n${raw}`);
       const laid = layout(spec, phone);
       assert.ok(Object.keys(laid.boxes).length >= 2, style.id);
     }
