@@ -392,15 +392,52 @@ edges:
     fence: `template: constellation
 title: Constellation
 nodes:
-  a[Atlas]
-  b[Bridge]
-  c[Core]
-  d[Drift]
+  id[Identity]
+  api[API]
+  data[Data]
+  ml[Models]
+  ops[Ops]
+  edge[Edge]
+  policy[Policy]
+  bus[Bus]
+  cache[Cache]
+  search[Search]
+  notify[Notify]
+  audit[Audit]
+  relay[Relay]
+  shard[Shard]
+  queue[Queue]
+  token[Token]
+  route[Route]
+  index[Index]
+  probe[Probe]
+  vault[Vault]
 edges:
-  a --> b
-  b --> c
-  c --> a
-  a --> d
+  id --> api
+  api --> data
+  data --> ml
+  ml --> ops
+  ops --> edge
+  edge --> policy
+  policy --> bus
+  bus --> cache
+  cache --> search
+  search --> notify
+  notify --> audit
+  audit --> id
+  id --> bus
+  api --> cache
+  data --> search
+  relay --> id
+  shard --> data
+  queue --> bus
+  token --> api
+  route --> edge
+  index --> search
+  probe --> ops
+  vault --> audit
+  relay --> shard
+  queue --> token
 `,
   },
 ];
