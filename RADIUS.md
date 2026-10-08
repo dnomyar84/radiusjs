@@ -59,6 +59,8 @@ Fold motion: expand/collapse uses a short **FLIP** morph (collapsed face grows i
 
 **Zoom:** double-click an **expanded** group’s body (not the face/label — that still expands/collapses) to zoom the board to that parent. Zoom back out via the **Zoom out** control, `Esc`, double-click the same body again, or double-click empty board.
 
+**Fit:** every board has **Fit to Screen** (default — the whole diagram in the board) and **Fit to width** (diagram width matches the board; scroll vertically).
+
 Graph geometry is delegated to [elkjs](https://github.com/kieler/elkjs) (EPL-2.0) — see NOTICE. Timeline / deck / hub stay Radius-native.
 
 ## Labels

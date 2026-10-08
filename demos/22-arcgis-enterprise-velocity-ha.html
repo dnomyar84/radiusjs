@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="radius-learn" content="RADIUS.md" />
+  <title>22 ArcGIS Enterprise 12.3 + Velocity HA — Radius</title>
+  <link rel="stylesheet" href="demo.css" />
+  <script type="module" src="../dist/radius.js"></script>
+</head>
+<body>
+  <header class="demo-bar">
+    <a href="index.html">← Demos</a>
+    <strong>22 · ArcGIS Enterprise 12.3 + Velocity HA</strong>
+    <em>VMs · WAF · two load balancers · gateway · Nutanix files · DBaaS</em>
+  </header>
+  <h1 class="demo-sub">ArcGIS Enterprise 12.3 on VMs with ArcGIS Velocity for Enterprise — high availability</h1>
+  <!--
+    Esri, ArcGIS Enterprise on Windows and Linux (latest) and ArcGIS Velocity (latest):
+    - Hardening guide: the web application firewall is the client ingress and
+      routes to the load balancer.
+    - High availability: an external load balancer owns the organization URL
+      and the services URL. A second, internal load balancer is recommended
+      for the private portal URL and the server administrative URL.
+    - The load balancer forwards to the gateway. With web-tier authentication
+      that gateway is ArcGIS Web Adaptor; without it the external load
+      balancer can target Portal and Server directly.
+    - Portal is two machines (primary and standby) sharing a content directory
+      on a highly available file server. A multi-machine GIS Server site
+      shares its configuration store and server directories on that same
+      file server.
+    - Hosting server requires the ArcGIS Data Store relational store
+      (primary and standby). Velocity writes high-volume data to a
+      spatiotemporal big data store, deployed as its own machines.
+    - ArcGIS Velocity for Enterprise is a separate federated server, not an
+      ArcGIS Server role. Current docs support a single-machine Velocity
+      site. Its processes are Control Plane, Feeds, Gateway, Metrics,
+      Real-Time Analytics, and Stream Server.
+    - A registered enterprise geodatabase is user-managed data. Here it is
+      a database service. It does not replace the relational data store.
+    Nutanix Unified Storage is the highly available file server for this
+    deployment (Nutanix Files).
+  -->
+  <pre class="radius">
+theme: esri
+template: cloud
+dir: tb
+frame: system
+ground: worldmap
+groundTone: muted
+glass: frost
+look: elevated
+engine: native
+title: ArcGIS Enterprise 12.3 with Velocity — HA
+groups:
+  clients[Clients]{family:esri virtual collapsed:false members:browsers pro sensors}
+  edge[Edge]{family:esri virtual collapsed:false members:waf ext_lb}
+  gate[Gateway]{family:esri virtual kind:esri.webadaptor collapsed:false members:gateway}
+  internal[Internal access]{family:esri virtual collapsed:false members:int_lb}
+  vms[ArcGIS Enterprise 12.3 on VMs]{family:esri virtual kind:esri.enterprise collapsed:false}
+  portal[Portal for ArcGIS]{parent:vms virtual kind:esri.portal collapsed:false members:portal_p portal_s}
+  hosting[Hosting GIS Server]{parent:vms virtual kind:esri.hosting collapsed:false members:gis_1 gis_2}
+  velocity[ArcGIS Velocity — single machine]{parent:vms virtual kind:esri.velocity collapsed:false members:vel_cp vel_feeds vel_gw vel_metrics vel_rt vel_stream}
+  shared[Shared services]{family:esri virtual kind:esri.datastore collapsed:false}
+  files[File share — Nutanix Unified Storage]{parent:shared family:nutanix virtual kind:nutanix.files collapsed:false members:portal_content config_store server_dirs}
+  store[ArcGIS Data Store]{parent:shared virtual kind:esri.datastore collapsed:false members:rel_p rel_s st_1 st_2 st_3 obj_store}
+  dbaas[Database as a Service]{parent:shared virtual kind:esri.gdb collapsed:false members:egdb}
+nodes:
+  browsers[Browser and mobile apps]{kind:esri.experience layer:conceptual}
+  pro[ArcGIS Pro]{kind:esri.professional layer:conceptual}
+  sensors[Sensors and inbound feeds]{kind:esri.geoevent layer:conceptual}
+  waf[Web application firewall]{kind:it.waf layer:logical}
+  ext_lb[External load balancer]{kind:esri.lb layer:logical}
+  gateway[Gateway]{kind:esri.webadaptor layer:logical}
+  int_lb[Internal load balancer]{kind:esri.lb layer:logical}
+  portal_p[Portal primary]{kind:esri.portal layer:logical}
+  portal_s[Portal standby]{kind:esri.portal layer:logical}
+  gis_1[GIS Server machine 1]{kind:esri.hosting layer:logical}
+  gis_2[GIS Server machine 2]{kind:esri.hosting layer:logical}
+  vel_cp[Control Plane]{kind:esri.velocity layer:logical}
+  vel_feeds[Feeds]{kind:esri.velocity layer:logical}
+  vel_gw[Velocity Gateway]{kind:esri.velocity layer:logical}
+  vel_metrics[Metrics]{kind:esri.velocity layer:logical}
+  vel_rt[Real-time analytics]{kind:esri.velocity layer:logical}
+  vel_stream[Stream Server]{kind:esri.velocity layer:logical}
+  portal_content[Portal content directory]{kind:nutanix.files layer:logical}
+  config_store[Server configuration store]{kind:nutanix.files layer:logical}
+  server_dirs[Server directories]{kind:nutanix.files layer:logical}
+  rel_p[Relational primary]{kind:esri.relational layer:logical}
+  rel_s[Relational standby]{kind:esri.relational layer:logical}
+  st_1[Spatiotemporal machine 1]{kind:esri.spatiotemporal layer:logical}
+  st_2[Spatiotemporal machine 2]{kind:esri.spatiotemporal layer:logical}
+  st_3[Spatiotemporal machine 3]{kind:esri.spatiotemporal layer:logical}
+  obj_store[Object store]{kind:esri.objectstore layer:logical}
+  egdb[Enterprise geodatabase]{kind:esri.gdb layer:logical}
+edges:
+  browsers --> waf: 443
+  pro --> waf: 443
+  sensors --> waf: feeds
+  waf --> ext_lb
+  ext_lb --> gateway: organization URL
+  gateway --> int_lb
+  int_lb --> portal_p: 7443
+  int_lb --> portal_s: 7443
+  int_lb --> gis_1: 6443
+  int_lb --> gis_2: 6443
+  int_lb --> vel_cp: federate
+  portal_p --> portal_s
+  gis_1 --> gis_2
+  portal_p --> portal_content
+  gis_1 --> config_store
+  gis_1 --> server_dirs
+  gis_1 --> rel_p
+  gis_1 --> obj_store
+  gis_1 --> egdb: registered
+  vel_feeds --> vel_gw
+  vel_gw --> vel_rt
+  vel_gw --> vel_stream
+  vel_rt --> st_1
+  rel_p --> rel_s
+  st_1 --> st_2
+  st_2 --> st_3
+</pre>
+  <details class="snippet">
+    <summary>What this deployment is</summary>
+    <pre tabindex="0">ArcGIS Enterprise 12.3 on virtual machines, highly available, with ArcGIS Velocity for Enterprise.
+
+Edge
+  Web application firewall — client ingress. Sends traffic to the load balancer.
+  External load balancer — organization URL and services URL, port 443.
+Gateway
+  Web tier between the two load balancers. With web-tier authentication this is
+  ArcGIS Web Adaptor. Without it, the external load balancer can target Portal
+  and Server directly.
+Internal load balancer
+  Private portal URL and the ArcGIS Server administrative URL. Server sites
+  and the portal use this path to reach each other.
+
+ArcGIS Enterprise 12.3 on VMs
+  Portal for ArcGIS — primary and standby.
+  Hosting GIS Server — two machines, one site.
+  ArcGIS Velocity — one machine. Current Velocity docs support a single-machine
+  site only. Processes on that machine: Control Plane, Feeds, Velocity Gateway
+  (real-time messaging), Metrics, Real-time analytics, Stream Server.
+  Velocity is federated with the portal and publishes through the hosting server.
+
+Shared services
+  File share on Nutanix Unified Storage — portal content directory, server
+  configuration store, and server directories. The file server has to be highly
+  available; otherwise it is a single point of failure for the portal and the
+  server site.
+  ArcGIS Data Store — relational primary and standby (required by the hosting
+  server). Spatiotemporal big data store on its own machines for Velocity’s
+  high-volume writes. Object store for the base deployment.
+  Database as a Service — the registered enterprise geodatabase. User-managed
+  data. It does not replace the relational data store.
+
+Use Fit to width when the expanded picture is taller than the board.</pre>
+  </details>
+</body>
+</html>
