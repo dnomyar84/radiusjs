@@ -82,7 +82,7 @@ export const DEMOS = {
     id: '11-age-k8s',
     file: '11-arcgis-enterprise-k8s.html',
     title: 'AGE on Kubernetes',
-    blurb: 'Services · storage · HA profiles',
+    blurb: 'Pod sets · expanded · no edges',
     tags: ['esri', 'k8s'],
   },
   '10-layout-hints': {
