@@ -393,7 +393,16 @@ edges:
     paint(host, spec, laid);
     assert.match(host.innerHTML, /data-fit="screen"[^>]*>Fit to Screen</);
     assert.match(host.innerHTML, /data-fit="width"[^>]*>Fit to width</);
-    assert.match(css, /\.radius-root \.radius-board\.is-fit-width[\s\S]*overflow-y:\s*auto/);
+    assert.match(host.innerHTML, /class="radius-board-scroll"/);
+    const scrollOpen = host.innerHTML.indexOf('class="radius-board-scroll"');
+    const scrollClose = host.innerHTML.indexOf('radius-story-hint');
+    const controlsAt = host.innerHTML.indexOf('radius-view-controls');
+    assert.ok(scrollOpen > 0 && scrollClose > scrollOpen && controlsAt > scrollClose);
+    assert.match(
+      css,
+      /\.radius-root \.radius-board\.is-fit-width \.radius-board-scroll\s*\{[^}]*overflow-y:\s*auto/,
+    );
+    assert.doesNotMatch(readFileSync(new URL('../src/interact.js', import.meta.url), 'utf8'), /click face to expand/);
   });
 
   it('fit to width matches the board width and grows a vertical span', () => {
