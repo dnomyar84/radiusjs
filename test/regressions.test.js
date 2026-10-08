@@ -20,6 +20,7 @@ import {
   promoteEndpoint,
 } from '../src/edges.js';
 import { packConstellation3d, projectConstellation } from '../src/orbit.js';
+import { boardSize } from '../src/radius.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const css = readFileSync(join(here, '../dist/radius.css'), 'utf8');
@@ -374,5 +375,19 @@ nodes:
       .sort((x, y) => x - y);
     const span = bottoms[2] - tops[0];
     assert.ok(span > tall.h * 0.55, `expanded tb span ${span} should use vertical room`);
+  });
+});
+
+describe('regressions · playground rails', () => {
+  it('a fit-board host uses the leftover preview height, not a tall ratio', () => {
+    const el = {
+      clientWidth: 900,
+      clientHeight: 160,
+      dataset: { fitBoard: 'host' },
+      parentElement: null,
+    };
+    const size = boardSize(el, 'system');
+    assert.equal(size.w, 900);
+    assert.equal(size.h, 160);
   });
 });
