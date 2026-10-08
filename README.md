@@ -22,7 +22,9 @@ Portable Node + MinGit live under `.tools/` (gitignored). Use project wrappers:
 
 ## GitHub Pages
 
-The `demos/` folder is static. Point Pages at `/docs` (copy/symlink demos) or the repo root and open `/demos/`. Deep links: `#/demo/20-mindmap`, `#/playground`.
+Live gallery: [https://dnomyar84.github.io/radiusjs/](https://dnomyar84.github.io/radiusjs/) (redirects to `/demos/`).
+
+Pages publishes the repo root on `main`. `.nojekyll` keeps the files static. Deep links: `#/demo/20-mindmap`, `#/playground`.
 
 ## Agent 30-second path
 
@@ -32,7 +34,7 @@ The `demos/` folder is static. Point Pages at `/docs` (copy/symlink demos) or th
 
 ## Status
 
-Local **0.5.0** — drill-in (C/L/P + timeline), layout omit/hints, label packing, optional elkjs. GitHub publish + `1.0.0` tag later.
+Local **0.5.0** — drill-in (C/L/P + timeline), layout omit/hints, label packing, optional elkjs. Examples are on GitHub Pages. `1.0.0` tag later.
 
 ## License
 
