@@ -23,9 +23,9 @@ ground: matrix
 groundTone: muted
 glass: frost
 groups:
-  platform[Hybrid platform]{family:nutanix layer:conceptual kind:nutanix.nci members:nci nkp collapsed:true}
-  logical[Control plane]{family:nkp parent:platform layer:logical members:mgt kom collapsed:true}
-  physical[Workers]{family:k8s parent:logical layer:physical members:node1 node2 collapsed:true}
+  platform[Hybrid platform]{family:nutanix layer:conceptual kind:nutanix.nci members:nci nkp collapsed:false}
+  logical[Control plane]{family:nkp parent:platform layer:logical members:mgt kom collapsed:false}
+  physical[Workers]{family:k8s parent:logical layer:physical members:node1 node2 collapsed:false}
 nodes:
   nci[NCI]{kind:nutanix.nci layer:conceptual}
   nkp[NKP]{kind:nkp.management layer:conceptual}

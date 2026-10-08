@@ -106,9 +106,9 @@ groups:
   customer[CUSTOMER / SALES]{layer:conceptual members:opp commit deliver virtual collapsed:false}
   maturity[DELIVERY ARCHITECTURE MATURITY FLOW]{layer:conceptual members:qual wbs est pkg human_gate virtual collapsed:false}
   agents[AI AGENT WORKFLOW COMPONENTS]{layer:conceptual members:dsq wbs_ai est_ai pkg_ai res_ai control virtual collapsed:false}
-  human[HUMAN ACTIVITIES / DELIVERY SERVICES]{layer:conceptual members:clarify validate rev_wbs rev_est rev_prop commercial demand nominate virtual collapsed:false}
-  gov[GOVERNANCE / ASSURANCE]{layer:conceptual members:g1 g2 g3 g4 virtual collapsed:false}
-  systems[SYSTEMS &amp; KNOWLEDGE]{layer:conceptual members:sor export staging knowledge evidence virtual collapsed:false}
+  human[HUMAN ACTIVITIES / DELIVERY SERVICES]{layer:conceptual members:clarify validate rev_wbs rev_est rev_prop commercial demand nominate virtual collapsed:true}
+  gov[GOVERNANCE / ASSURANCE]{layer:conceptual members:g1 g2 g3 g4 virtual collapsed:true}
+  systems[SYSTEMS &amp; KNOWLEDGE]{layer:conceptual members:sor export staging knowledge evidence virtual collapsed:true}
 nodes:
   opp[Opportunity / DS Request · Salesforce opportunity + DS task]{layer:logical maxLines:3}
   commit[Commercial commitment]{layer:logical}

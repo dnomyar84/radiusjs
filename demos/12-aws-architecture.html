@@ -24,12 +24,12 @@ groundTone: muted
 glass: frost
 look: elevated
 groups:
-  edge[Edge & DNS]{family:aws layer:conceptual kind:aws.cloudfront members:r53 cf waf collapsed:true virtual:true}
-  vpc[Production VPC]{family:aws layer:conceptual kind:aws.vpc members:public app data collapsed:true virtual:true}
-  public[Public tier]{family:aws parent:vpc layer:logical kind:aws.alb members:alb nat collapsed:true virtual:true}
-  app[App tier]{family:aws parent:vpc layer:logical kind:aws.ecs members:ecs ecr lambda sqs collapsed:true virtual:true}
-  data[Data tier]{family:aws parent:vpc layer:logical kind:aws.rds members:rds cache s3 ddb collapsed:true virtual:true}
-  ops[Identity & ops]{family:aws layer:conceptual kind:aws.iam members:iam cw secrets collapsed:true virtual:true}
+  edge[Edge & DNS]{family:aws layer:conceptual kind:aws.cloudfront members:r53 cf waf collapsed:false virtual:true}
+  vpc[Production VPC]{family:aws layer:conceptual kind:aws.vpc members:public app data collapsed:false virtual:true}
+  public[Public tier]{family:aws parent:vpc layer:logical kind:aws.alb members:alb nat collapsed:false virtual:true}
+  app[App tier]{family:aws parent:vpc layer:logical kind:aws.ecs members:ecs ecr lambda sqs collapsed:false virtual:true}
+  data[Data tier]{family:aws parent:vpc layer:logical kind:aws.rds members:rds cache s3 ddb collapsed:false virtual:true}
+  ops[Identity & ops]{family:aws layer:conceptual kind:aws.iam members:iam cw secrets collapsed:false virtual:true}
 nodes:
   r53[Route 53]{kind:aws.route53 layer:conceptual}
   cf[CloudFront]{kind:aws.cloudfront layer:conceptual}

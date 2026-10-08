@@ -24,13 +24,13 @@ groundTone: muted
 glass: frost
 look: elevated
 groups:
-  identity[Identity]{family:azure layer:conceptual kind:azure.entra members:entra kv collapsed:true}
-  hub[Hub network]{family:azure layer:conceptual kind:azure.vnet members:fw bastion dns agw collapsed:true}
-  spoke[App spoke]{family:azure layer:conceptual kind:azure.aks members:front compute data collapsed:true}
-  front[Front door]{family:azure parent:spoke layer:logical kind:azure.frontdoor members:afd apim collapsed:true}
-  compute[Compute]{family:azure parent:spoke layer:logical kind:azure.aks members:aks aca functions collapsed:true}
+  identity[Identity]{family:azure layer:conceptual kind:azure.entra members:entra kv collapsed:false}
+  hub[Hub network]{family:azure layer:conceptual kind:azure.vnet members:fw bastion dns agw collapsed:false}
+  spoke[App spoke]{family:azure layer:conceptual kind:azure.aks members:front compute data collapsed:false}
+  front[Front door]{family:azure parent:spoke layer:logical kind:azure.frontdoor members:afd apim collapsed:false}
+  compute[Compute]{family:azure parent:spoke layer:logical kind:azure.aks members:aks aca functions collapsed:false}
   data[Data]{family:azure parent:spoke layer:logical kind:azure.sql members:sql cosmos redis blob collapsed:true}
-  observe[Observability]{family:azure layer:conceptual kind:azure.monitor members:mon insights collapsed:true}
+  observe[Observability]{family:azure layer:conceptual kind:azure.monitor members:mon insights collapsed:false}
 nodes:
   entra[Microsoft Entra ID]{kind:azure.entra layer:conceptual}
   kv[Key Vault]{kind:azure.keyvault layer:conceptual}
