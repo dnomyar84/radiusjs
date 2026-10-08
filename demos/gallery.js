@@ -2,35 +2,17 @@
  * Examples shell — categorized left nav, diagram-first iframe, styling playground.
  * Hash routes: #/playground | #/demo/<id>
  */
-import { BEAUTY_PRESETS, CATEGORIES, DEMOS, STYLE_PRESETS, VERSION } from './catalog.js';
+import { CATEGORIES, DEMOS, PLAYGROUND_BASE, VERSION, colorPresets } from './catalog.js';
 import { THEMES } from '../src/themes.js';
-import { ENUMS } from '../src/parse.js';
 import { reflow as radiusReflow, render as radiusRender } from '../dist/radius.js';
-import { looksLikeMermaid } from '../src/mermaid.js';
 
-const THEME_IDS = Object.keys(THEMES);
-const GROUNDS = [...ENUMS.GROUNDS];
-const LOOKS = [...ENUMS.LOOKS];
-const GLASS = [...(ENUMS.GLASS || ['frost', 'solid', 'none'])];
-const FONTS = ['system', 'modern', 'display'];
-const MOTIONS = [...ENUMS.MOTIONS];
-const ROUTES = [...(ENUMS.ROUTES || ['ortho', 'curve', 'straight'])];
-const FRAMES = [...ENUMS.FRAMES];
+const COLOR_PRESETS = colorPresets();
 
 const state = {
   mode: 'demo', // 'demo' | 'playground'
   demoId: null,
   play: {
-    beauty: 'indigo',
-    style: 'mindmap',
     theme: 'indigo',
-    ground: 'dots',
-    look: 'elevated',
-    glass: 'frost',
-    font: 'modern',
-    motion: 'tasteful',
-    route: 'curve',
-    frame: 'system',
     custom: null,
   },
 };
@@ -71,7 +53,7 @@ function buildNav(filter = '') {
             <li>
               <button type="button" class="nav-link is-special" data-route="playground">
                 <strong>Style lab</strong>
-                <span>${esc(cat.hint || 'Live theme & ground preview')}</span>
+                <span>${esc(cat.hint || 'Paste Radius or Mermaid · color only')}</span>
               </button>
             </li>
           </ul>
@@ -229,7 +211,7 @@ function renderStage() {
     frame.removeAttribute('src');
     play.classList.add('is-visible');
     title.textContent = 'Styling playground';
-    blurb.textContent = 'Snap a look, then a diagram. Paste Radius or Mermaid in Diagram text.';
+    blurb.textContent = 'Paste Radius or Mermaid. The rails change color only.';
     ensurePlaygroundBuilt();
     renderPlayground();
     return;
@@ -253,104 +235,63 @@ function ensurePlaygroundBuilt() {
   if (!host || host.dataset.ready) return;
   host.dataset.ready = '1';
 
-  const swatches = BEAUTY_PRESETS.map((preset) => {
+  const swatches = COLOR_PRESETS.map((preset) => {
     const t = THEMES[preset.theme];
-    const caption = beautyCaption(preset);
-    return `<button type="button" class="play-swatch" data-beauty="${esc(preset.id)}" title="${esc(caption)}" style="--swatch:${esc(t.surface)}; background: linear-gradient(135deg, ${esc(t.surface)} 40%, ${esc(t.accent)} 100%)"></button>`;
+    return `<button type="button" class="play-swatch" data-color="${esc(preset.id)}" title="${esc(preset.label)}" aria-label="${esc(preset.label)}" style="--swatch:${esc(t.surface)}; background: linear-gradient(135deg, ${esc(t.surface)} 40%, ${esc(t.accent)} 100%)"></button>`;
   }).join('');
 
-  const styles = STYLE_PRESETS.map(
+  const names = COLOR_PRESETS.map(
     (preset) =>
-      `<button type="button" class="play-style" data-style="${esc(preset.id)}">${esc(preset.label)}</button>`,
+      `<button type="button" class="play-style" data-color="${esc(preset.id)}">${esc(preset.label)}</button>`,
   ).join('');
 
   host.innerHTML = `
     <div class="play-sheet-head">
-      <h2>Style</h2>
+      <h2>Color</h2>
       <button type="button" class="sheet-close" id="style-close">Close</button>
     </div>
-    <section class="play-rail" data-rail="beauty">
-      <h2>Beauty</h2>
-      <p class="play-rail-name" id="beauty-name"></p>
+    <section class="play-rail" data-rail="swatch">
+      <h2>Color</h2>
+      <p class="play-rail-name" id="color-swatch-name"></p>
       <div class="play-swatches play-carousel" id="beauty-carousel">${swatches}</div>
     </section>
-    <section class="play-rail" data-rail="style">
-      <h2>Diagram</h2>
-      <p class="play-rail-name" id="style-name"></p>
-      <div class="play-styles play-carousel" id="style-carousel">${styles}</div>
+    <section class="play-rail" data-rail="name">
+      <h2>Color</h2>
+      <p class="play-rail-name" id="color-name-name"></p>
+      <div class="play-styles play-carousel" id="style-carousel">${names}</div>
     </section>
-    <div class="play-fields">
-    ${field('theme', 'Theme', THEME_IDS, state.play.theme)}
-    ${field('ground', 'Ground', GROUNDS, state.play.ground)}
-    ${field('look', 'Look', LOOKS, state.play.look)}
-    ${field('glass', 'Glass', GLASS, state.play.glass)}
-    ${field('font', 'Font', FONTS, state.play.font)}
-    ${field('motion', 'Motion', MOTIONS, state.play.motion)}
-    ${field('route', 'Route', ROUTES, state.play.route)}
-    ${field('frame', 'Frame', FRAMES, state.play.frame)}
-    </div>
   `;
 
-  host.querySelectorAll('select').forEach((sel) => {
-    sel.addEventListener('change', () => {
-      state.play[sel.name] = sel.value;
-      if (sel.name === 'theme' || sel.name === 'ground') {
-        const match = BEAUTY_PRESETS.find(
-          (p) => p.theme === state.play.theme && p.ground === state.play.ground,
-        );
-        if (match) state.play.beauty = match.id;
-      }
-      syncRails({ recenter: true });
-      renderPlayground();
-    });
-  });
-
-  host.querySelectorAll('.play-swatch').forEach((btn) => {
+  host.querySelectorAll('[data-color]').forEach((btn) => {
     btn.addEventListener('click', () => {
-      applyBeauty(btn.dataset.beauty, { recenter: true });
-    });
-  });
-
-  host.querySelectorAll('.play-style').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      applyStyle(btn.dataset.style, { recenter: true });
+      applyColor(btn.dataset.color, { recenter: 'all' });
     });
   });
 
   $('#style-close')?.addEventListener('click', () => setStyleOpen(false));
-  bindSnapCarousel($('#beauty-carousel'), '.play-swatch', (el) => applyBeauty(el.dataset.beauty));
-  bindSnapCarousel($('#style-carousel'), '.play-style', (el) => applyStyle(el.dataset.style));
-  syncRails({ recenter: true });
+  bindSnapCarousel($('#beauty-carousel'), '[data-color]', (el) =>
+    applyColor(el.dataset.color, { recenter: 'other', from: el.parentElement }),
+  );
+  bindSnapCarousel($('#style-carousel'), '[data-color]', (el) =>
+    applyColor(el.dataset.color, { recenter: 'other', from: el.parentElement }),
+  );
+  syncRails({ recenter: 'all' });
 }
 
-function beautyCaption(preset) {
-  return preset ? `${preset.label} · ${preset.ground}` : '';
+function colorPreset(id) {
+  return COLOR_PRESETS.find((p) => p.id === id);
 }
 
-function applyBeauty(id, { recenter = false } = {}) {
-  const preset = BEAUTY_PRESETS.find((p) => p.id === id);
-  if (!preset || preset.id === state.play.beauty) {
-    syncRails({ recenter });
+function applyColor(id, { recenter = false, from = null } = {}) {
+  const preset = colorPreset(id);
+  if (!preset) {
+    syncRails({ recenter, from });
     return;
   }
-  state.play.beauty = preset.id;
+  const changed = preset.theme !== state.play.theme;
   state.play.theme = preset.theme;
-  state.play.ground = preset.ground;
-  syncRails({ recenter });
-  renderPlayground();
-}
-
-function applyStyle(id, { recenter = false } = {}) {
-  const preset = STYLE_PRESETS.find((p) => p.id === id);
-  if (!preset || preset.id === state.play.style) {
-    syncRails({ recenter });
-    return;
-  }
-  state.play.style = preset.id;
-  state.play.custom = null;
-  if (preset.route) state.play.route = preset.route;
-  syncRails({ recenter });
-  renderPlayground();
+  syncRails({ recenter, from });
+  if (changed) renderPlayground();
 }
 
 function centerItem(el, smooth) {
@@ -388,9 +329,7 @@ function bindSnapCarousel(scroller, itemSel, pick) {
     });
     const rail = scroller.closest('.play-rail');
     const name = rail?.querySelector('.play-rail-name');
-    if (name) name.textContent = el.dataset.beauty
-      ? beautyCaption(BEAUTY_PRESETS.find((p) => p.id === el.dataset.beauty))
-      : el.textContent;
+    if (name) name.textContent = colorPreset(el.dataset.color)?.label || el.textContent || '';
   };
   scroller.addEventListener('scroll', () => {
     if (!narrowQuery.matches) return;
@@ -403,61 +342,29 @@ function bindSnapCarousel(scroller, itemSel, pick) {
   }, { passive: true });
 }
 
-function field(name, label, values, current) {
-  const opts = values
-    .map((v) => `<option value="${esc(v)}"${v === current ? ' selected' : ''}>${esc(v)}</option>`)
-    .join('');
-  return `<div class="play-field"><label for="play-${esc(name)}">${esc(label)}</label>
-    <select id="play-${esc(name)}" name="${esc(name)}">${opts}</select></div>`;
-}
-
-function syncRails({ recenter = false } = {}) {
-  const beauty = BEAUTY_PRESETS.find((p) => p.id === state.play.beauty);
-  const style = STYLE_PRESETS.find((p) => p.id === state.play.style);
-  document.querySelectorAll('.play-swatch').forEach((b) => {
-    b.classList.toggle('is-active', b.dataset.beauty === state.play.beauty);
+function syncRails({ recenter = false, from = null } = {}) {
+  const preset = colorPreset(state.play.theme) || COLOR_PRESETS[0];
+  const label = preset?.label || '';
+  document.querySelectorAll('#play-controls [data-color]').forEach((b) => {
+    b.classList.toggle('is-active', b.dataset.color === state.play.theme);
+    if (b.classList.contains('play-style')) b.setAttribute('aria-pressed', b.classList.contains('is-active') ? 'true' : 'false');
   });
-  document.querySelectorAll('.play-style').forEach((b) => {
-    b.classList.toggle('is-active', b.dataset.style === state.play.style);
-  });
-  const beautyName = $('#beauty-name');
-  if (beautyName) beautyName.textContent = beautyCaption(beauty);
-  const styleName = $('#style-name');
-  if (styleName) styleName.textContent = style?.label || '';
-  for (const name of ['theme', 'ground', 'look', 'glass', 'font', 'motion', 'route', 'frame']) {
-    const sel = document.querySelector(`#play-controls select[name="${name}"]`);
-    if (sel && state.play[name] && sel.value !== state.play[name]) sel.value = state.play[name];
-  }
-  if (recenter && narrowQuery.matches) {
-    const beautyEl = document.querySelector(`.play-swatch[data-beauty="${CSS.escape(state.play.beauty)}"]`);
-    const styleEl = document.querySelector(`.play-style[data-style="${CSS.escape(state.play.style)}"]`);
-    requestAnimationFrame(() => {
-      if (beautyEl) centerItem(beautyEl, false);
-      if (styleEl) centerItem(styleEl, false);
+  const swatchName = $('#color-swatch-name');
+  const chipName = $('#color-name-name');
+  if (swatchName) swatchName.textContent = label;
+  if (chipName) chipName.textContent = label;
+  if (!recenter || !narrowQuery.matches) return;
+  const theme = state.play.theme;
+  requestAnimationFrame(() => {
+    document.querySelectorAll(`#play-controls [data-color="${CSS.escape(theme)}"]`).forEach((el) => {
+      if (recenter === 'other' && from && el.parentElement === from) return;
+      centerItem(el, false);
     });
-  }
+  });
 }
 
-function composePlayFence() {
-  const p = state.play;
-  const style = STYLE_PRESETS.find((s) => s.id === p.style) || STYLE_PRESETS[0];
-  const meta = [
-    `theme: ${p.theme}`,
-    `ground: ${p.ground}`,
-    `look: ${p.look}`,
-    `glass: ${p.glass}`,
-    `font: ${p.font}`,
-    `motion: ${p.motion}`,
-    `route: ${p.route}`,
-    `frame: ${p.frame}`,
-  ].join('\n');
-  // Strip meta keys from the style sample so the rails win.
-  const body = String(style.fence || '').replace(
-    /^(theme|ground|look|glass|font|motion|route|frame|groundTone|groundtone)\s*:.*$/gim,
-    '',
-  ).trim();
-  if (looksLikeMermaid(body)) return body;
-  return `${meta}\n${body}`;
+function playSource() {
+  return state.play.custom != null ? state.play.custom : PLAYGROUND_BASE;
 }
 
 let playTimer = 0;
@@ -498,23 +405,15 @@ async function renderPlayground() {
   const errEl = $('#play-error');
   if (!mount) return;
   bindSourceEditor();
-  const fence = state.play.custom != null ? state.play.custom : composePlayFence();
+  const fence = playSource();
   const area = $('#play-source-edit');
   if (area && document.activeElement !== area && area.value !== fence) area.value = fence;
   const seq = ++playSeq;
   errEl?.classList.remove('is-visible');
-  const skin = state.play;
   try {
     await radiusRender(mount, fence, {
       animate: false,
-      theme: skin.theme,
-      ground: skin.ground,
-      look: skin.look,
-      glass: skin.glass,
-      font: skin.font,
-      motion: skin.motion,
-      route: skin.route,
-      frame: skin.frame,
+      theme: state.play.theme,
     });
     if (seq !== playSeq) return;
     await fitPlayBoard(mount, seq);
