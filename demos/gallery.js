@@ -113,7 +113,7 @@ function buildNav(filter = '') {
       const route = btn.dataset.route;
       if (route === 'playground') navigate('playground');
       else navigate('demo', btn.dataset.id);
-      document.querySelector('.gallery')?.classList.remove('nav-open');
+      setNavOpen(false);
     });
   });
 
@@ -129,12 +129,88 @@ function syncNavActive() {
   });
 }
 
+const narrowQuery = window.matchMedia('(max-width: 1100px)');
+
+function galleryEl() {
+  return document.querySelector('.gallery');
+}
+
+function syncBackdrop() {
+  const gallery = galleryEl();
+  const open = !!(gallery?.classList.contains('nav-open') || gallery?.classList.contains('style-open'));
+  const backdrop = $('#nav-backdrop');
+  if (backdrop) backdrop.hidden = !open;
+  document.body.classList.toggle('sheet-lock', open);
+}
+
+function setNavOpen(open) {
+  const gallery = galleryEl();
+  const toggle = $('#nav-toggle');
+  gallery?.classList.toggle('nav-open', !!open);
+  if (open) gallery?.classList.remove('style-open');
+  if (toggle) {
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    toggle.setAttribute('aria-label', open ? 'Hide examples' : 'Show examples');
+  }
+  const styleBtn = $('#style-toggle');
+  if (styleBtn && open) styleBtn.setAttribute('aria-expanded', 'false');
+  syncBackdrop();
+}
+
+function setStyleOpen(open) {
+  const gallery = galleryEl();
+  const toggle = $('#style-toggle');
+  gallery?.classList.toggle('style-open', !!open);
+  if (open) gallery?.classList.remove('nav-open');
+  if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  const navBtn = $('#nav-toggle');
+  if (navBtn && open) {
+    navBtn.setAttribute('aria-expanded', 'false');
+    navBtn.setAttribute('aria-label', 'Show examples');
+  }
+  syncBackdrop();
+}
+
+function syncChrome() {
+  const narrow = narrowQuery.matches;
+  const play = state.mode === 'playground';
+  galleryEl()?.classList.toggle('is-playground', play);
+  const styleBtn = $('#style-toggle');
+  if (styleBtn) styleBtn.hidden = !(narrow && play);
+  if (!narrow) {
+    setNavOpen(false);
+    setStyleOpen(false);
+  }
+}
+
 function navigate(mode, demoId) {
   state.mode = mode;
   state.demoId = demoId || state.demoId;
   setHash(mode, state.demoId);
+  if (mode !== 'playground') setStyleOpen(false);
   renderStage();
   syncNavActive();
+  syncChrome();
+}
+
+/** Gallery iframe: hide the demo's own bar even when the page has no snippet script. */
+function applyEmbed(frame) {
+  let doc;
+  try {
+    doc = frame.contentDocument;
+  } catch {
+    return;
+  }
+  if (!doc?.body) return;
+  doc.body.classList.add('embed');
+  doc.querySelectorAll('details.snippet[open]').forEach((el) => el.removeAttribute('open'));
+}
+
+function bindFrame() {
+  const frame = $('#stage-frame');
+  if (!frame || frame.dataset.embedBound) return;
+  frame.dataset.embedBound = '1';
+  frame.addEventListener('load', () => applyEmbed(frame));
 }
 
 function renderStage() {
@@ -178,8 +254,14 @@ function ensurePlaygroundBuilt() {
   }).join('');
 
   host.innerHTML = `
+    <div class="play-sheet-head">
+      <h2>Style</h2>
+      <button type="button" class="sheet-close" id="style-close">Close</button>
+    </div>
     <h2>Palette</h2>
-    <div class="play-swatches" id="play-swatches">${swatches}</div>
+    <p class="palette-name" id="palette-name"></p>
+    <div class="play-swatches palette-carousel" id="play-swatches">${swatches}</div>
+    <div class="play-fields">
     ${field('theme', 'Theme', THEME_IDS, state.play.theme)}
     ${field('ground', 'Ground', GROUNDS, state.play.ground)}
     ${field('look', 'Look', LOOKS, state.play.look)}
@@ -188,12 +270,13 @@ function ensurePlaygroundBuilt() {
     ${field('motion', 'Motion', MOTIONS, state.play.motion)}
     ${field('route', 'Route', ROUTES, state.play.route)}
     ${field('frame', 'Frame', FRAMES, state.play.frame)}
+    </div>
   `;
 
   host.querySelectorAll('select').forEach((sel) => {
     sel.addEventListener('change', () => {
       state.play[sel.name] = sel.value;
-      if (sel.name === 'theme') syncSwatches();
+      if (sel.name === 'theme') syncSwatches({ recenter: true });
       renderPlayground();
     });
   });
@@ -203,12 +286,74 @@ function ensurePlaygroundBuilt() {
       state.play.theme = btn.dataset.theme;
       const sel = host.querySelector('select[name="theme"]');
       if (sel) sel.value = state.play.theme;
-      syncSwatches();
+      syncSwatches({ recenter: true });
       renderPlayground();
     });
   });
 
-  syncSwatches();
+  $('#style-close')?.addEventListener('click', () => setStyleOpen(false));
+  bindPaletteCarousel();
+  syncSwatches({ recenter: true });
+}
+
+function centerPalette(el, smooth) {
+  const scroller = el?.parentElement;
+  if (!scroller) return;
+  const left = el.offsetLeft - (scroller.clientWidth - el.offsetWidth) / 2;
+  scroller.scrollTo({ left: Math.max(0, left), behavior: smooth ? 'smooth' : 'auto' });
+}
+
+function paletteAtCenter() {
+  const scroller = $('#play-swatches');
+  if (!scroller) return null;
+  const mid = scroller.scrollLeft + scroller.clientWidth / 2;
+  let best = null;
+  let bestD = Infinity;
+  scroller.querySelectorAll('.play-swatch').forEach((el) => {
+    const c = el.offsetLeft + el.offsetWidth / 2;
+    const d = Math.abs(c - mid);
+    if (d < bestD) {
+      bestD = d;
+      best = el;
+    }
+  });
+  return best;
+}
+
+function bindPaletteCarousel() {
+  const scroller = $('#play-swatches');
+  if (!scroller || scroller.dataset.carousel) return;
+  scroller.dataset.carousel = '1';
+  let timer = 0;
+  const applyCenter = () => {
+    if (!narrowQuery.matches) return;
+    const el = paletteAtCenter();
+    if (!el) return;
+    const id = el.dataset.theme;
+    scroller.querySelectorAll('.play-swatch').forEach((b) => {
+      b.classList.toggle('is-active', b === el);
+    });
+    const name = $('#palette-name');
+    if (name) name.textContent = id;
+    if (!id || id === state.play.theme) return;
+    state.play.theme = id;
+    const sel = document.querySelector('#play-controls select[name="theme"]');
+    if (sel) sel.value = id;
+    renderPlayground();
+  };
+  scroller.addEventListener('scroll', () => {
+    if (!narrowQuery.matches) return;
+    const el = paletteAtCenter();
+    if (el) {
+      scroller.querySelectorAll('.play-swatch').forEach((b) => {
+        b.classList.toggle('is-active', b === el);
+      });
+      const name = $('#palette-name');
+      if (name) name.textContent = el.dataset.theme;
+    }
+    window.clearTimeout(timer);
+    timer = window.setTimeout(applyCenter, 70);
+  }, { passive: true });
 }
 
 function field(name, label, values, current) {
@@ -219,10 +364,16 @@ function field(name, label, values, current) {
     <select id="play-${esc(name)}" name="${esc(name)}">${opts}</select></div>`;
 }
 
-function syncSwatches() {
+function syncSwatches({ recenter = false } = {}) {
   document.querySelectorAll('.play-swatch').forEach((b) => {
     b.classList.toggle('is-active', b.dataset.theme === state.play.theme);
   });
+  const name = $('#palette-name');
+  if (name) name.textContent = state.play.theme;
+  if (recenter && narrowQuery.matches) {
+    const el = document.querySelector(`.play-swatch[data-theme="${CSS.escape(state.play.theme)}"]`);
+    requestAnimationFrame(() => centerPalette(el, false));
+  }
 }
 
 function composePlayFence() {
@@ -283,18 +434,35 @@ function init() {
   if (ver) ver.textContent = VERSION;
 
   buildNav();
+  bindFrame();
   $('#nav-search')?.addEventListener('input', (e) => buildNav(e.target.value));
 
   $('#nav-toggle')?.addEventListener('click', () => {
-    document.querySelector('.gallery')?.classList.toggle('nav-open');
+    setNavOpen(!galleryEl()?.classList.contains('nav-open'));
   });
+  $('#nav-close')?.addEventListener('click', () => setNavOpen(false));
+  $('#nav-backdrop')?.addEventListener('click', () => {
+    setNavOpen(false);
+    setStyleOpen(false);
+  });
+  $('#style-toggle')?.addEventListener('click', () => {
+    setStyleOpen(!galleryEl()?.classList.contains('style-open'));
+  });
+  window.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    setNavOpen(false);
+    setStyleOpen(false);
+  });
+  narrowQuery.addEventListener('change', syncChrome);
 
   window.addEventListener('hashchange', () => {
     const next = parseHash();
     state.mode = next.mode;
     state.demoId = next.demoId;
+    if (next.mode !== 'playground') setStyleOpen(false);
     renderStage();
     syncNavActive();
+    syncChrome();
   });
 
   const start = parseHash();
@@ -303,6 +471,7 @@ function init() {
   setHash(state.mode, state.demoId);
   renderStage();
   syncNavActive();
+  syncChrome();
 }
 
 init();

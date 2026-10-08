@@ -23,18 +23,30 @@ function ensureCSS() {
   document.head.appendChild(link);
 }
 
-/** Board size from the host’s available width (fluid). */
+/** Board size from the host. Narrow screens use the host’s height so the diagram fills the phone. */
 export function boardSize(el, frame) {
   const raw =
     el.clientWidth ||
     el.parentElement?.clientWidth ||
     (typeof window !== 'undefined' ? Math.min(1100, window.innerWidth - 32) : 960);
   const w = Math.max(280, Math.round(raw));
-  const h =
-    frame === 'slide'
-      ? Math.max(180, Math.round((w * 9) / 16))
-      : Math.max(280, Math.round(w * Math.min(0.85, Math.max(0.55, 640 / Math.max(w, 1)))));
-  return { w, h };
+  if (frame === 'slide') {
+    return { w, h: Math.max(180, Math.round((w * 9) / 16)) };
+  }
+  const ratioH = Math.max(
+    280,
+    Math.round(w * Math.min(0.85, Math.max(0.55, 640 / Math.max(w, 1)))),
+  );
+  const narrow = typeof window !== 'undefined' && window.innerWidth <= 1100;
+  if (narrow && document.body?.classList.contains('embed')) {
+    const viewH = Math.round(window.innerHeight || 0);
+    if (viewH >= 220) return { w, h: viewH };
+  }
+  if (narrow) {
+    const hostH = Math.round(el.clientHeight || el.parentElement?.clientHeight || 0);
+    if (hostH >= 220) return { w, h: hostH };
+  }
+  return { w, h: ratioH };
 }
 
 function snapshotFoldState(el) {
@@ -116,28 +128,38 @@ function bindResize(el, opts = {}) {
 
   const state = {
     lastW: el.clientWidth || 0,
+    lastH: typeof window !== 'undefined' ? window.innerHeight || 0 : 0,
     timer: 0,
     busy: false,
     readyAt: Date.now() + APPEAR_GRACE_MS,
+  };
+
+  const sizeChanged = (w, h) => {
+    const widthChanged = Math.abs(w - state.lastW) >= 24;
+    const heightChanged = document.body?.classList.contains('embed') && Math.abs(h - state.lastH) >= 48;
+    return widthChanged || heightChanged;
   };
 
   const onWin = () => {
     if (Date.now() < state.readyAt) return;
     if (state.busy || el._radius?._reflowing) return;
     const w = el.clientWidth || 0;
-    if (!w || Math.abs(w - state.lastW) < 24) return;
+    const h = window.innerHeight || 0;
+    if (!w || !sizeChanged(w, h)) return;
     window.clearTimeout(state.timer);
     state.timer = window.setTimeout(() => {
       if (Date.now() < state.readyAt) return;
       if (state.busy || el._radius?._reflowing) return;
       const nextW = el.clientWidth || 0;
-      if (!nextW || Math.abs(nextW - state.lastW) < 24) return;
+      const nextH = window.innerHeight || 0;
+      if (!nextW || !sizeChanged(nextW, nextH)) return;
 
       state.busy = true;
       if (el._radius) el._radius._reflowing = true;
       reflow(el, { ...el._radius?.opts, ...opts, keepObserver: true, quiet: true })
         .then(() => {
           state.lastW = el.clientWidth || nextW;
+          state.lastH = window.innerHeight || nextH;
         })
         .catch(() => {})
         .finally(() => {
@@ -276,7 +298,17 @@ export function renderSync(el, source, opts = {}) {
   return render(el, source, { ...opts, sync: true });
 }
 
+function applyEmbedClass() {
+  if (typeof document === 'undefined' || !document.body) return;
+  try {
+    if (new URLSearchParams(location.search).has('embed')) document.body.classList.add('embed');
+  } catch {
+    /* ignore */
+  }
+}
+
 export async function mountAll(root = document) {
+  applyEmbedClass();
   ensureCSS();
   const nodes = root.querySelectorAll('pre.radius, [data-radius], code.language-radius');
   const out = [];
@@ -312,6 +344,7 @@ function fillNearbySnippet(host, source) {
 function autoMount() {
   if (typeof document === 'undefined') return;
   const run = () => {
+    applyEmbedClass();
     mountAll(document).catch(() => {});
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);

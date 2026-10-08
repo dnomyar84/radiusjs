@@ -130,15 +130,26 @@ function layoutHub(spec, board) {
 }
 
 /** Bias measure toward square faces for circle / diamond / hex. */
-function measureMindmapNode(node) {
+function measureMindmapNode(node, board) {
+  const short = Math.min(board?.w || 960, board?.h || 540);
+  const tight = short < 640;
   const shape = node.shape || 'rect';
-  const s = measureNode(node);
+  const s = measureNode(node, {
+    minPx: 3,
+    ...(tight
+      ? { maxPx: 12, maxBoxW: Math.max(56, Math.round(short * 0.3)) }
+      : {}),
+  });
   if (shape === 'circle' || shape === 'diamond' || shape === 'hex') {
-    const side = Math.max(s.w, s.h, 56);
+    const side = Math.max(s.w, s.h, tight ? 34 : 56);
     return { ...s, w: side, h: side };
   }
   if (shape === 'oval') {
-    return { ...s, w: Math.max(s.w, 88), h: Math.max(s.h, 48) };
+    return {
+      ...s,
+      w: Math.max(s.w, tight ? 48 : 88),
+      h: Math.max(s.h, tight ? 28 : 48),
+    };
   }
   return s;
 }
@@ -188,9 +199,42 @@ function layoutMindmap(spec, board) {
 
   const cx = board.w / 2;
   const cy = board.h / 2 + 8;
-  const maxR = Math.min(board.w, board.h) * 0.42;
-  const R0 = Math.min(board.w, board.h) * 0.22;
-  const Rstep = Math.max(90, (maxR - R0) / 3);
+  const tight = Math.min(board.w, board.h) < 640;
+  let R0;
+  let Rstep;
+  let sizeScale = 1;
+  if (tight) {
+    const rootSize = measureMindmapNode(root, board);
+    let maxSide = rootSize.w;
+    for (const n of nodes) {
+      if (n.id === root.id) continue;
+      maxSide = Math.max(maxSide, measureMindmapNode(n, board).w);
+    }
+    const gap = 14;
+    R0 = rootSize.w / 2 + maxSide / 2 + gap;
+    Rstep = maxSide + gap;
+    const need = R0 + Rstep * 2 + maxSide / 2 + 8;
+    const avail = Math.min(board.w, board.h) / 2 - 4;
+    if (need > avail) sizeScale = avail / need;
+    R0 *= sizeScale;
+    Rstep *= sizeScale;
+  } else {
+    const maxR = Math.min(board.w, board.h) * 0.42;
+    R0 = Math.min(board.w, board.h) * 0.22;
+    Rstep = Math.max(90, (maxR - R0) / 3);
+  }
+
+  const fitNode = (node) => {
+    const s = measureMindmapNode(node, board);
+    if (sizeScale >= 0.999) return s;
+    const fontPx = Math.max(3, Math.round((s.fontPx || 12) * sizeScale));
+    return {
+      ...s,
+      w: Math.max(18, s.w * sizeScale),
+      h: Math.max(14, s.h * sizeScale),
+      fontPx,
+    };
+  };
 
   const depthOf = {};
   const angleOf = {};
@@ -205,7 +249,7 @@ function layoutMindmap(spec, board) {
     const mid = (a0 + a1) / 2;
     angleOf[id] = mid;
     spanOf[id] = a1 - a0;
-    const s = measureMindmapNode(node);
+    const s = fitNode(node);
     const R = depth === 0 ? 0 : R0 + (depth - 1) * Rstep;
     const px = cx + Math.cos(mid) * R - s.w / 2;
     const py = cy + Math.sin(mid) * R - s.h / 2;
@@ -225,6 +269,39 @@ function layoutMindmap(spec, board) {
     const expandable = children.length > 0 && node.expandable !== false;
     const collapsed = expandable ? node.collapsed !== false : false;
     if (node.shape === 'table' && expandable && !collapsed) {
+      if (tight) {
+        const ux = Math.cos(mid);
+        const uy = Math.sin(mid);
+        const hx = cx + ux * R;
+        const hy = cy + uy * R;
+        boxes[id].x = hx - s.w / 2;
+        boxes[id].y = hy - s.h / 2;
+        boxes[id].w = s.w;
+        boxes[id].h = s.h;
+        let dist = Math.hypot(s.w, s.h) / 2 + 8;
+        children.forEach((cid) => {
+          const child = byId[cid];
+          if (!child || placed.has(cid)) return;
+          placed.add(cid);
+          const cs = fitNode(child);
+          const reach = Math.hypot(cs.w, cs.h) / 2 + 4;
+          dist += reach;
+          boxes[cid] = {
+            x: hx + ux * dist - cs.w / 2,
+            y: hy + uy * dist - cs.h / 2,
+            w: cs.w,
+            h: cs.h,
+            rank: depth + 1,
+            measure: cs,
+            shape: child.shape || 'rect',
+            parentNode: id,
+          };
+          depthOf[cid] = depth + 1;
+          angleOf[cid] = mid;
+          dist += reach;
+        });
+        return;
+      }
       const rowW = Math.max(s.w, 160);
       let ry = py + s.h + 4;
       let maxRowW = rowW;
@@ -232,7 +309,7 @@ function layoutMindmap(spec, board) {
         const child = byId[cid];
         if (!child || placed.has(cid)) return;
         placed.add(cid);
-        const cs = measureMindmapNode(child);
+        const cs = fitNode(child);
         const rw = Math.max(rowW, cs.w);
         maxRowW = Math.max(maxRowW, rw);
         boxes[cid] = {
@@ -272,7 +349,7 @@ function layoutMindmap(spec, board) {
   const orphans = nodes.filter((n) => !boxes[n.id]);
   for (const n of orphans) {
     const a = -Math.PI / 2 + (orphanI++ * 2 * Math.PI) / Math.max(orphans.length, 1);
-    const s = measureMindmapNode(n);
+    const s = fitNode(n);
     const R = maxR;
     boxes[n.id] = {
       x: cx + Math.cos(a) * R - s.w / 2,
@@ -323,6 +400,15 @@ function layoutMindmap(spec, board) {
         cb.y = b.y;
         cb.w = b.w;
         cb.h = faceH;
+      }
+    }
+    if (collapsed) {
+      const stack = [...childIds];
+      while (stack.length) {
+        const cid = stack.pop();
+        const cb = boxes[cid];
+        if (cb) cb.folded = true;
+        for (const gid of kids[cid] || []) stack.push(gid);
       }
     }
   }
@@ -770,7 +856,7 @@ function layoutCloud(spec, board) {
             maxBoxW: Math.max(96, gw - 20),
             pad: 20,
             maxPx: 10,
-            minPx: 9,
+            minPx: 3,
             minBoxH: 14,
             maxBoxH: 36,
             lineH: 1.2,
