@@ -10,7 +10,7 @@ import { dirname, join } from 'node:path';
 import { parse } from '../src/parse.js';
 import { layout, contentFitTransform, fitWidthTransform } from '../src/layout.js';
 import { paint } from '../src/paint.js';
-import { isEndpointReady } from '../src/interact.js';
+import { isEndpointReady, nextEdgeChrome } from '../src/interact.js';
 import {
   routeEdges,
   detourParentBounds,
@@ -375,6 +375,41 @@ nodes:
       .sort((x, y) => x - y);
     const span = bottoms[2] - tops[0];
     assert.ok(span > tall.h * 0.55, `expanded tb span ${span} should use vertical room`);
+  });
+});
+
+describe('regressions · edge foreground', () => {
+  it('strokes and labels stack above parent fills', () => {
+    const edges = css.match(/\.radius-edges\s*\{[^}]*z-index:\s*(\d+)/);
+    const labels = css.match(/\.radius-edge-labels\s*\{[^}]*z-index:\s*(\d+)/);
+    const groups = css.match(/\.radius-group\s*\{[^}]*z-index:\s*(\d+)/);
+    assert.ok(edges && labels && groups);
+    assert.ok(Number(edges[1]) > Number(groups[1]), 'edges above groups');
+    assert.ok(Number(labels[1]) > Number(edges[1]), 'labels above strokes');
+  });
+
+  it('empty double-click toggles edges, a line toggles labels, zoomed empty zooms out', () => {
+    const off = nextEdgeChrome({ edges: 'on', labels: 'on', zoomed: false }, 'empty');
+    assert.equal(off.action, 'edges');
+    assert.equal(off.edges, 'off');
+    assert.equal(off.labels, 'on');
+    const back = nextEdgeChrome(off, 'empty');
+    assert.equal(back.edges, 'on');
+    assert.equal(back.labels, 'on');
+    const muted = nextEdgeChrome({ edges: 'on', labels: 'on', zoomed: false }, 'line');
+    assert.equal(muted.action, 'labels');
+    assert.equal(muted.labels, 'off');
+    assert.equal(muted.edges, 'on');
+    const restored = nextEdgeChrome(muted, 'line');
+    assert.equal(restored.labels, 'on');
+    const hiddenLine = nextEdgeChrome({ edges: 'off', labels: 'on', zoomed: false }, 'line');
+    assert.equal(hiddenLine.action, 'none');
+    assert.equal(hiddenLine.labels, 'on');
+    const zoomed = nextEdgeChrome({ edges: 'on', labels: 'off', zoomed: true }, 'empty');
+    assert.equal(zoomed.action, 'zoom-out');
+    assert.equal(zoomed.edges, 'on');
+    assert.equal(zoomed.labels, 'off');
+    assert.equal(zoomed.zoomed, false);
   });
 });
 

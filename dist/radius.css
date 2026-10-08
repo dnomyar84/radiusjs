@@ -325,7 +325,9 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  z-index: 0; /* under headers / cards — lines pass behind translucent faces */
+  /* Above parent fills and cards so a route stays visible where it crosses a frame.
+     The world is its own stacking context, so this stays under the fit controls. */
+  z-index: 6;
   pointer-events: none;
 }
 
@@ -767,8 +769,30 @@
 .radius-edge-labels {
   position: absolute;
   inset: 0;
-  z-index: 1; /* above edge strokes, still under group headers */
+  z-index: 7; /* above the strokes, still inside the diagram world */
   pointer-events: none; /* children re-enable for tip / hot */
+}
+
+/* Session toggles: empty double-click hides strokes; line double-click hides labels. */
+.radius-root.is-edges-off .radius-edge,
+.radius-root.is-edges-off .radius-edge-hit,
+.radius-root.is-edges-off .radius-edge-pipe,
+.radius-root.is-edges-off .radius-edge-label,
+.radius-root[data-theme].is-edges-off .radius-edge,
+.radius-root[data-theme].is-edges-off .radius-edge-hit,
+.radius-root[data-theme].is-edges-off .radius-edge-pipe,
+.radius-root[data-theme].is-edges-off .radius-edge-label {
+  opacity: 0 !important;
+  visibility: hidden;
+  pointer-events: none !important;
+  filter: none;
+}
+
+.radius-root.is-labels-off .radius-edge-label,
+.radius-root[data-theme].is-labels-off .radius-edge-label {
+  opacity: 0 !important;
+  visibility: hidden;
+  pointer-events: none !important;
 }
 
 .radius-edge-label {

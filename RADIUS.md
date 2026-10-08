@@ -57,7 +57,9 @@ The board is a fixed slide canvas (host width × 16:9 by default). Expand/collap
 
 Fold motion: expand/collapse uses a short **FLIP** morph (collapsed face grows into the new box) then staggered child fade-in. `motion: none` or `prefers-reduced-motion` skips it.
 
-**Zoom:** double-click an **expanded** group’s body (not the face/label — that still expands/collapses) to zoom the board to that parent. Zoom back out via the **Zoom out** control, `Esc`, double-click the same body again, or double-click empty board.
+**Zoom:** double-click an **expanded** group’s body (not the face/label — that still expands/collapses) to zoom the board to that parent. Zoom back out via the **Zoom out** control, `Esc`, or double-click the same body again. While zoomed, double-click empty board also zooms out.
+
+**Edges:** strokes paint in front of parent fills and cards. Double-click empty space outside the diagram (not on a node, and not inside a parent) toggles every edge off and on. Double-click a line toggles every edge label. Hiding edges hides labels too; turning edges back on restores the label choice. A `wires: off` fence stays off. The timeline rail is not an edge.
 
 **Fit:** every board has **Fit to Screen** (default — the whole diagram in the board) and **Fit to width** (diagram width matches the board; scroll vertically). Those controls stay pinned to the bottom of the board while the diagram scrolls.
 

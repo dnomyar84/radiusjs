@@ -2,7 +2,9 @@
  * Hover / focus / keyboard story + element-face expand/collapse
  * (groups and expandable node parents) with staggered child reveal.
  * Double-click expanded group body (not the face/label) → zoom to that parent.
- * Double-click empty board or Escape → reset zoom.
+ * Double-click empty board outside the diagram toggles edges. While zoomed, that
+ * same gesture still zooms out. Double-click a line toggles every edge label.
+ * Escape resets zoom.
  * Fit to Screen keeps the whole diagram in the board.
  * Fit to width matches the board width and scrolls vertically.
  * Drag-resize via SE handle (grow free; shrink to content floor).
@@ -37,6 +39,38 @@ export function isEndpointReady(el, motion = 'tasteful') {
     return false;
   }
   return true;
+}
+
+/**
+ * Edge chrome gestures.
+ * `empty` — double-click outside every node and group. Toggles all edges,
+ * unless the board is zoomed, in which case it zooms out (one gesture, one job).
+ * `line` — double-click a stroke or its label. Toggles the label layer.
+ * Labels stay as they were when edges come back. Hiding edges hides labels too.
+ */
+export function nextEdgeChrome(state, gesture) {
+  const edges = state?.edges === 'off' ? 'off' : 'on';
+  const labels = state?.labels === 'off' ? 'off' : 'on';
+  const zoomed = !!state?.zoomed;
+  if (gesture === 'line') {
+    if (edges === 'off') return { edges, labels, zoomed, action: 'none' };
+    return {
+      edges,
+      labels: labels === 'off' ? 'on' : 'off',
+      zoomed,
+      action: 'labels',
+    };
+  }
+  if (gesture === 'empty') {
+    if (zoomed) return { edges, labels, zoomed: false, action: 'zoom-out' };
+    return {
+      edges: edges === 'off' ? 'on' : 'off',
+      labels,
+      zoomed: false,
+      action: 'edges',
+    };
+  }
+  return { edges, labels, zoomed, action: 'none' };
 }
 
 export function bindInteract(root, spec, laid, hooks = {}) {
@@ -759,28 +793,60 @@ export function bindInteract(root, spec, laid, hooks = {}) {
     return pt.x >= r.left && pt.x <= r.right && pt.y >= r.top && pt.y <= r.bottom;
   }
 
+  function applyEdgeChrome(next) {
+    const edges = next?.edges === 'off' ? 'off' : 'on';
+    const labels = next?.labels === 'off' ? 'off' : 'on';
+    root.dataset.edges = edges;
+    root.dataset.edgeLabels = labels;
+    root.classList.toggle('is-edges-off', edges === 'off');
+    root.classList.toggle('is-labels-off', labels === 'off');
+  }
+
+  function edgeChromeState() {
+    return {
+      edges: root.dataset.edges,
+      labels: root.dataset.edgeLabels,
+      zoomed: !!root.dataset.zoomed,
+    };
+  }
+
   function onBoardDblClick(e) {
-    // Face / label / fold / nodes / edges keep their own actions — no zoom
     if (
       e.target.closest(
-        '.radius-group-face, .radius-fold-btn, .radius-node, .radius-resize, .radius-edge-hit, .radius-edge-label',
+        '.radius-view-controls, .radius-story-hint, .radius-orbit-hint, .radius-resize, .radius-group-face, .radius-fold-btn',
       )
     ) {
       return;
     }
+    // A line (or its label chip) toggles the label layer. The stroke stays.
+    if (e.target.closest('.radius-edge-hit, .radius-edge-label')) {
+      const next = nextEdgeChrome(edgeChromeState(), 'line');
+      if (next.action === 'labels') {
+        e.preventDefault();
+        e.stopPropagation();
+        applyEdgeChrome(next);
+        hideEdgeTip({ force: true });
+      }
+      return;
+    }
+    if (e.target.closest('.radius-node')) return;
     const pt = { x: e.clientX, y: e.clientY };
     for (const n of nodes) {
       if (n.classList.contains('is-folded')) continue;
       if (pointInRect(pt, n.getBoundingClientRect())) return;
     }
-    // Smallest expanded parent whose body (not face) contains the point
+    // Smallest expanded parent whose body (not face) contains the point.
+    // A collapsed card still counts as inside the diagram, so it does not
+    // toggle edges.
     let hit = null;
     let hitArea = Infinity;
+    let insideGroup = false;
     for (const g of groups) {
       if (g.classList.contains('is-folded-group')) continue;
-      if (g.dataset.collapsed === 'true') continue;
       const r = g.getBoundingClientRect();
       if (!pointInRect(pt, r)) continue;
+      insideGroup = true;
+      if (g.dataset.collapsed === 'true') continue;
       const face = g.querySelector('.radius-group-face');
       if (face && pointInRect(pt, face.getBoundingClientRect())) continue;
       const area = r.width * r.height;
@@ -792,9 +858,18 @@ export function bindInteract(root, spec, laid, hooks = {}) {
     if (hit) {
       e.preventDefault();
       zoomToGroup(hit.dataset.id);
-    } else if (root.dataset.zoomed) {
+      return;
+    }
+    if (insideGroup) return;
+    const next = nextEdgeChrome(edgeChromeState(), 'empty');
+    if (next.action === 'zoom-out') {
       e.preventDefault();
       clearZoom();
+      return;
+    }
+    if (next.action === 'edges') {
+      e.preventDefault();
+      applyEdgeChrome(next);
     }
   }
 
@@ -952,6 +1027,7 @@ export function bindInteract(root, spec, laid, hooks = {}) {
 
   board.tabIndex = 0;
   board.addEventListener('keydown', onKey);
+  applyEdgeChrome(edgeChromeState());
 
   if (hintEl && hintIdle) {
     hintEl.hidden = false;
