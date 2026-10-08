@@ -325,6 +325,54 @@ edges:
     assert.equal(layoutReport(spec, laid).overlaps.length, 0);
   });
 
+  it('mindmap keeps a size-relative corridor between shapes on a phone board', () => {
+    const spec = parse(`
+template: mindmap
+engine: native
+route: curve
+nodes:
+  hub[Product]{shape:circle collapsed:false}
+  eng[Engineering]{parent:hub shape:hex collapsed:false}
+  api[API]{parent:eng shape:parallelogram}
+  ui[UI]{parent:eng}
+  mkt[Marketing]{parent:hub shape:oval}
+  risks[Risks]{parent:hub shape:table collapsed:false}
+  lat[Latency]{parent:risks}
+  auth[Auth]{parent:risks shape:diamond}
+edges:
+  hub --> eng
+  eng --> api: serve
+  eng --> ui
+  hub --> mkt: grow
+  hub --> risks
+  api --> lat
+`);
+    const phone = { w: 390, h: 520 };
+    const laid = layout(spec, phone);
+    const ids = Object.keys(laid.boxes).filter((id) => !laid.boxes[id].folded);
+    assert.equal(layoutReport(spec, laid).overlaps.length, 0);
+    for (let i = 0; i < ids.length; i++) {
+      for (let j = i + 1; j < ids.length; j++) {
+        const a = laid.boxes[ids[i]];
+        const b = laid.boxes[ids[j]];
+        const dx = b.x + b.w / 2 - (a.x + a.w / 2);
+        const dy = b.y + b.h / 2 - (a.y + a.h / 2);
+        const minor = Math.min(a.w, a.h, b.w, b.h);
+        const need = minor * 0.34;
+        const ox = a.w / 2 + b.w / 2 + need - Math.abs(dx);
+        const oy = a.h / 2 + b.h / 2 + need - Math.abs(dy);
+        assert.ok(ox <= 1 || oy <= 1, `${ids[i]} and ${ids[j]} corridor ${need.toFixed(1)}`);
+      }
+    }
+    for (const id of ids) {
+      const b = laid.boxes[id];
+      assert.ok(b.x >= -1 && b.y >= -1, id);
+      assert.ok(b.x + b.w <= phone.w + 1, id);
+      assert.ok(b.y + b.h <= phone.h + 1, id);
+      assert.ok((b.measure?.fontPx || 3) >= 3, id);
+    }
+  });
+
   it('table parent stacks each child as a row element', () => {
     const spec = parse(`
 theme: paper

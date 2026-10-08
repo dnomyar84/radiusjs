@@ -154,6 +154,137 @@ function measureMindmapNode(node, board) {
   return s;
 }
 
+/** Half-diagonal — the farthest a box corner sits from its center. */
+function shapeReach(box) {
+  return Math.hypot(box?.w || 0, box?.h || 0) / 2;
+}
+
+/**
+ * Empty corridor between two faces. Scales with both so a connector
+ * (stub, curve, arrow) has room that stays proportional when the map shrinks.
+ */
+function connectorGap(a, b) {
+  const aw = a?.w || 1;
+  const ah = a?.h || 1;
+  const bw = b?.w || 1;
+  const bh = b?.h || 1;
+  const minor = Math.min(aw, ah, bw, bh);
+  const major = Math.min(Math.max(aw, ah), Math.max(bw, bh));
+  return minor * 0.55 + major * 0.28;
+}
+
+/** Ring radius so adjacent siblings on `span` keep a connector corridor. */
+function chordRadius(sizes, span) {
+  const n = sizes.length;
+  if (n < 2 || !(span > 0)) return 0;
+  const slice = span / n;
+  const full = span >= Math.PI * 2 - 1e-3;
+  let R = 0;
+  for (let i = 0; i < n; i++) {
+    if (i === n - 1 && !full) continue;
+    const j = (i + 1) % n;
+    const need = shapeReach(sizes[i]) + shapeReach(sizes[j]) + connectorGap(sizes[i], sizes[j]);
+    const s = Math.sin(slice / 2);
+    if (s > 1e-3) R = Math.max(R, need / (2 * s));
+  }
+  return R;
+}
+
+/** Push visible boxes apart until each pair has its connector corridor. Root stays put. */
+function separateBoxes(boxes, pinId) {
+  const ids = Object.keys(boxes).filter((id) => boxes[id] && !boxes[id].folded);
+  const pin = pinId ? boxes[pinId] : null;
+  const pinX = pin?.x;
+  const pinY = pin?.y;
+  for (let iter = 0; iter < 64; iter++) {
+    let moved = false;
+    for (let i = 0; i < ids.length; i++) {
+      for (let j = i + 1; j < ids.length; j++) {
+        const a = boxes[ids[i]];
+        const b = boxes[ids[j]];
+        // Rows stacked inside an expanded table already sit in that face.
+        const wrapped =
+          (a.parentNode === ids[j] && b.shape === 'table' && b.h > (b.measure?.h || 0) + 4) ||
+          (b.parentNode === ids[i] && a.shape === 'table' && a.h > (a.measure?.h || 0) + 4);
+        if (wrapped) continue;
+        const need = connectorGap(a, b);
+        const dx = b.x + b.w / 2 - (a.x + a.w / 2);
+        const dy = b.y + b.h / 2 - (a.y + a.h / 2);
+        const ox = a.w / 2 + b.w / 2 + need - Math.abs(dx);
+        const oy = a.h / 2 + b.h / 2 + need - Math.abs(dy);
+        if (ox <= 0.4 || oy <= 0.4) continue;
+        const px = ox <= oy ? Math.sign(dx || 1) * (ox + 0.4) : 0;
+        const py = oy < ox ? Math.sign(dy || 1) * (oy + 0.4) : 0;
+        const aPin = ids[i] === pinId;
+        const bPin = ids[j] === pinId;
+        if (aPin) {
+          b.x += px;
+          b.y += py;
+        } else if (bPin) {
+          a.x -= px;
+          a.y -= py;
+        } else {
+          a.x -= px / 2;
+          a.y -= py / 2;
+          b.x += px / 2;
+          b.y += py / 2;
+        }
+        moved = true;
+      }
+    }
+    if (pin && pinX != null) {
+      pin.x = pinX;
+      pin.y = pinY;
+    }
+    if (!moved) break;
+  }
+}
+
+/** Uniform shrink about the root center so relative corridors survive on a short board. */
+function fitBoxesToBoard(boxes, board, pinId) {
+  const ids = Object.keys(boxes).filter((id) => boxes[id] && !boxes[id].folded);
+  if (!ids.length) return;
+  const pad = 16;
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const id of ids) {
+    const b = boxes[id];
+    minX = Math.min(minX, b.x);
+    minY = Math.min(minY, b.y);
+    maxX = Math.max(maxX, b.x + b.w);
+    maxY = Math.max(maxY, b.y + b.h);
+  }
+  const availW = Math.max(1, board.w - pad * 2);
+  const availH = Math.max(1, board.h - pad * 2);
+  const scale = Math.min(1, availW / Math.max(1, maxX - minX), availH / Math.max(1, maxY - minY));
+  if (scale >= 0.999) return;
+  const pin = boxes[pinId];
+  const pcx = pin ? pin.x + pin.w / 2 : (minX + maxX) / 2;
+  const pcy = pin ? pin.y + pin.h / 2 : (minY + maxY) / 2;
+  for (const id of Object.keys(boxes)) {
+    const b = boxes[id];
+    if (!b) continue;
+    const cx = b.x + b.w / 2;
+    const cy = b.y + b.h / 2;
+    b.w *= scale;
+    b.h *= scale;
+    b.x = pcx + (cx - pcx) * scale - b.w / 2;
+    b.y = pcy + (cy - pcy) * scale - b.h / 2;
+    if (b.hCollapsed) b.hCollapsed *= scale;
+    if (b.hExpanded) b.hExpanded *= scale;
+    if (b.measure) {
+      b.measure = {
+        ...b.measure,
+        w: b.measure.w * scale,
+        h: b.measure.h * scale,
+        fontPx: Math.max(3, (b.measure.fontPx || 12) * scale),
+      };
+    }
+  }
+}
+
 /**
  * Radial multi-depth mindmap: root at center, children on rings in parent sectors.
  * Tree from `parent:` attrs and/or edges (from → to = parent → child when no parent set).
@@ -200,48 +331,13 @@ function layoutMindmap(spec, board) {
   const cx = board.w / 2;
   const cy = board.h / 2 + 8;
   const tight = Math.min(board.w, board.h) < 640;
-  let R0;
-  let Rstep;
-  let sizeScale = 1;
-  if (tight) {
-    const rootSize = measureMindmapNode(root, board);
-    let maxSide = rootSize.w;
-    for (const n of nodes) {
-      if (n.id === root.id) continue;
-      maxSide = Math.max(maxSide, measureMindmapNode(n, board).w);
-    }
-    const gap = 14;
-    R0 = rootSize.w / 2 + maxSide / 2 + gap;
-    Rstep = maxSide + gap;
-    const need = R0 + Rstep * 2 + maxSide / 2 + 8;
-    const avail = Math.min(board.w, board.h) / 2 - 4;
-    if (need > avail) sizeScale = avail / need;
-    R0 *= sizeScale;
-    Rstep *= sizeScale;
-  } else {
-    const maxR = Math.min(board.w, board.h) * 0.42;
-    R0 = Math.min(board.w, board.h) * 0.22;
-    Rstep = Math.max(90, (maxR - R0) / 3);
-  }
-
-  const fitNode = (node) => {
-    const s = measureMindmapNode(node, board);
-    if (sizeScale >= 0.999) return s;
-    const fontPx = Math.max(3, Math.round((s.fontPx || 12) * sizeScale));
-    return {
-      ...s,
-      w: Math.max(18, s.w * sizeScale),
-      h: Math.max(14, s.h * sizeScale),
-      fontPx,
-    };
-  };
 
   const depthOf = {};
   const angleOf = {};
   const spanOf = {};
   const placed = new Set();
 
-  function placeTree(id, depth, a0, a1) {
+  function placeTree(id, depth, a0, a1, R) {
     const node = byId[id];
     if (!node || placed.has(id)) return;
     placed.add(id);
@@ -249,8 +345,7 @@ function layoutMindmap(spec, board) {
     const mid = (a0 + a1) / 2;
     angleOf[id] = mid;
     spanOf[id] = a1 - a0;
-    const s = fitNode(node);
-    const R = depth === 0 ? 0 : R0 + (depth - 1) * Rstep;
+    const s = measureMindmapNode(node, board);
     const px = cx + Math.cos(mid) * R - s.w / 2;
     const py = cy + Math.sin(mid) * R - s.h / 2;
     boxes[id] = {
@@ -278,14 +373,15 @@ function layoutMindmap(spec, board) {
         boxes[id].y = hy - s.h / 2;
         boxes[id].w = s.w;
         boxes[id].h = s.h;
-        let dist = Math.hypot(s.w, s.h) / 2 + 8;
+        let dist = shapeReach(s);
+        let prev = s;
         children.forEach((cid) => {
           const child = byId[cid];
           if (!child || placed.has(cid)) return;
           placed.add(cid);
-          const cs = fitNode(child);
-          const reach = Math.hypot(cs.w, cs.h) / 2 + 4;
-          dist += reach;
+          const cs = measureMindmapNode(child, board);
+          dist += connectorGap(prev, cs) + shapeReach(cs);
+          prev = cs;
           boxes[cid] = {
             x: hx + ux * dist - cs.w / 2,
             y: hy + uy * dist - cs.h / 2,
@@ -298,18 +394,21 @@ function layoutMindmap(spec, board) {
           };
           depthOf[cid] = depth + 1;
           angleOf[cid] = mid;
-          dist += reach;
+          dist += shapeReach(cs);
         });
         return;
       }
       const rowW = Math.max(s.w, 160);
-      let ry = py + s.h + 4;
+      let ry = py + s.h;
       let maxRowW = rowW;
-      children.forEach((cid, i) => {
+      let prevRow = s;
+      children.forEach((cid) => {
         const child = byId[cid];
         if (!child || placed.has(cid)) return;
         placed.add(cid);
-        const cs = fitNode(child);
+        const cs = measureMindmapNode(child, board);
+        ry += connectorGap(prevRow, cs);
+        prevRow = cs;
         const rw = Math.max(rowW, cs.w);
         maxRowW = Math.max(maxRowW, rw);
         boxes[cid] = {
@@ -324,7 +423,7 @@ function layoutMindmap(spec, board) {
         };
         depthOf[cid] = depth + 1;
         angleOf[cid] = mid;
-        ry += cs.h + 2;
+        ry += cs.h;
       });
       boxes[id].w = maxRowW;
       boxes[id].h = ry - py + 2;
@@ -335,22 +434,44 @@ function layoutMindmap(spec, board) {
       return;
     }
 
-    const slice = (a1 - a0) / children.length;
-    children.forEach((cid, i) => {
-      placeTree(cid, depth + 1, a0 + i * slice, a0 + (i + 1) * slice);
+    const pending = [];
+    for (const cid of children) {
+      const child = byId[cid];
+      if (!child || placed.has(cid)) continue;
+      pending.push({ child, size: measureMindmapNode(child, board) });
+    }
+    if (!pending.length) return;
+    const span = a1 - a0;
+    const slice = span / pending.length;
+    let ring = R;
+    for (const { size: cs } of pending) {
+      ring = Math.max(ring, R + shapeReach(s) + shapeReach(cs) + connectorGap(s, cs));
+    }
+    ring = Math.max(ring, chordRadius(pending.map((p) => p.size), span));
+    pending.forEach(({ child }, i) => {
+      placeTree(child.id, depth + 1, a0 + i * slice, a0 + (i + 1) * slice, ring);
     });
   }
 
   // Full circle for root's children; root itself at center
-  placeTree(root.id, 0, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2);
+  placeTree(root.id, 0, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2, 0);
 
   // Orphans (not under root) — place on outer ring
   let orphanI = 0;
   const orphans = nodes.filter((n) => !boxes[n.id]);
+  let far = 0;
+  for (const b of Object.values(boxes)) {
+    far = Math.max(far, Math.hypot(b.x + b.w / 2 - cx, b.y + b.h / 2 - cy) + shapeReach(b));
+  }
+  const orphanSizes = orphans.map((n) => measureMindmapNode(n, board));
+  const orphanRing = Math.max(
+    far + (orphanSizes[0] ? connectorGap({ w: 40, h: 40 }, orphanSizes[0]) : 0),
+    chordRadius(orphanSizes, Math.PI * 2),
+  );
   for (const n of orphans) {
     const a = -Math.PI / 2 + (orphanI++ * 2 * Math.PI) / Math.max(orphans.length, 1);
-    const s = fitNode(n);
-    const R = maxR;
+    const s = orphanSizes[orphanI - 1];
+    const R = orphanRing;
     boxes[n.id] = {
       x: cx + Math.cos(a) * R - s.w / 2,
       y: cy + Math.sin(a) * R - s.h / 2,
@@ -412,6 +533,9 @@ function layoutMindmap(spec, board) {
       }
     }
   }
+
+  separateBoxes(boxes, root.id);
+  fitBoxesToBoard(boxes, board, root.id);
 
   return boxes;
 }
