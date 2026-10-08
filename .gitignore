@@ -1,7 +1,9 @@
 .tools/
 node_modules/
 artifacts/
-.cursor/
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/**
 *.log
 .DS_Store
 Thumbs.db
