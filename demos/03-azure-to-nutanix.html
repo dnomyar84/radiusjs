@@ -23,10 +23,10 @@ look: elevated
 ground: circuit
 groups:
   src[On-prem Azure HCI]{family:azure members:hci arc vnet mon}
-  compute[Compute & guests]{family:azure parent:src members:vms aks collapsed:true}
+  compute[Compute & guests]{family:azure parent:src members:vms aks collapsed:false}
   identity[Ops & identity]{family:azure parent:src members:vault stor}
   dst[Nutanix cloud]{family:nutanix members:prism nci}
-  ahvlayer[AHV fabric]{family:nutanix parent:dst members:ahv files objs flow collapsed:true}
+  ahvlayer[AHV fabric]{family:nutanix parent:dst members:ahv files objs flow collapsed:false}
   platform[NKP platform]{family:nkp parent:dst members:nkpmgt wk1 wk2 flux prom collapsed:true}
 nodes:
   hci[Azure Stack HCI]{kind:azure.hci}

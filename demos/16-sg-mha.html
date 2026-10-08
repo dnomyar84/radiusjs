@@ -33,12 +33,12 @@ look: elevated
 wires: all
 motion: tasteful
 groups:
-  mha[Ministry of Home Affairs]{virtual collapsed:true}
+  mha[Ministry of Home Affairs]{virtual collapsed:false}
   lead[Political &amp; ministry leadership]{parent:mha virtual members:sm mha2law mha2mfa sms mos ps secPs dsPol dsDev dsCorp collapsed:true}
   hq[MHA Headquarters divisions]{parent:mha virtual members:cpc fad htms htpsy hrd icp legal jog pod pdd tpg ros rsd rmag tcd collapsed:true}
-  htd[Home Team Departments]{parent:mha virtual collapsed:true}
-  boards[Statutory boards]{parent:mha virtual collapsed:true}
-  spf[Singapore Police Force]{parent:htd virtual collapsed:true}
+  htd[Home Team Departments]{parent:mha virtual collapsed:false}
+  boards[Statutory boards]{parent:mha virtual collapsed:false}
+  spf[Singapore Police Force]{parent:htd virtual collapsed:false}
   spfLand[SPF land divisions]{parent:spf virtual members:divA divD divE divF divG divJ divL collapsed:true}
   spfSpec[SPF specialist &amp; line units]{parent:spf virtual members:apd gc htsci pcg pocc procom transcom seccom soc tp tracom cyber collapsed:true}
   spfStaff[SPF specialist staff]{parent:spf virtual members:cad cid ppsd otd pid collapsed:true}

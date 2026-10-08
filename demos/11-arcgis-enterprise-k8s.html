@@ -12,7 +12,7 @@
   <header class="demo-bar">
     <a href="index.html">← Demos</a>
     <strong>11 · ArcGIS Enterprise on Kubernetes</strong>
-    <em>Logical sets · fully expanded · no edges · <code>hex</code></em>
+    <em>Logical sets · first screen about twenty · no edges · <code>hex</code></em>
   </header>
   <h1 class="demo-sub">ArcGIS Enterprise on Kubernetes — the <code>arcgis</code> namespace, opened</h1>
   <!--
@@ -48,20 +48,20 @@ groups:
   cluster[Kubernetes cluster]{family:k8s virtual kind:k8s.cluster collapsed:false}
   ns[arcgis namespace]{family:esri parent:cluster virtual kind:esri.enterprise collapsed:false}
   framework[Framework pods]{family:esri parent:ns virtual kind:esri.lb collapsed:false}
-  sysdeploy[Additional system deployments]{family:esri parent:ns virtual kind:esri.server collapsed:false}
+  sysdeploy[Additional system deployments]{family:esri parent:ns virtual kind:esri.server collapsed:true}
   admin[Administration pods]{family:esri parent:ns virtual kind:esri.manager collapsed:false}
   services[Service pods]{family:esri parent:ns virtual kind:esri.server collapsed:false}
-  storage[System storage]{family:esri parent:ns virtual kind:esri.datastore collapsed:false}
-  profiles[Availability profile — choose one]{family:esri parent:cluster virtual kind:esri.enterprise collapsed:false}
-  outside[Outside the namespace]{family:esri parent:cluster virtual kind:esri.gdb collapsed:false}
-  gis[GIS services]{parent:services virtual collapsed:false members:feat_svc map_svc tile_svc img_svc geocode_svc gp_svc nb_svc}
-  shared[Shared GIS resources]{parent:gis virtual collapsed:false members:shared_feat shared_map shared_tile shared_img}
-  system[System services]{parent:services virtual collapsed:false members:pub_tools report_tools scene_ctrl scene_tools rast_tools rast_proc rast_gpu rast_render}
-  utility[Utility services]{parent:services virtual collapsed:false members:print_svc geom_svc}
-  storeObj[Object store — role follows the profile]{parent:storage virtual collapsed:false members:obj_mixed obj_meta obj_data}
-  storeRel[Relational store]{parent:storage virtual collapsed:false members:rel_pri rel_std}
-  storeSt[Spatiotemporal and index store — role follows the profile]{parent:storage virtual collapsed:false members:st_mixed st_coord st_data}
-  storeVol[Other StatefulSet volumes]{parent:storage virtual collapsed:false members:queue_store mem_cache item_pkg prometheus}
+  storage[System storage]{family:esri parent:ns virtual kind:esri.datastore collapsed:true}
+  profiles[Availability profile — choose one]{family:esri parent:cluster virtual kind:esri.enterprise collapsed:true}
+  outside[Outside the namespace]{family:esri parent:cluster virtual kind:esri.gdb collapsed:true}
+  gis[GIS services]{parent:services virtual collapsed:true members:feat_svc map_svc tile_svc img_svc geocode_svc gp_svc nb_svc}
+  shared[Shared GIS resources]{parent:gis virtual collapsed:true members:shared_feat shared_map shared_tile shared_img}
+  system[System services]{parent:services virtual collapsed:true members:pub_tools report_tools scene_ctrl scene_tools rast_tools rast_proc rast_gpu rast_render}
+  utility[Utility services]{parent:services virtual collapsed:true members:print_svc geom_svc}
+  storeObj[Object store — role follows the profile]{parent:storage virtual collapsed:true members:obj_mixed obj_meta obj_data}
+  storeRel[Relational store]{parent:storage virtual collapsed:true members:rel_pri rel_std}
+  storeSt[Spatiotemporal and index store — role follows the profile]{parent:storage virtual collapsed:true members:st_mixed st_coord st_data}
+  storeVol[Other StatefulSet volumes]{parent:storage virtual collapsed:true members:queue_store mem_cache item_pkg prometheus}
 nodes:
   ingress[Ingress controller]{kind:esri.lb layer:logical group:framework}
   help[Help]{kind:esri.experience layer:logical group:framework}
@@ -122,7 +122,7 @@ nodes:
 </pre>
   <details class="snippet">
     <summary>Esri logical sets</summary>
-    <pre tabindex="0">No edges. Every set starts expanded.
+    <pre tabindex="0">No edges. The first screen opens the namespace, framework, administration, and the service categories. Deeper sets start folded.
 
 Source: ArcGIS Enterprise on Kubernetes docs (latest) — System architecture,
 Understanding system deployments, Manage service deployments, Service modes,

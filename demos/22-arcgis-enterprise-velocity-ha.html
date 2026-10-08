@@ -58,13 +58,13 @@ groups:
   gate[Gateway]{family:esri virtual kind:esri.webadaptor collapsed:false members:gateway}
   internal[Internal access]{family:esri virtual collapsed:false members:int_lb}
   vms[ArcGIS Enterprise 12.3 on VMs]{family:esri virtual kind:esri.enterprise collapsed:false}
-  portal[Portal for ArcGIS]{parent:vms virtual kind:esri.portal collapsed:false members:portal_p portal_s}
-  hosting[Hosting GIS Server]{parent:vms virtual kind:esri.hosting collapsed:false members:gis_1 gis_2}
-  velocity[ArcGIS Velocity — single machine]{parent:vms virtual kind:esri.velocity collapsed:false members:vel_cp vel_feeds vel_gw vel_metrics vel_rt vel_stream}
+  portal[Portal for ArcGIS]{parent:vms virtual kind:esri.portal collapsed:true members:portal_p portal_s}
+  hosting[Hosting GIS Server]{parent:vms virtual kind:esri.hosting collapsed:true members:gis_1 gis_2}
+  velocity[ArcGIS Velocity — single machine]{parent:vms virtual kind:esri.velocity collapsed:true members:vel_cp vel_feeds vel_gw vel_metrics vel_rt vel_stream}
   shared[Shared services]{family:esri virtual kind:esri.datastore collapsed:false}
-  files[File share — Nutanix Unified Storage]{parent:shared family:nutanix virtual kind:nutanix.files collapsed:false members:portal_content config_store server_dirs}
-  store[ArcGIS Data Store]{parent:shared virtual kind:esri.datastore collapsed:false members:rel_p rel_s st_1 st_2 st_3 obj_store}
-  dbaas[Database as a Service]{parent:shared virtual kind:esri.gdb collapsed:false members:egdb}
+  files[File share — Nutanix Unified Storage]{parent:shared family:nutanix virtual kind:nutanix.files collapsed:true members:portal_content config_store server_dirs}
+  store[ArcGIS Data Store]{parent:shared virtual kind:esri.datastore collapsed:true members:rel_p rel_s st_1 st_2 st_3 obj_store}
+  dbaas[Database as a Service]{parent:shared virtual kind:esri.gdb collapsed:true members:egdb}
 nodes:
   browsers[Browser and mobile apps]{kind:esri.experience layer:conceptual}
   pro[ArcGIS Pro]{kind:esri.professional layer:conceptual}

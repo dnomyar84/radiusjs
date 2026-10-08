@@ -25,14 +25,14 @@ glass: frost
 look: elevated
 engine: auto
 groups:
-  users[User network]{family:esri layer:conceptual kind:esri.experience members:browser apps collapsed:true virtual:true}
-  infra[Infra common services]{family:esri layer:conceptual kind:esri.lb members:lb idp dns collapsed:true virtual:true}
-  web[Web tier]{family:esri layer:conceptual kind:esri.webadaptor members:wa_portal wa_server collapsed:true virtual:true}
-  app[App tier]{family:esri layer:conceptual kind:esri.server members:portal_ha hosting_ha specialty collapsed:true virtual:true}
+  users[User network]{family:esri layer:conceptual kind:esri.experience members:browser apps collapsed:false virtual:true}
+  infra[Infra common services]{family:esri layer:conceptual kind:esri.lb members:lb idp dns collapsed:false virtual:true}
+  web[Web tier]{family:esri layer:conceptual kind:esri.webadaptor members:wa_portal wa_server collapsed:false virtual:true}
+  app[App tier]{family:esri layer:conceptual kind:esri.server members:portal_ha hosting_ha specialty collapsed:false virtual:true}
   portal_ha[Portal for ArcGIS]{family:esri parent:app layer:logical kind:esri.portal members:portal_p portal_s collapsed:true virtual:true}
   hosting_ha[Hosting GIS Server]{family:esri parent:app layer:logical kind:esri.hosting members:gis_p gis_s collapsed:true virtual:true}
   specialty[Specialty servers]{family:esri parent:app layer:logical kind:esri.server members:img_role ga_role ge_role nb_role mission_role know_role wfm_role collapsed:true virtual:true}
-  data[Data tier]{family:esri layer:conceptual kind:esri.datastore members:rel_ha tile_ha st_ha obj_ha collapsed:true virtual:true}
+  data[Data tier]{family:esri layer:conceptual kind:esri.datastore members:rel_ha tile_ha st_ha obj_ha collapsed:false virtual:true}
   rel_ha[Relational]{family:esri parent:data layer:logical kind:esri.relational members:rel_pri rel_stb collapsed:true virtual:true}
   tile_ha[Tile cache]{family:esri parent:data layer:logical kind:esri.tilecache members:tc_pri tc_stb collapsed:true virtual:true}
   st_ha[Spatiotemporal]{family:esri parent:data layer:logical kind:esri.spatiotemporal members:st_n1 st_n2 st_n3 collapsed:true virtual:true}

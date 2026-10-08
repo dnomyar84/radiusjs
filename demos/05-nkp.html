@@ -23,9 +23,9 @@ ground: mesh
 look: elevated
 groups:
   mgt[Management cluster]{family:nkp members:mgmt konvoy kommander capi}
-  platform[Platform apps]{family:nkp parent:mgt members:flux dex prom grafana velero csi collapsed:true}
+  platform[Platform apps]{family:nkp parent:mgt members:flux dex prom grafana velero csi collapsed:false}
   workloads[Workload clusters]{family:nkp members:wkprod wkdev attached}
-  apps[App layer]{family:ctr parent:workloads members:deploy svc ing helm reg collapsed:true}
+  apps[App layer]{family:ctr parent:workloads members:deploy svc ing helm reg collapsed:false}
 nodes:
   mgmt[NKP management]{kind:nkp.management}
   konvoy[Konvoy]{kind:nkp.konvoy}
