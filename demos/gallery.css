@@ -286,7 +286,7 @@ body.sheet-lock { overflow: hidden; }
   display: flex;
 }
 
-/* Playground — diagram on top, both rails underneath, at every width. */
+/* Playground — diagram, then the text box, then the color rails. */
 .gallery.is-playground .stage-head { display: none; }
 .gallery.is-playground .stage-panel { overflow: hidden; }
 
@@ -303,8 +303,8 @@ body.sheet-lock { overflow: hidden; }
 }
 
 .play-preview { order: 0; }
-.play-controls { order: 1; }
-.play-source { order: 2; }
+.play-source { order: 1; }
+.play-controls { order: 2; }
 
 .play-controls {
   display: flex;

@@ -291,7 +291,8 @@ export async function render(el, source, opts = {}) {
 
   if (opts.theme) spec.theme = opts.theme;
   if (opts.engine) spec.engine = opts.engine;
-  // Playground rails skin an imported diagram without rewriting its text.
+  // Optional skin overrides. The playground passes theme only, so pasted
+  // ground, route, and structure stay in the source.
   for (const key of ['ground', 'look', 'glass', 'font', 'motion', 'route', 'frame']) {
     if (opts[key]) spec[key] = opts[key];
   }

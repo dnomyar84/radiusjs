@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { BEAUTY_PRESETS, CATEGORIES, DEMOS, STYLE_PRESETS, VERSION } from '../demos/catalog.js';
+import { BEAUTY_PRESETS, CATEGORIES, DEMOS, STYLE_PRESETS, VERSION, colorPresets } from '../demos/catalog.js';
 import { ENUMS, parse } from '../src/parse.js';
 import { looksLikeMermaid } from '../src/mermaid.js';
 import { layout } from '../src/layout.js';
@@ -47,6 +47,17 @@ describe('gallery catalog', () => {
         `missing demos/${d.file}`,
       );
     }
+  });
+
+  it('playground colors are one swatch per theme', () => {
+    const colors = colorPresets();
+    const themes = colors.map((c) => c.theme);
+    assert.equal(new Set(themes).size, themes.length);
+    assert.equal(colors.length, new Set(BEAUTY_PRESETS.map((p) => p.theme)).size);
+    assert.equal(colors[0].label, 'Indigo');
+    assert.equal(colors[0].theme, 'indigo');
+    assert.ok(colors.every((c) => ENUMS.THEMES.has(c.theme)));
+    assert.ok(!colors.some((c) => c.label === 'Aurora'));
   });
 
   it('playground rails cover a look and a diagram style', () => {

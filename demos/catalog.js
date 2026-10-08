@@ -187,7 +187,7 @@ export const CATEGORIES = [
     id: 'playground',
     label: 'Styling playground',
     special: 'playground',
-    hint: 'Look · diagram style · live preview',
+    hint: 'Paste Radius or Mermaid · color only',
   },
   {
     id: 'new',
@@ -226,7 +226,7 @@ export const CATEGORIES = [
   },
 ];
 
-/** Sample fence for the styling playground (meta keys overwritten live). */
+/** Opening diagram in the playground text box. Color rails do not rewrite it. */
 export const PLAYGROUND_BASE = `template: mindmap
 route: curve
 frame: system
@@ -250,8 +250,9 @@ edges:
 `;
 
 /**
- * Beauty rail — one snap chooses a color and a background together.
- * `label` is the color name; the rail shows "label · ground".
+ * Named theme and ground pairs kept for catalog checks.
+ * The playground color rails use `colorPresets()` so a repeated theme is one color.
+ * Ground stays on the pasted diagram.
  */
 export const BEAUTY_PRESETS = [
   { id: 'indigo', label: 'Indigo', theme: 'indigo', ground: 'dots' },
@@ -271,8 +272,22 @@ export const BEAUTY_PRESETS = [
 ];
 
 /**
- * Diagram rail — structure only. Color and background stay on the beauty rail.
- * `route` is applied when the style is chosen.
+ * One playground color per theme. The first label wins when a theme repeats.
+ */
+export function colorPresets() {
+  const seen = new Set();
+  const out = [];
+  for (const preset of BEAUTY_PRESETS) {
+    if (seen.has(preset.theme)) continue;
+    seen.add(preset.theme);
+    out.push({ id: preset.theme, label: preset.label, theme: preset.theme });
+  }
+  return out;
+}
+
+/**
+ * Sample diagrams kept for catalog checks.
+ * The playground text box is the diagram; choosing a color does not load these.
  */
 export const STYLE_PRESETS = [
   { id: 'mindmap', label: 'Mind map', route: 'curve', fence: PLAYGROUND_BASE },
