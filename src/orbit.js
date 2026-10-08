@@ -205,6 +205,13 @@ export function bindOrbit(root, spec, laid) {
     ...board.querySelectorAll('.radius-edge-hit[data-edge-id]'),
     ...board.querySelectorAll('.radius-edge-pipe[data-edge-id]'),
   ];
+  const pathsByEdge = new Map();
+  for (const path of edgePaths) {
+    const eid = path.dataset.edgeId;
+    if (!eid) continue;
+    if (!pathsByEdge.has(eid)) pathsByEdge.set(eid, []);
+    pathsByEdge.get(eid).push(path);
+  }
   const edgeLabels = [...board.querySelectorAll('.radius-edge-label[data-edge-id]')];
 
   let pointerDown = false;
@@ -231,17 +238,13 @@ export function bindOrbit(root, spec, laid) {
       el.dataset.depth = p.z.toFixed(1);
     }
 
-    const edgeIds = new Set(edgePaths.map((p) => p.dataset.edgeId).filter(Boolean));
-    for (const eid of edgeIds) {
-      const sample = edgePaths.find((p) => p.dataset.edgeId === eid);
-      if (!sample) continue;
+    for (const paths of pathsByEdge.values()) {
+      const sample = paths[0];
       const a = proj[sample.dataset.from];
       const b = proj[sample.dataset.to];
       if (!a || !b) continue;
       const d = `M ${a.x} ${a.y} L ${b.x} ${b.y}`;
-      board.querySelectorAll(`path[data-edge-id="${eid}"]`).forEach((el) => {
-        el.setAttribute('d', d);
-      });
+      for (const el of paths) el.setAttribute('d', d);
     }
     for (const lab of edgeLabels) {
       const a = proj[lab.dataset.from];
