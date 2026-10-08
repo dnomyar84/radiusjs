@@ -11,6 +11,38 @@ const fixture = (name) => readFileSync(join(here, 'fixtures', name), 'utf8');
 const board = { w: 960, h: 540 };
 
 describe('layout L1', () => {
+  it('narrow left-to-right flow keeps a gap when faces are wider than equal columns', () => {
+    const spec = parse(`
+template: flow
+dir: lr
+title: UML
+nodes:
+  actor[Actor]{shape:oval}
+  input[Request]{shape:parallelogram}
+  gate[Allowed?]{shape:diamond}
+  action[Update]{shape:rect}
+  store[Record]{shape:table}
+edges:
+  actor --> input
+  input --> gate
+  gate --> action: yes
+  action --> store
+`);
+    const phone = { w: 390, h: 597 };
+    const laid = layout(spec, phone);
+    assert.equal(layoutReport(spec, laid).overlaps.length, 0);
+    const ids = ['actor', 'input', 'gate', 'action', 'store'];
+    const fit = contentFitTransform(laid).scale;
+    for (let i = 0; i < ids.length - 1; i++) {
+      const a = laid.boxes[ids[i]];
+      const b = laid.boxes[ids[i + 1]];
+      const gap = b.x - (a.x + a.w);
+      assert.ok(gap > 0, `${ids[i]} overlaps ${ids[i + 1]}`);
+      assert.ok(gap * fit > 4, `${ids[i]} visual gap ${gap * fit}`);
+    }
+    assert.ok(laid.boxes.actor.x < laid.boxes.store.x);
+  });
+
   it('process places equal-ish cells left to right', () => {
     const spec = parse(fixture('process.radius.md'));
     const laid = layout(spec, board);
