@@ -62,6 +62,10 @@ describe('gallery catalog', () => {
       const laid = layout(spec, phone);
       assert.ok(Object.keys(laid.boxes).length >= 2, style.id);
     }
+    const constellation = STYLE_PRESETS.find((s) => s.id === 'constellation');
+    const cloud = parse(constellation.fence);
+    assert.equal(cloud.template, 'constellation');
+    assert.equal(cloud.nodes.length, 20);
   });
 
   it('constellation is reachable from Layout & Look categories', () => {
