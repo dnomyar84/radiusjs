@@ -16,10 +16,25 @@
         · <a href="../RADIUS.md">RADIUS.md</a>
         · static GitHub Pages ready
       </div>
-      <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Toggle categories">Categories</button>
+      <button
+        type="button"
+        class="nav-toggle"
+        id="nav-toggle"
+        aria-expanded="false"
+        aria-controls="gallery-nav-wrap"
+      >
+        <span class="nav-toggle-bars" aria-hidden="true"><i></i><i></i><i></i></span>
+        Menu
+      </button>
     </header>
 
+    <div class="nav-backdrop" id="nav-backdrop" hidden></div>
+
     <aside class="gallery-nav" id="gallery-nav-wrap" aria-label="Example categories">
+      <div class="nav-drawer-head">
+        <strong>Examples</strong>
+        <button type="button" class="sheet-close" id="nav-close">Close</button>
+      </div>
       <input
         class="nav-search"
         id="nav-search"
@@ -32,8 +47,18 @@
 
     <main class="gallery-stage">
       <div class="stage-head">
-        <h1 id="stage-title">Loading…</h1>
-        <p id="stage-blurb"></p>
+        <div class="stage-titles">
+          <h1 id="stage-title">Loading…</h1>
+          <p id="stage-blurb"></p>
+        </div>
+        <button
+          type="button"
+          class="style-toggle"
+          id="style-toggle"
+          hidden
+          aria-expanded="false"
+          aria-controls="play-controls"
+        >Style</button>
       </div>
       <div class="stage-body">
         <iframe

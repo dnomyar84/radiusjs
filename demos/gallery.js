@@ -113,7 +113,7 @@ function buildNav(filter = '') {
       const route = btn.dataset.route;
       if (route === 'playground') navigate('playground');
       else navigate('demo', btn.dataset.id);
-      document.querySelector('.gallery')?.classList.remove('nav-open');
+      setNavOpen(false);
     });
   });
 
@@ -129,12 +129,88 @@ function syncNavActive() {
   });
 }
 
+const narrowQuery = window.matchMedia('(max-width: 1100px)');
+
+function galleryEl() {
+  return document.querySelector('.gallery');
+}
+
+function syncBackdrop() {
+  const gallery = galleryEl();
+  const open = !!(gallery?.classList.contains('nav-open') || gallery?.classList.contains('style-open'));
+  const backdrop = $('#nav-backdrop');
+  if (backdrop) backdrop.hidden = !open;
+  document.body.classList.toggle('sheet-lock', open);
+}
+
+function setNavOpen(open) {
+  const gallery = galleryEl();
+  const toggle = $('#nav-toggle');
+  gallery?.classList.toggle('nav-open', !!open);
+  if (open) gallery?.classList.remove('style-open');
+  if (toggle) {
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    toggle.setAttribute('aria-label', open ? 'Hide examples' : 'Show examples');
+  }
+  const styleBtn = $('#style-toggle');
+  if (styleBtn && open) styleBtn.setAttribute('aria-expanded', 'false');
+  syncBackdrop();
+}
+
+function setStyleOpen(open) {
+  const gallery = galleryEl();
+  const toggle = $('#style-toggle');
+  gallery?.classList.toggle('style-open', !!open);
+  if (open) gallery?.classList.remove('nav-open');
+  if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  const navBtn = $('#nav-toggle');
+  if (navBtn && open) {
+    navBtn.setAttribute('aria-expanded', 'false');
+    navBtn.setAttribute('aria-label', 'Show examples');
+  }
+  syncBackdrop();
+}
+
+function syncChrome() {
+  const narrow = narrowQuery.matches;
+  const play = state.mode === 'playground';
+  galleryEl()?.classList.toggle('is-playground', play);
+  const styleBtn = $('#style-toggle');
+  if (styleBtn) styleBtn.hidden = !(narrow && play);
+  if (!narrow) {
+    setNavOpen(false);
+    setStyleOpen(false);
+  }
+}
+
 function navigate(mode, demoId) {
   state.mode = mode;
   state.demoId = demoId || state.demoId;
   setHash(mode, state.demoId);
+  if (mode !== 'playground') setStyleOpen(false);
   renderStage();
   syncNavActive();
+  syncChrome();
+}
+
+/** Gallery iframe: hide the demo's own bar even when the page has no snippet script. */
+function applyEmbed(frame) {
+  let doc;
+  try {
+    doc = frame.contentDocument;
+  } catch {
+    return;
+  }
+  if (!doc?.body) return;
+  doc.body.classList.add('embed');
+  doc.querySelectorAll('details.snippet[open]').forEach((el) => el.removeAttribute('open'));
+}
+
+function bindFrame() {
+  const frame = $('#stage-frame');
+  if (!frame || frame.dataset.embedBound) return;
+  frame.dataset.embedBound = '1';
+  frame.addEventListener('load', () => applyEmbed(frame));
 }
 
 function renderStage() {
@@ -178,6 +254,10 @@ function ensurePlaygroundBuilt() {
   }).join('');
 
   host.innerHTML = `
+    <div class="play-sheet-head">
+      <h2>Style</h2>
+      <button type="button" class="sheet-close" id="style-close">Close</button>
+    </div>
     <h2>Palette</h2>
     <div class="play-swatches" id="play-swatches">${swatches}</div>
     ${field('theme', 'Theme', THEME_IDS, state.play.theme)}
@@ -208,6 +288,7 @@ function ensurePlaygroundBuilt() {
     });
   });
 
+  $('#style-close')?.addEventListener('click', () => setStyleOpen(false));
   syncSwatches();
 }
 
@@ -283,18 +364,35 @@ function init() {
   if (ver) ver.textContent = VERSION;
 
   buildNav();
+  bindFrame();
   $('#nav-search')?.addEventListener('input', (e) => buildNav(e.target.value));
 
   $('#nav-toggle')?.addEventListener('click', () => {
-    document.querySelector('.gallery')?.classList.toggle('nav-open');
+    setNavOpen(!galleryEl()?.classList.contains('nav-open'));
   });
+  $('#nav-close')?.addEventListener('click', () => setNavOpen(false));
+  $('#nav-backdrop')?.addEventListener('click', () => {
+    setNavOpen(false);
+    setStyleOpen(false);
+  });
+  $('#style-toggle')?.addEventListener('click', () => {
+    setStyleOpen(!galleryEl()?.classList.contains('style-open'));
+  });
+  window.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    setNavOpen(false);
+    setStyleOpen(false);
+  });
+  narrowQuery.addEventListener('change', syncChrome);
 
   window.addEventListener('hashchange', () => {
     const next = parseHash();
     state.mode = next.mode;
     state.demoId = next.demoId;
+    if (next.mode !== 'playground') setStyleOpen(false);
     renderStage();
     syncNavActive();
+    syncChrome();
   });
 
   const start = parseHash();
@@ -303,6 +401,7 @@ function init() {
   setHash(state.mode, state.demoId);
   renderStage();
   syncNavActive();
+  syncChrome();
 }
 
 init();
