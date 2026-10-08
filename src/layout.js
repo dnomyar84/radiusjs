@@ -550,22 +550,53 @@ function layoutFlow(spec, board) {
   const rankKeys = Object.keys(byRank).map(Number).sort((a, b) => a - b);
   const boxes = {};
   const horizontal = !spec.dir || spec.dir === 'lr' || spec.dir === 'rl';
+  const columns = rankKeys.map((r) => {
+    const col = byRank[r];
+    const sizes = col.map((n) => measureNode(n));
+    const span = sizes.reduce((m, s) => Math.max(m, horizontal ? s.w : s.h), 1);
+    return { r, col, sizes, span };
+  });
+  const inner = Math.max(
+    1,
+    horizontal ? board.w - PAD * 2 : board.h - PAD * 2 - TITLE_H,
+  );
+  const packed =
+    columns.reduce((s, c) => s + c.span, 0) + GAP * Math.max(0, columns.length - 1);
+  // Equal lanes when every face fits. Otherwise pack to the face size and let
+  // the board scale keep the corridor — a lane thinner than its card overlaps.
+  const squeeze = packed > inner;
   if (horizontal) {
-    const colW = (board.w - PAD * 2) / Math.max(rankKeys.length, 1);
-    rankKeys.forEach((r, ri) => {
-      const col = byRank[r];
-      const sizes = col.map((n) => measureNode(n));
-      const totalH = sizes.reduce((s, x) => s + x.h, 0) + GAP * Math.max(0, col.length - 1);
+    const colW = inner / Math.max(columns.length, 1);
+    const xOf = new Map();
+    if (squeeze) {
+      let cursor = PAD;
+      for (const col of columns) {
+        xOf.set(col.r, cursor);
+        cursor += col.span + GAP;
+      }
+      if (spec.dir === 'rl') {
+        const right = PAD + packed;
+        for (const col of columns) {
+          xOf.set(col.r, right - (xOf.get(col.r) - PAD) - col.span);
+        }
+      }
+    }
+    columns.forEach((col, ri) => {
+      const { sizes } = col;
+      const totalH = sizes.reduce((s, x) => s + x.h, 0) + GAP * Math.max(0, col.col.length - 1);
       let y = Math.max(PAD + TITLE_H, (board.h - totalH) / 2);
-      const xi = spec.dir === 'rl' ? rankKeys.length - 1 - ri : ri;
-      col.forEach((node, i) => {
+      const lane = squeeze ? col.span : colW;
+      const x0 = squeeze
+        ? xOf.get(col.r)
+        : PAD + (spec.dir === 'rl' ? columns.length - 1 - ri : ri) * colW;
+      col.col.forEach((node, i) => {
         const { w, h } = sizes[i];
         boxes[node.id] = {
-          x: PAD + xi * colW + (colW - w) / 2,
+          x: x0 + (lane - w) / 2,
           y,
           w,
           h,
-          rank: r,
+          rank: col.r,
           measure: sizes[i],
           lane: node.lane,
         };
@@ -573,21 +604,37 @@ function layoutFlow(spec, board) {
       });
     });
   } else {
-    const rowH = (board.h - PAD * 2 - TITLE_H) / Math.max(rankKeys.length, 1);
-    rankKeys.forEach((r, ri) => {
-      const row = byRank[r];
-      const sizes = row.map((n) => measureNode(n));
-      const totalW = sizes.reduce((s, x) => s + x.w, 0) + GAP * Math.max(0, row.length - 1);
+    const rowH = inner / Math.max(columns.length, 1);
+    const yOf = new Map();
+    if (squeeze) {
+      let cursor = PAD + TITLE_H;
+      for (const col of columns) {
+        yOf.set(col.r, cursor);
+        cursor += col.span + GAP;
+      }
+      if (spec.dir === 'bt') {
+        const bottom = PAD + TITLE_H + packed;
+        for (const col of columns) {
+          yOf.set(col.r, bottom - (yOf.get(col.r) - (PAD + TITLE_H)) - col.span);
+        }
+      }
+    }
+    columns.forEach((col, ri) => {
+      const { sizes } = col;
+      const totalW = sizes.reduce((s, x) => s + x.w, 0) + GAP * Math.max(0, col.col.length - 1);
       let x = Math.max(PAD, (board.w - totalW) / 2);
-      const yi = spec.dir === 'bt' ? rankKeys.length - 1 - ri : ri;
-      row.forEach((node, i) => {
+      const lane = squeeze ? col.span : rowH;
+      const y0 = squeeze
+        ? yOf.get(col.r)
+        : PAD + TITLE_H + (spec.dir === 'bt' ? columns.length - 1 - ri : ri) * rowH;
+      col.col.forEach((node, i) => {
         const { w, h } = sizes[i];
         boxes[node.id] = {
           x,
-          y: PAD + TITLE_H + yi * rowH + (rowH - h) / 2,
+          y: y0 + (lane - h) / 2,
           w,
           h,
-          rank: r,
+          rank: col.r,
           measure: sizes[i],
           lane: node.lane,
         };
