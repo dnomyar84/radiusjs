@@ -1,0 +1,23 @@
+---
+description: Merge each finished change into main. The agent is the only code editor.
+alwaysApply: true
+---
+
+# Auto-merge
+
+You are the only code editor on this repository. After a change is implemented, tested, committed, and pushed, merge it into `main` yourself. Do not wait for a human review.
+
+## After each change
+
+1. Run `.\npm.cmd test` (or `node test/run.js`) and fix failures before merging.
+2. Commit on `cursor/<descriptive-name>-b699`, push, and open a pull request against `main`.
+3. Merge that pull request with a merge commit and delete the branch:
+
+```bash
+gh pr merge <number> --repo dnomyar84/radiusjs --merge --delete-branch
+```
+
+## Leave these alone
+
+- Merge only the pull request you opened for the change you just finished.
+- If tests fail or the pull request conflicts, fix the branch and push, then merge.
