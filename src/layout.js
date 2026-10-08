@@ -562,33 +562,40 @@ function layoutFlow(spec, board) {
   );
   const packed =
     columns.reduce((s, c) => s + c.span, 0) + GAP * Math.max(0, columns.length - 1);
-  // Equal lanes when every face fits. Otherwise pack to the face size and let
-  // the board scale keep the corridor — a lane thinner than its card overlaps.
+  // Rank width is the widest face in that rank. When the chain fits, center it
+  // and keep a constant gap — a board-fraction lane left a narrow rank floating
+  // in a wide column. When the chain is wider than the board, pack to the face
+  // and let fit-scale keep the corridor.
   const squeeze = packed > inner;
+  const slack = squeeze ? 0 : Math.max(0, inner - packed);
   if (horizontal) {
-    const colW = inner / Math.max(columns.length, 1);
     const xOf = new Map();
-    if (squeeze) {
-      let cursor = PAD;
+    if (spec.dir === 'rl') {
+      let edge = PAD + slack / 2 + packed;
+      for (const col of columns) {
+        edge -= col.span;
+        xOf.set(col.r, edge);
+        edge -= GAP;
+      }
+    } else {
+      let cursor = PAD + slack / 2;
       for (const col of columns) {
         xOf.set(col.r, cursor);
         cursor += col.span + GAP;
       }
-      if (spec.dir === 'rl') {
-        const right = PAD + packed;
-        for (const col of columns) {
-          xOf.set(col.r, right - (xOf.get(col.r) - PAD) - col.span);
-        }
-      }
     }
-    columns.forEach((col, ri) => {
+    const stackH = (sizes) =>
+      sizes.reduce((s, x) => s + x.h, 0) + GAP * Math.max(0, sizes.length - 1);
+    const blockH = Math.max(...columns.map((c) => stackH(c.sizes)), 1);
+    const yShared = Math.max(PAD + TITLE_H, (board.h - blockH) / 2);
+    columns.forEach((col) => {
       const { sizes } = col;
-      const totalH = sizes.reduce((s, x) => s + x.h, 0) + GAP * Math.max(0, col.col.length - 1);
-      let y = Math.max(PAD + TITLE_H, (board.h - totalH) / 2);
-      const lane = squeeze ? col.span : colW;
-      const x0 = squeeze
-        ? xOf.get(col.r)
-        : PAD + (spec.dir === 'rl' ? columns.length - 1 - ri : ri) * colW;
+      const totalH = stackH(sizes);
+      // Squeeze keeps each rank vertically centered in the board. A chain that
+      // fits shares one top so a short rank lines up with the tall one.
+      let y = squeeze ? Math.max(PAD + TITLE_H, (board.h - totalH) / 2) : yShared;
+      const lane = col.span;
+      const x0 = xOf.get(col.r);
       col.col.forEach((node, i) => {
         const { w, h } = sizes[i];
         boxes[node.id] = {
@@ -604,29 +611,27 @@ function layoutFlow(spec, board) {
       });
     });
   } else {
-    const rowH = inner / Math.max(columns.length, 1);
     const yOf = new Map();
-    if (squeeze) {
-      let cursor = PAD + TITLE_H;
+    if (spec.dir === 'bt') {
+      let edge = PAD + TITLE_H + slack / 2 + packed;
+      for (const col of columns) {
+        edge -= col.span;
+        yOf.set(col.r, edge);
+        edge -= GAP;
+      }
+    } else {
+      let cursor = PAD + TITLE_H + slack / 2;
       for (const col of columns) {
         yOf.set(col.r, cursor);
         cursor += col.span + GAP;
       }
-      if (spec.dir === 'bt') {
-        const bottom = PAD + TITLE_H + packed;
-        for (const col of columns) {
-          yOf.set(col.r, bottom - (yOf.get(col.r) - (PAD + TITLE_H)) - col.span);
-        }
-      }
     }
-    columns.forEach((col, ri) => {
+    columns.forEach((col) => {
       const { sizes } = col;
       const totalW = sizes.reduce((s, x) => s + x.w, 0) + GAP * Math.max(0, col.col.length - 1);
       let x = Math.max(PAD, (board.w - totalW) / 2);
-      const lane = squeeze ? col.span : rowH;
-      const y0 = squeeze
-        ? yOf.get(col.r)
-        : PAD + TITLE_H + (spec.dir === 'bt' ? columns.length - 1 - ri : ri) * rowH;
+      const lane = col.span;
+      const y0 = yOf.get(col.r);
       col.col.forEach((node, i) => {
         const { w, h } = sizes[i];
         boxes[node.id] = {
@@ -713,18 +718,6 @@ function layoutCloud(spec, board) {
 
   function childNodesOf(id) {
     return sortNodes(spec.nodes.filter((n) => n.parent === id));
-  }
-
-  /** Heavier / deeper trees get a wider horizontal share. */
-  function subtreeWeight(g) {
-    let w = 1 + g.children.length * 2;
-    const childMemberIds = new Set(g.children.flatMap((c) => c.members));
-    const directMembers = g.members.filter((id) => !childMemberIds.has(id));
-    w += directMembers.length * 0.75;
-    for (const c of g.children) w += subtreeWeight(c);
-    // Expanded parents need room for children to wrap side-by-side
-    if (!g.collapsed) w *= 1.4;
-    return Math.max(1, w);
   }
 
   /** Natural width of a node tree (collapsed face or expanded children + pad). */
@@ -897,15 +890,26 @@ function layoutCloud(spec, board) {
    * Wrap units left→right, top→bottom.
    * When wrapping, split counts as evenly as possible across rows
    * (not a packed first row + short remainder like 7+2).
-   * Leftover width on each row is spread into slot widths.
-   * Each unit: { w, place(x, y, slotW) => heightUsed }
+   * Each unit: { w, absorb?, maxW?, place(x, y, slotW) => heightUsed }.
+   * Leftover width goes only to units with absorb, and only up to maxW
+   * (the width their children can still use). A row that cannot spend the
+   * leftover is centered as a cluster with a constant gap, so a collapsed
+   * face stays beside its siblings instead of in the middle of a reserved column.
+   * Equal column tracks only when every row has the same count and the
+   * natural widths are close — a mixed row does not lock the folded face
+   * to an expanded neighbor's column.
    */
   function flowPack(innerX, startY, innerW, units, gap = GAP) {
     if (!units.length) return { h: 0, rowCount: 0 };
-    const sized = units.map((u) => ({
-      u,
-      w: Math.max(24, Math.min(u.w, innerW)),
-    }));
+    const sized = units.map((u) => {
+      const w = Math.max(24, Math.min(u.w, innerW));
+      return {
+        u,
+        w,
+        absorb: !!u.absorb,
+        maxW: Math.min(innerW, Math.max(w, u.maxW || w)),
+      };
+    });
     const n = sized.length;
 
     const rowFits = (items) => {
@@ -973,16 +977,18 @@ function layoutCloud(spec, board) {
       if (cur.length) rows.push(cur);
     }
 
-    // Equal-count wrap (e.g. 8 → 2×4): shared column tracks so top/bottom
-    // cells line up. Per-row leftover stretch made column midpoints drift.
+    // Equal-count wrap of similar faces (e.g. 8 → 2×4): shared column tracks
+    // so top/bottom cells line up. A mixed row (folded face beside an open
+    // parent, or very different widths) keeps natural widths instead.
     const colCount = Math.max(...rows.map((r) => r.length));
+    const flatW = rows.flat().map((it) => it.w);
+    const loW = Math.min(...flatW);
+    const hiW = Math.max(...flatW);
+    const similar = hiW - loW <= Math.max(48, loW * 0.55);
     const gridAligned =
-      rows.length >= 2 && rows.every((r) => r.length === colCount);
+      rows.length >= 2 && rows.every((r) => r.length === colCount) && similar;
 
-    let y = startY;
-    let maxBottom = startY;
-    for (let ri = 0; ri < rows.length; ri++) {
-      const items = rows[ri];
+    const placeRow = (items, y) => {
       let rowH = 0;
       if (gridAligned) {
         const colW = Math.max(24, (innerW - gap * (colCount - 1)) / colCount);
@@ -991,19 +997,45 @@ function layoutCloud(spec, board) {
           const h = items[i].u.place(x, y, colW);
           rowH = Math.max(rowH, h);
         }
-      } else {
-        const gaps = gap * Math.max(0, items.length - 1);
-        const used = items.reduce((s, it) => s + it.w, 0) + gaps;
-        const leftover = Math.max(0, innerW - used);
-        const extra = items.length ? leftover / items.length : 0;
-        let x = innerX;
-        for (const it of items) {
-          const slotW = Math.min(innerW, it.w + extra);
-          const h = it.u.place(x, y, slotW);
-          rowH = Math.max(rowH, h);
-          x += slotW + gap;
-        }
+        return rowH;
       }
+      const gaps = gap * Math.max(0, items.length - 1);
+      const slots = items.map((it) => it.w);
+      let leftover = Math.max(0, innerW - slots.reduce((s, w) => s + w, 0) - gaps);
+      let guard = 0;
+      while (leftover > 0.5 && guard++ < 6) {
+        const open = [];
+        for (let i = 0; i < items.length; i++) {
+          if (!items[i].absorb) continue;
+          const room = items[i].maxW - slots[i];
+          if (room > 0.5) open.push({ i, room });
+        }
+        if (!open.length) break;
+        const demand = open.reduce((s, o) => s + o.room, 0);
+        let spent = 0;
+        for (const o of open) {
+          const add = Math.min(o.room, (leftover * o.room) / demand);
+          slots[o.i] += add;
+          spent += add;
+        }
+        leftover -= spent;
+        if (spent < 0.5) break;
+      }
+      const used = slots.reduce((s, w) => s + w, 0) + gaps;
+      const slack = Math.max(0, innerW - used);
+      let x = innerX + slack / 2;
+      for (let i = 0; i < items.length; i++) {
+        const h = items[i].u.place(x, y, slots[i]);
+        rowH = Math.max(rowH, h);
+        x += slots[i] + gap;
+      }
+      return rowH;
+    };
+
+    let y = startY;
+    let maxBottom = startY;
+    for (let ri = 0; ri < rows.length; ri++) {
+      const rowH = placeRow(rows[ri], y);
       maxBottom = Math.max(maxBottom, y + rowH);
       if (ri < rows.length - 1) y += rowH + gap;
     }
@@ -1088,34 +1120,53 @@ function layoutCloud(spec, board) {
     const unitCap = flowUnitCap(innerW, unitCount);
 
     const units = [
-      ...rootsNodes.map((node, i) => ({
-        w: Math.min(unitCap, contentWidthForNodeTree(node)),
-        place(x, y, w) {
-          const nh = packNodeTree(node, x, y, w, rankBase + i);
-          if (boxes[node.id]) {
-            boxes[node.id].group = g.id;
-            if (collapsed) boxes[node.id].folded = true;
-          }
-          if (collapsed) {
-            childNodesOf(node.id).forEach((k) => {
-              if (boxes[k.id]) boxes[k.id].folded = true;
-            });
-          }
-          return nh;
-        },
-      })),
-      ...g.children.map((child, ci) => ({
-        w: Math.min(
-          unitCap,
-          Math.max(FACE_W, contentWidthForGroup(child, innerW, { fill: false })),
-        ),
-        place(x, y, w) {
-          const ch = packGroup(child, x, y, w, depth + 1, rankBase + 100 * (ci + 1));
-          const cb = groupBoxes[child.id];
-          if (cb && collapsed) cb.folded = true;
-          return ch;
-        },
-      })),
+      ...rootsNodes.map((node, i) => {
+        const natural = contentWidthForNodeTree(node);
+        const w = Math.min(unitCap, natural);
+        return {
+          w,
+          absorb: false,
+          maxW: w,
+          place(x, y, slotW) {
+            const nh = packNodeTree(node, x, y, slotW, rankBase + i);
+            if (boxes[node.id]) {
+              boxes[node.id].group = g.id;
+              if (collapsed) boxes[node.id].folded = true;
+            }
+            if (collapsed) {
+              childNodesOf(node.id).forEach((k) => {
+                if (boxes[k.id]) boxes[k.id].folded = true;
+              });
+            }
+            return nh;
+          },
+        };
+      }),
+      ...g.children.map((child, ci) => {
+        const natural = Math.max(
+          FACE_W,
+          contentWidthForGroup(child, innerW, { fill: false }),
+        );
+        const w = Math.min(unitCap, natural);
+        const childExpandable =
+          child.expandable !== false &&
+          (child.members.length > 0 || child.children.length > 0);
+        const childCollapsed = !!(child.collapsed && childExpandable);
+        return {
+          w,
+          // Grow only when the cap trimmed an open parent that still has
+          // children to place. A folded face, and an open parent that already
+          // hugs its row, keep their natural width.
+          absorb: !childCollapsed && natural > w + 4,
+          maxW: natural,
+          place(x, y, slotW) {
+            const ch = packGroup(child, x, y, slotW, depth + 1, rankBase + 100 * (ci + 1));
+            const cb = groupBoxes[child.id];
+            if (cb && collapsed) cb.folded = true;
+            return ch;
+          },
+        };
+      }),
     ];
 
     const packed = units.length ? flowPack(innerX, contentTop, innerW, units) : { h: 0, rowCount: 0 };
@@ -1142,19 +1193,14 @@ function layoutCloud(spec, board) {
     return hExpanded;
   }
 
-  // Root packing: weight by tree depth/breadth, flow-wrap rows (or vertical stack when dir:tb|bt).
-  // Avoids equal columns (deep trees cramped; shallow trees with empty air below).
-  const MIN_ROOT_W = Math.max(FACE_W + 48, 160);
-  const weights = roots.map((g) => subtreeWeight(g));
-  const weightSum = weights.reduce((s, w) => s + w, 0) || 1;
-
-  const preferred = roots.map((g, i) => {
-    const hug = contentWidthForGroup(g, usable);
-    const share = (weights[i] / weightSum) * usable;
-    // Collapsed: hug the face. Expanded: at least weighted share so kids can wrap.
-    if (g.collapsed) return Math.min(usable, Math.max(MIN_ROOT_W, hug));
-    return Math.min(usable, Math.max(MIN_ROOT_W, hug, share));
-  });
+  // Root packing: each root hugs the children it is showing. Leftover board
+  // width is not shared by subtree weight — a folded root with a deep hidden
+  // tree used to keep a wide column and sit in the middle of it.
+  function bandCollapsed(g) {
+    const expandable =
+      g.expandable !== false && (g.members.length > 0 || g.children.length > 0);
+    return expandable && !!g.collapsed;
+  }
 
   if (vertical) {
     // Top→bottom stack still uses the full board width so children fill L→R
@@ -1166,11 +1212,12 @@ function layoutCloud(spec, board) {
       const g = ordered[i];
       const idx = roots.indexOf(g);
       const h = packGroup(g, PAD, y, usable, 0, idx * 1000);
-      placed.push({ id: g.id, h });
+      placed.push({ id: g.id, h, collapsed: bandCollapsed(g) });
       y += h + colGap;
     }
-    // Leftover board height (same idea as horizontal leftover → slot widths):
-    //  · any expanded root → grow each band's height equally (top-aligned content)
+    // Leftover board height:
+    //  · every root expanded → grow each band equally
+    //  · mixed → grow only the open bands; a folded band stays face height
     //  · all collapsed → equal gaps including top/bottom
     // Skip when content already fills/overflows (fit-scale handles that).
     if (placed.length > 1) {
@@ -1178,29 +1225,27 @@ function layoutCloud(spec, board) {
       const avail = Math.max(0, board.h - PAD - top);
       const free = avail - contentH;
       if (free > 16) {
-        const anyExpanded = ordered.some((g) => {
-          const expandable =
-            g.expandable !== false && (g.members.length > 0 || g.children.length > 0);
-          return expandable && !g.collapsed;
-        });
+        const growers = placed.filter((p) => !p.collapsed);
+        const anyExpanded = growers.length > 0;
         if (anyExpanded) {
-          // Equal swimlane slots fill the board; content is re-spread inside
-          // each taller band (same idea as leftover width → wider child slots).
           const gap = colGap;
           const stretch = Math.max(0, free - gap * Math.max(0, placed.length - 1));
-          const slotH = stretch / placed.length;
+          const slotH = stretch / growers.length;
           let ny = top;
           for (let i = 0; i < placed.length; i++) {
             const p = placed[i];
             const gb = groupBoxes[p.id];
-            const bandH = p.h + slotH;
+            const grow = !p.collapsed;
+            const bandH = p.h + (grow ? slotH : 0);
             if (gb) {
               const dy = ny - gb.y;
               gb.y = ny;
-              gb.h = bandH;
-              gb.hExpanded = bandH;
+              if (grow) {
+                gb.h = bandH;
+                gb.hExpanded = bandH;
+              }
               if (dy) shiftGroupTreeContents(gb, boxes, groupBoxes, dy);
-              if (slotH > 8) spreadBandContentVertically(gb, boxes, groupBoxes, slotH);
+              if (grow && slotH > 8) spreadBandContentVertically(gb, boxes, groupBoxes, slotH);
             }
             ny += bandH + (i < placed.length - 1 ? gap : 0);
           }
@@ -1276,67 +1321,18 @@ function layoutCloud(spec, board) {
     }
   }
 
-  let x = PAD;
-  let y = top;
-  let rowH = 0;
-  let rowStart = 0;
-
-  function flushRowNormalize(from, to, rowY, rowHeight) {
-    // If a single-row fit left unused space, give the leftover to heavier roots
-    if (from >= to) return;
-    const gapTotal = colGap * Math.max(0, to - from - 1);
-    let used = gapTotal;
-    for (let i = from; i < to; i++) used += preferred[i];
-    const leftover = Math.max(0, usable - used);
-    if (leftover < 8 || to - from < 1) return;
-    const rowWeight = weights.slice(from, to).reduce((s, w) => s + w, 0) || 1;
-    let cx = PAD;
-    for (let i = from; i < to; i++) {
-      const extra = leftover * (weights[i] / rowWeight);
-      const slot = preferred[i] + extra;
-      packGroup(roots[i], cx, rowY, slot, 0, i * 1000);
-      cx += slot + colGap;
-    }
-  }
-
-  // First pass: place with preferred widths; wrap when the next root won't fit
-  const rowRanges = [];
-  for (let i = 0; i < roots.length; i++) {
-    let slot = preferred[i];
-    if (x > PAD && x + slot > PAD + usable) {
-      rowRanges.push({ from: rowStart, to: i, y, h: rowH });
-      x = PAD;
-      y += rowH + colGap;
-      rowH = 0;
-      rowStart = i;
-    }
-    // Last item on a wrapping row may take remaining width
-    const remain = PAD + usable - x;
-    if (i === roots.length - 1 || x + preferred[i + 1] + colGap > PAD + usable) {
-      slot = Math.max(slot, Math.min(remain, Math.max(slot, remain * 0.92)));
-    }
-    slot = Math.min(slot, remain);
-    preferred[i] = slot;
-    const h = packGroup(roots[i], x, y, slot, 0, i * 1000);
-    x += slot + colGap;
-    rowH = Math.max(rowH, h);
-  }
-  rowRanges.push({ from: rowStart, to: roots.length, y, h: rowH });
-
-  // Re-pack each row distributing leftover width (including single-root rows)
-  for (const row of rowRanges) {
-    let used = colGap * Math.max(0, row.to - row.from - 1);
-    for (let i = row.from; i < row.to; i++) used += preferred[i];
-    const leftover = usable - used;
-    if (leftover < 12) continue;
-    const rowWeight = weights.slice(row.from, row.to).reduce((s, w) => s + w, 0) || 1;
-    let cx = PAD;
-    for (let i = row.from; i < row.to; i++) {
-      const slot = preferred[i] + leftover * (weights[i] / rowWeight);
-      packGroup(roots[i], cx, row.y, slot, 0, i * 1000);
-      cx += slot + colGap;
-    }
-  }
+  const rootUnits = roots.map((g, i) => {
+    const hug = contentWidthForGroup(g, usable, { fill: false });
+    return {
+      w: hug,
+      absorb: false,
+      maxW: hug,
+      place(x, y, slotW) {
+        return packGroup(g, x, y, slotW, 0, i * 1000);
+      },
+    };
+  });
+  flowPack(PAD, top, usable, rootUnits);
 
   return { boxes, groupBoxes };
 }
