@@ -8,7 +8,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { parse } from '../src/parse.js';
-import { layout, contentFitTransform } from '../src/layout.js';
+import { layout, contentFitTransform, fitWidthTransform } from '../src/layout.js';
 import { paint } from '../src/paint.js';
 import { isEndpointReady } from '../src/interact.js';
 import {
@@ -375,6 +375,50 @@ nodes:
       .sort((x, y) => x - y);
     const span = bottoms[2] - tops[0];
     assert.ok(span > tall.h * 0.55, `expanded tb span ${span} should use vertical room`);
+  });
+});
+
+describe('regressions · fit controls', () => {
+  it('every board paints Fit to Screen and Fit to width', () => {
+    const spec = parse(`
+title: Fit
+nodes:
+  a[Start]
+  b[Done]
+edges:
+  a --> b
+`);
+    const laid = layout(spec, board);
+    const host = { style: { setProperty() {} }, dataset: {}, className: '' };
+    paint(host, spec, laid);
+    assert.match(host.innerHTML, /data-fit="screen"[^>]*>Fit to Screen</);
+    assert.match(host.innerHTML, /data-fit="width"[^>]*>Fit to width</);
+    assert.match(css, /\.radius-root \.radius-board\.is-fit-width[\s\S]*overflow-y:\s*auto/);
+  });
+
+  it('fit to width matches the board width and grows a vertical span', () => {
+    const spec = parse(`
+template: cloud
+dir: tb
+groups:
+  a[Top]{collapsed:false members:n1 n2}
+  b[Mid]{collapsed:false members:n3 n4}
+  c[Low]{collapsed:false members:n5 n6}
+nodes:
+  n1[One]
+  n2[Two]
+  n3[Three]
+  n4[Four]
+  n5[Five]
+  n6[Six]
+`);
+    const laid = layout(spec, { w: 480, h: 320 });
+    const screen = contentFitTransform(laid);
+    const width = fitWidthTransform(laid);
+    const fittedRight = width.layoutW * width.scale;
+    assert.ok(Math.abs(fittedRight - (480 - 16)) < 1.5, `right edge ${fittedRight} should meet the board width`);
+    assert.ok(width.span > 320, `width fit should scroll, span ${width.span}`);
+    assert.ok(screen.scale <= width.scale + 0.001);
   });
 });
 

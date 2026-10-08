@@ -8,6 +8,13 @@ export const VERSION = '0.5.0';
 
 /** @type {Record<string, DemoEntry>} */
 export const DEMOS = {
+  '22-age-velocity-ha': {
+    id: '22-age-velocity-ha',
+    file: '22-arcgis-enterprise-velocity-ha.html',
+    title: 'AGE 12.3 + Velocity HA',
+    blurb: 'VMs · WAF · gateway · Nutanix files · DBaaS',
+    tags: ['esri', 'ha', 'nutanix'],
+  },
   '21-constellation': {
     id: '21-constellation',
     file: '21-constellation.html',
@@ -171,12 +178,12 @@ export const CATEGORIES = [
   {
     id: 'new',
     label: 'New',
-    demos: ['21-constellation', '20-mindmap', '19-delivery-arch', '18-reality-jupedsim'],
+    demos: ['22-age-velocity-ha', '21-constellation', '20-mindmap', '19-delivery-arch', '18-reality-jupedsim'],
   },
   {
     id: 'architecture',
     label: 'Architecture',
-    demos: ['08-arch-drill', '17-egis-one', '14-age-ha', '11-age-k8s', '19-delivery-arch'],
+    demos: ['22-age-velocity-ha', '08-arch-drill', '17-egis-one', '14-age-ha', '11-age-k8s', '19-delivery-arch'],
   },
   {
     id: 'cloud',
@@ -186,7 +193,7 @@ export const CATEGORIES = [
   {
     id: 'gis',
     label: 'GIS & Esri',
-    demos: ['02-gis-esri', '15-named-user', '16-sg-mha', '18-reality-jupedsim'],
+    demos: ['22-age-velocity-ha', '02-gis-esri', '15-named-user', '16-sg-mha', '18-reality-jupedsim'],
   },
   {
     id: 'narrative',

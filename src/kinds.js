@@ -180,6 +180,8 @@ const MONO = {
   'esri.interop': 'DI',
   'esri.publisher': 'Pub',
   'esri.insights': 'Ins',
+  'esri.velocity': 'Vel',
+  'it.waf': 'WAF',
   'it.step': '•',
   'it.person': 'P',
   'it.db': 'DB',

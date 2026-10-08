@@ -1966,7 +1966,7 @@ export function contentExtent(laid) {
  * Keeps shrinking (no hard 0.55 floor) until vertical/horizontal overflow is gone.
  * transform-origin is 0,0 — apply as translate(tx,ty) scale(s).
  */
-export function contentFitTransform(laid, { pad = 16, min = 0.12 } = {}) {
+export function contentFitTransform(laid, { pad = 16, bottom = 58, min = 0.12 } = {}) {
   const board = laid?.board;
   if (!board?.w || !board?.h) return { scale: 1, tx: 0, ty: 0 };
   // Constellation camera owns framing — don't letterbox-scale the projection
@@ -1974,19 +1974,50 @@ export function contentFitTransform(laid, { pad = 16, min = 0.12 } = {}) {
   const { minX, minY, maxX, maxY } = contentExtent(laid);
   if (maxX <= minX || maxY <= minY) return { scale: 1, tx: 0, ty: 0 };
 
-  // Already inside the padded board — leave layout as packed
-  if (minX >= pad && minY >= pad && maxX <= board.w - pad && maxY <= board.h - pad) {
+  // Bottom inset keeps the Fit controls from covering the last row.
+  if (minX >= pad && minY >= pad && maxX <= board.w - pad && maxY <= board.h - bottom) {
     return { scale: 1, tx: 0, ty: 0 };
   }
 
   const cw = Math.max(1, maxX - minX);
   const ch = Math.max(1, maxY - minY);
   const availW = Math.max(1, board.w - pad * 2);
-  const availH = Math.max(1, board.h - pad * 2);
+  const availH = Math.max(1, board.h - pad - bottom);
   const scale = Math.max(min, Math.min(1, availW / cw, availH / ch));
   const tx = pad + (availW - cw * scale) / 2 - minX * scale;
   const ty = pad + (availH - ch * scale) / 2 - minY * scale;
   return { scale, tx, ty };
+}
+
+/**
+ * Match the diagram to the board width and let height overflow.
+ * Screen fit stays in contentFitTransform (uniform, both axes, never scales up).
+ * Width fit may scale up so a narrow picture uses the board, and reports `span`
+ * as the scrolled height in board pixels.
+ */
+export function fitWidthTransform(laid, { pad = 16, bottom = 64, min = 0.12, max = 4 } = {}) {
+  const board = laid?.board;
+  const fallback = {
+    scale: 1,
+    tx: 0,
+    ty: 0,
+    span: board?.h || 0,
+    layoutW: board?.w || 0,
+    layoutH: board?.h || 0,
+  };
+  if (!board?.w) return fallback;
+  const { minX, minY, maxX, maxY } = contentExtent(laid);
+  if (!(maxX > minX) || !(maxY > minY)) return fallback;
+  const scale = Math.min(max, Math.max(min, (board.w - pad) / Math.max(maxX, 1)));
+  const span = Math.ceil(maxY * scale + bottom);
+  return {
+    scale,
+    tx: 0,
+    ty: 0,
+    span,
+    layoutW: Math.ceil(maxX),
+    layoutH: Math.ceil(maxY),
+  };
 }
 
 /** @deprecated prefer contentFitTransform — returns scale only */

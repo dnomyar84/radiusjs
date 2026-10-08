@@ -312,8 +312,13 @@ export function paint(host, spec, laid) {
         ${groupEls}
         <div class="radius-nodes">${nodes}</div>
       </div>
+      <div class="radius-fit-span" aria-hidden="true"></div>
       <div class="radius-story-hint" hidden>→ story</div>
-      <button type="button" class="radius-zoom-out" hidden title="Zoom out to full diagram (Esc)">Zoom out</button>
+      <div class="radius-view-controls">
+        <button type="button" class="radius-fit-btn is-active" data-fit="screen" aria-pressed="true" title="Show the whole diagram in the board">Fit to Screen</button>
+        <button type="button" class="radius-fit-btn" data-fit="width" aria-pressed="false" title="Match the diagram to the board width and scroll vertically">Fit to width</button>
+        <button type="button" class="radius-zoom-out" hidden title="Zoom out to full diagram (Esc)">Zoom out</button>
+      </div>
     </div>
   `;
 

@@ -3,6 +3,8 @@
  * (groups and expandable node parents) with staggered child reveal.
  * Double-click expanded group body (not the face/label) → zoom to that parent.
  * Double-click empty board or Escape → reset zoom.
+ * Fit to Screen keeps the whole diagram in the board.
+ * Fit to width matches the board width and scrolls vertically.
  * Drag-resize via SE handle (grow free; shrink to content floor).
  */
 
@@ -11,6 +13,7 @@ import { nodeMinSize, groupMinSize, clampSize } from './resize.js';
 import { applyWiresFilter } from './paint.js';
 import { normalizeWires } from './parse.js';
 import { bindOrbit } from './orbit.js';
+import { contentFitTransform, fitWidthTransform } from './layout.js';
 
 function prefersReduced() {
   return typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -654,21 +657,29 @@ export function bindInteract(root, spec, laid, hooks = {}) {
   });
 
   const world = board.querySelector('.radius-iso-world');
-  const fitHome = {
-    scale: world?.style.getPropertyValue('--radius-fit-scale') || '1',
-    x: world?.style.getPropertyValue('--radius-fit-x') || '0px',
-    y: world?.style.getPropertyValue('--radius-fit-y') || '0px',
-  };
-
   const zoomOutBtn = board.querySelector('.radius-zoom-out');
+  const fitButtons = [...board.querySelectorAll('.radius-fit-btn')];
   const hintEl = board.querySelector('.radius-story-hint');
   const hintIdle = story.length
     ? '← → story · click face to expand · double-click body to zoom'
     : 'Click face to expand / collapse · double-click body to zoom';
+  if (!root.dataset.fitMode) root.dataset.fitMode = 'screen';
+
+  function viewLaid() {
+    const w = Math.max(1, board.clientWidth || laid.board?.w || 1);
+    const h = Math.max(1, board.clientHeight || laid.board?.h || 1);
+    return { ...laid, board: { ...(laid.board || {}), w, h } };
+  }
 
   function syncZoomChrome() {
     const zoomed = !!root.dataset.zoomed;
+    const mode = root.dataset.fitMode || 'screen';
     if (zoomOutBtn) zoomOutBtn.hidden = !zoomed;
+    for (const btn of fitButtons) {
+      const on = !zoomed && btn.dataset.fit === mode;
+      btn.classList.toggle('is-active', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
     if (hintEl && !hintEl.hidden) {
       hintEl.textContent = zoomed
         ? 'Zoomed in · Zoom out / Esc / double-click body again'
@@ -676,15 +687,46 @@ export function bindInteract(root, spec, laid, hooks = {}) {
     }
   }
 
-  function clearZoom() {
+  function applyScreenFit() {
     if (!world) return;
-    world.style.setProperty('--radius-fit-scale', fitHome.scale);
-    world.style.setProperty('--radius-fit-x', fitHome.x);
-    world.style.setProperty('--radius-fit-y', fitHome.y);
+    const fit = contentFitTransform(viewLaid());
+    world.style.setProperty('--radius-fit-scale', String(fit.scale));
+    world.style.setProperty('--radius-fit-x', `${fit.tx}px`);
+    world.style.setProperty('--radius-fit-y', `${fit.ty}px`);
+    world.style.removeProperty('--radius-fit-zoom');
+    board.classList.remove('is-fit-width');
+    board.style.removeProperty('--radius-fit-span');
+    board.style.removeProperty('--radius-fit-layout-w');
+    board.style.removeProperty('--radius-fit-layout-h');
+  }
+
+  function applyWidthFit() {
+    if (!world) return;
+    const fit = fitWidthTransform(viewLaid());
+    world.style.setProperty('--radius-fit-scale', '1');
+    world.style.setProperty('--radius-fit-x', '0px');
+    world.style.setProperty('--radius-fit-y', '0px');
+    board.classList.add('is-fit-width');
+    board.style.setProperty('--radius-fit-zoom', String(fit.scale));
+    board.style.setProperty('--radius-fit-span', `${fit.span}px`);
+    board.style.setProperty('--radius-fit-layout-w', `${fit.layoutW}px`);
+    board.style.setProperty('--radius-fit-layout-h', `${fit.layoutH}px`);
+    board.scrollTop = 0;
+  }
+
+  function applyFit(mode) {
+    const next = mode === 'width' ? 'width' : 'screen';
+    root.dataset.fitMode = next;
     delete root.dataset.zoomed;
     root.classList.remove('is-zoomed');
     groups.forEach((g) => g.classList.remove('is-zoom-target'));
+    if (next === 'width') applyWidthFit();
+    else applyScreenFit();
     syncZoomChrome();
+  }
+
+  function clearZoom() {
+    applyFit(root.dataset.fitMode || 'screen');
   }
 
   function zoomToGroup(gid) {
@@ -704,6 +746,7 @@ export function bindInteract(root, spec, laid, hooks = {}) {
     );
     const tx = pad + (vw - pad * 2 - box.w * scale) / 2 - box.x * scale;
     const ty = pad + (vh - pad * 2 - box.h * scale) / 2 - box.y * scale;
+    board.classList.remove('is-fit-width');
     world.style.setProperty('--radius-fit-scale', String(scale));
     world.style.setProperty('--radius-fit-x', `${tx}px`);
     world.style.setProperty('--radius-fit-y', `${ty}px`);
@@ -787,6 +830,18 @@ export function bindInteract(root, spec, laid, hooks = {}) {
   });
 
   board.addEventListener('dblclick', onBoardDblClick);
+  const viewControls = board.querySelector('.radius-view-controls');
+  viewControls?.addEventListener('dblclick', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  });
+  for (const btn of fitButtons) {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      applyFit(btn.dataset.fit);
+    });
+  }
   if (zoomOutBtn) {
     zoomOutBtn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -794,6 +849,8 @@ export function bindInteract(root, spec, laid, hooks = {}) {
       clearZoom();
     });
   }
+  if (root.dataset.fitMode === 'width') applyFit('width');
+  else syncZoomChrome();
 
   function clearStoryClasses() {
     nodes.forEach((el) => {

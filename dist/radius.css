@@ -1316,11 +1316,21 @@
   border-radius: 6px;
 }
 
-.radius-zoom-out {
+.radius-view-controls {
   position: absolute;
-  left: 14px;
+  left: 12px;
   bottom: 12px;
   z-index: 8;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: calc(100% - 24px);
+  pointer-events: none;
+}
+
+.radius-fit-btn,
+.radius-zoom-out {
+  position: static;
   margin: 0;
   padding: 6px 12px;
   border: 1px solid color-mix(in srgb, var(--radius-accent) 45%, var(--radius-line));
@@ -1335,14 +1345,27 @@
   pointer-events: auto;
 }
 
+.radius-fit-btn.is-active {
+  border-color: var(--radius-accent);
+  background: color-mix(in srgb, var(--radius-accent) 22%, var(--radius-card));
+}
+
+.radius-fit-btn:hover,
 .radius-zoom-out:hover {
   border-color: color-mix(in srgb, var(--radius-accent) 70%, var(--radius-line));
   background: color-mix(in srgb, var(--radius-card) 70%, var(--radius-accent));
 }
 
+.radius-fit-btn:focus-visible,
 .radius-zoom-out:focus-visible {
   outline: 2px solid var(--radius-accent);
   outline-offset: 2px;
+}
+
+.radius-fit-span {
+  width: 100%;
+  height: 0;
+  pointer-events: none;
 }
 
 .radius-error-box {
@@ -1665,6 +1688,26 @@
   border: 1px solid color-mix(in srgb, var(--radius-line) 70%, transparent);
   pointer-events: none;
   opacity: 0.85;
+}
+
+/* Fit to width scrolls inside the board. Later than theme overflow:hidden. */
+.radius-root .radius-board.is-fit-width {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.radius-root .radius-board.is-fit-width .radius-fit-span {
+  height: var(--radius-fit-span, 0px);
+}
+.radius-root .radius-board.is-fit-width .radius-iso-world {
+  position: absolute;
+  inset: auto;
+  top: 0;
+  left: 0;
+  width: var(--radius-fit-layout-w, 100%);
+  height: var(--radius-fit-layout-h, 100%);
+  transform: none;
+  transition: none;
+  zoom: var(--radius-fit-zoom, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
