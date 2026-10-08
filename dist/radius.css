@@ -1770,8 +1770,16 @@
   opacity: 0.85;
 }
 
-/* Fit to width scrolls inside the board. Later than theme overflow:hidden. */
+/* Diagram scrolls in its own layer so the fit controls stay pinned to the board. */
+.radius-board-scroll {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
 .radius-root .radius-board.is-fit-width {
+  overflow: hidden;
+}
+.radius-root .radius-board.is-fit-width .radius-board-scroll {
   overflow-x: hidden;
   overflow-y: auto;
 }

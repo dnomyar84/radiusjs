@@ -360,6 +360,7 @@ export function paint(host, spec, laid) {
     <div class="radius-board" role="img" aria-label="${esc(spec.title || 'Radius diagram')}">
       ${ground}
       ${title}
+      <div class="radius-board-scroll">
       <div class="radius-iso-world" style="--radius-fit-scale:${fit.scale};--radius-fit-x:${fit.tx}px;--radius-fit-y:${fit.ty}px">
         ${axisSvg}
         <svg class="radius-edges" width="${svgBox.w}" height="${svgBox.h}">
@@ -374,6 +375,7 @@ export function paint(host, spec, laid) {
         <div class="radius-nodes">${nodes}</div>
       </div>
       <div class="radius-fit-span" aria-hidden="true"></div>
+      </div>
       <div class="radius-story-hint" hidden>→ story</div>
       <div class="radius-view-controls">
         <button type="button" class="radius-fit-btn is-active" data-fit="screen" aria-pressed="true" title="Show the whole diagram in the board">Fit to Screen</button>

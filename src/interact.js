@@ -657,12 +657,11 @@ export function bindInteract(root, spec, laid, hooks = {}) {
   });
 
   const world = board.querySelector('.radius-iso-world');
+  const scroller = board.querySelector('.radius-board-scroll') || board;
   const zoomOutBtn = board.querySelector('.radius-zoom-out');
   const fitButtons = [...board.querySelectorAll('.radius-fit-btn')];
   const hintEl = board.querySelector('.radius-story-hint');
-  const hintIdle = story.length
-    ? '← → story · click face to expand · double-click body to zoom'
-    : 'Click face to expand / collapse · double-click body to zoom';
+  const hintIdle = story.length ? '← → story · double-click body to zoom' : '';
   if (!root.dataset.fitMode) root.dataset.fitMode = 'screen';
 
   function viewLaid() {
@@ -711,7 +710,7 @@ export function bindInteract(root, spec, laid, hooks = {}) {
     board.style.setProperty('--radius-fit-span', `${fit.span}px`);
     board.style.setProperty('--radius-fit-layout-w', `${fit.layoutW}px`);
     board.style.setProperty('--radius-fit-layout-h', `${fit.layoutH}px`);
-    board.scrollTop = 0;
+    scroller.scrollTop = 0;
   }
 
   function applyFit(mode) {
@@ -954,9 +953,7 @@ export function bindInteract(root, spec, laid, hooks = {}) {
   board.tabIndex = 0;
   board.addEventListener('keydown', onKey);
 
-  const hasFolds = groups.some((g) => g.dataset.expandable === 'true')
-    || nodes.some((n) => n.dataset.expandable === 'true');
-  if (hintEl && (story.length || hasFolds)) {
+  if (hintEl && hintIdle) {
     hintEl.hidden = false;
     syncZoomChrome();
   }
