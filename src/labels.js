@@ -9,7 +9,7 @@
  */
 
 export const LABEL_MAX_PX = 14; // under-icon caption (pack shrinks toward min when tight)
-export const LABEL_MIN_PX = 9;
+export const LABEL_MIN_PX = 3;
 export const DEFAULT_MAX_LINES = 2;
 /** Preferred face width ceiling — stretch here before wrapping. */
 export const LABEL_GROW_MAX_W = 200;
@@ -248,7 +248,7 @@ export function measureNode(node, opts = {}) {
       maxBoxW,
       maxBoxH: 72,
       maxPx: opts.maxPx ?? 15,
-      minPx: opts.minPx ?? 10,
+      minPx: opts.minPx ?? 3,
       lineH: 1.25,
     });
     const labelH = Math.ceil((fit.lines?.length || 1) * fit.fontPx * 1.25) + 20;
@@ -273,7 +273,7 @@ export function measureNode(node, opts = {}) {
     maxBoxW,
     maxBoxH: 56,
     maxPx: opts.maxPx ?? LABEL_MAX_PX,
-    minPx: opts.minPx ?? LABEL_MIN_PX,
+    minPx: opts.minPx ?? 3,
     lineH: 1.25,
   });
   const labelH = Math.max(
@@ -304,7 +304,7 @@ export function measureFace(label, kind, opts = {}) {
     maxBoxW,
     maxBoxH: opts.maxBoxH ?? FACE_H + 20,
     maxPx: opts.maxPx ?? 14,
-    minPx: opts.minPx ?? 10,
+    minPx: opts.minPx ?? 3,
     lineH: opts.lineH ?? 1.25,
   });
   return { ...fit, w: fit.w, h: Math.max(minBoxH, fit.h), glyph: false };

@@ -211,7 +211,7 @@ route: curve
 frame: system
 title: Style lab
 nodes:
-  hub[Product]{shape:circle}
+  hub[Product]{shape:circle collapsed:false}
   eng[Engineering]{parent:hub shape:hex collapsed:false}
   api[API]{parent:eng shape:parallelogram}
   ui[UI]{parent:eng}

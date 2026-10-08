@@ -259,7 +259,9 @@ function ensurePlaygroundBuilt() {
       <button type="button" class="sheet-close" id="style-close">Close</button>
     </div>
     <h2>Palette</h2>
-    <div class="play-swatches" id="play-swatches">${swatches}</div>
+    <p class="palette-name" id="palette-name"></p>
+    <div class="play-swatches palette-carousel" id="play-swatches">${swatches}</div>
+    <div class="play-fields">
     ${field('theme', 'Theme', THEME_IDS, state.play.theme)}
     ${field('ground', 'Ground', GROUNDS, state.play.ground)}
     ${field('look', 'Look', LOOKS, state.play.look)}
@@ -268,12 +270,13 @@ function ensurePlaygroundBuilt() {
     ${field('motion', 'Motion', MOTIONS, state.play.motion)}
     ${field('route', 'Route', ROUTES, state.play.route)}
     ${field('frame', 'Frame', FRAMES, state.play.frame)}
+    </div>
   `;
 
   host.querySelectorAll('select').forEach((sel) => {
     sel.addEventListener('change', () => {
       state.play[sel.name] = sel.value;
-      if (sel.name === 'theme') syncSwatches();
+      if (sel.name === 'theme') syncSwatches({ recenter: true });
       renderPlayground();
     });
   });
@@ -283,13 +286,74 @@ function ensurePlaygroundBuilt() {
       state.play.theme = btn.dataset.theme;
       const sel = host.querySelector('select[name="theme"]');
       if (sel) sel.value = state.play.theme;
-      syncSwatches();
+      syncSwatches({ recenter: true });
       renderPlayground();
     });
   });
 
   $('#style-close')?.addEventListener('click', () => setStyleOpen(false));
-  syncSwatches();
+  bindPaletteCarousel();
+  syncSwatches({ recenter: true });
+}
+
+function centerPalette(el, smooth) {
+  const scroller = el?.parentElement;
+  if (!scroller) return;
+  const left = el.offsetLeft - (scroller.clientWidth - el.offsetWidth) / 2;
+  scroller.scrollTo({ left: Math.max(0, left), behavior: smooth ? 'smooth' : 'auto' });
+}
+
+function paletteAtCenter() {
+  const scroller = $('#play-swatches');
+  if (!scroller) return null;
+  const mid = scroller.scrollLeft + scroller.clientWidth / 2;
+  let best = null;
+  let bestD = Infinity;
+  scroller.querySelectorAll('.play-swatch').forEach((el) => {
+    const c = el.offsetLeft + el.offsetWidth / 2;
+    const d = Math.abs(c - mid);
+    if (d < bestD) {
+      bestD = d;
+      best = el;
+    }
+  });
+  return best;
+}
+
+function bindPaletteCarousel() {
+  const scroller = $('#play-swatches');
+  if (!scroller || scroller.dataset.carousel) return;
+  scroller.dataset.carousel = '1';
+  let timer = 0;
+  const applyCenter = () => {
+    if (!narrowQuery.matches) return;
+    const el = paletteAtCenter();
+    if (!el) return;
+    const id = el.dataset.theme;
+    scroller.querySelectorAll('.play-swatch').forEach((b) => {
+      b.classList.toggle('is-active', b === el);
+    });
+    const name = $('#palette-name');
+    if (name) name.textContent = id;
+    if (!id || id === state.play.theme) return;
+    state.play.theme = id;
+    const sel = document.querySelector('#play-controls select[name="theme"]');
+    if (sel) sel.value = id;
+    renderPlayground();
+  };
+  scroller.addEventListener('scroll', () => {
+    if (!narrowQuery.matches) return;
+    const el = paletteAtCenter();
+    if (el) {
+      scroller.querySelectorAll('.play-swatch').forEach((b) => {
+        b.classList.toggle('is-active', b === el);
+      });
+      const name = $('#palette-name');
+      if (name) name.textContent = el.dataset.theme;
+    }
+    window.clearTimeout(timer);
+    timer = window.setTimeout(applyCenter, 70);
+  }, { passive: true });
 }
 
 function field(name, label, values, current) {
@@ -300,10 +364,16 @@ function field(name, label, values, current) {
     <select id="play-${esc(name)}" name="${esc(name)}">${opts}</select></div>`;
 }
 
-function syncSwatches() {
+function syncSwatches({ recenter = false } = {}) {
   document.querySelectorAll('.play-swatch').forEach((b) => {
     b.classList.toggle('is-active', b.dataset.theme === state.play.theme);
   });
+  const name = $('#palette-name');
+  if (name) name.textContent = state.play.theme;
+  if (recenter && narrowQuery.matches) {
+    const el = document.querySelector(`.play-swatch[data-theme="${CSS.escape(state.play.theme)}"]`);
+    requestAnimationFrame(() => centerPalette(el, false));
+  }
 }
 
 function composePlayFence() {
