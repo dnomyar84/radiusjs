@@ -30,6 +30,12 @@ export function boardSize(el, frame) {
     el.parentElement?.clientWidth ||
     (typeof window !== 'undefined' ? Math.min(1100, window.innerWidth - 32) : 960);
   const w = Math.max(280, Math.round(raw));
+  // Playground preview: the rails already reserved their rows, so the board
+  // must use the leftover host box instead of a ratio that overflows them.
+  if (el?.dataset?.fitBoard === 'host') {
+    const hostH = Math.round(el.clientHeight || el.parentElement?.clientHeight || 0);
+    if (hostH >= 80) return { w, h: hostH };
+  }
   if (frame === 'slide') {
     return { w, h: Math.max(180, Math.round((w * 9) / 16)) };
   }
@@ -120,15 +126,18 @@ function foldHooks(el, opts = {}) {
 }
 
 /**
- * Window-resize only. Never ResizeObserver on the diagram — paint changes
- * height and would re-enter, killing fade-in and flickering forever.
+ * Window resize, and the playground host box.
+ * Never observe the board itself — paint changes its height and would loop.
  */
 function bindResize(el, opts = {}) {
   if (typeof window === 'undefined') return () => {};
 
+  const metricH = () =>
+    el.dataset.fitBoard === 'host' ? el.clientHeight || 0 : window.innerHeight || 0;
+
   const state = {
     lastW: el.clientWidth || 0,
-    lastH: typeof window !== 'undefined' ? window.innerHeight || 0 : 0,
+    lastH: metricH(),
     timer: 0,
     busy: false,
     readyAt: Date.now() + APPEAR_GRACE_MS,
@@ -136,22 +145,26 @@ function bindResize(el, opts = {}) {
 
   const sizeChanged = (w, h) => {
     const widthChanged = Math.abs(w - state.lastW) >= 24;
-    const heightChanged = document.body?.classList.contains('embed') && Math.abs(h - state.lastH) >= 48;
+    const heightChanged =
+      el.dataset.fitBoard === 'host'
+        ? Math.abs(h - state.lastH) >= 24
+        : document.body?.classList.contains('embed') && Math.abs(h - state.lastH) >= 48;
     return widthChanged || heightChanged;
   };
 
   const onWin = () => {
-    if (Date.now() < state.readyAt) return;
+    const fit = el.dataset.fitBoard === 'host';
+    if (!fit && Date.now() < state.readyAt) return;
     if (state.busy || el._radius?._reflowing) return;
     const w = el.clientWidth || 0;
-    const h = window.innerHeight || 0;
+    const h = metricH();
     if (!w || !sizeChanged(w, h)) return;
     window.clearTimeout(state.timer);
     state.timer = window.setTimeout(() => {
-      if (Date.now() < state.readyAt) return;
+      if (!fit && Date.now() < state.readyAt) return;
       if (state.busy || el._radius?._reflowing) return;
       const nextW = el.clientWidth || 0;
-      const nextH = window.innerHeight || 0;
+      const nextH = metricH();
       if (!nextW || !sizeChanged(nextW, nextH)) return;
 
       state.busy = true;
@@ -159,7 +172,7 @@ function bindResize(el, opts = {}) {
       reflow(el, { ...el._radius?.opts, ...opts, keepObserver: true, quiet: true })
         .then(() => {
           state.lastW = el.clientWidth || nextW;
-          state.lastH = window.innerHeight || nextH;
+          state.lastH = metricH();
         })
         .catch(() => {})
         .finally(() => {
@@ -170,10 +183,26 @@ function bindResize(el, opts = {}) {
   };
 
   window.addEventListener('resize', onWin, { passive: true });
+  const vv = el.dataset.fitBoard === 'host' ? window.visualViewport : null;
+  if (vv) {
+    vv.addEventListener('resize', onWin, { passive: true });
+    vv.addEventListener('scroll', onWin, { passive: true });
+  }
+  // Host box only — the board itself must not be observed (paint changes it).
+  let ro = null;
+  if (el.dataset.fitBoard === 'host' && typeof ResizeObserver !== 'undefined') {
+    ro = new ResizeObserver(() => onWin());
+    ro.observe(el);
+  }
   el._radiusResize = state;
   return () => {
     window.clearTimeout(state.timer);
     window.removeEventListener('resize', onWin);
+    if (vv) {
+      vv.removeEventListener('resize', onWin);
+      vv.removeEventListener('scroll', onWin);
+    }
+    ro?.disconnect();
     el._radiusResize = null;
   };
 }

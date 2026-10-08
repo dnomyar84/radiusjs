@@ -5,7 +5,7 @@
 import { BEAUTY_PRESETS, CATEGORIES, DEMOS, STYLE_PRESETS, VERSION } from './catalog.js';
 import { THEMES } from '../src/themes.js';
 import { ENUMS } from '../src/parse.js';
-import { render as radiusRender } from '../dist/radius.js';
+import { reflow as radiusReflow, render as radiusRender } from '../dist/radius.js';
 
 const THEME_IDS = Object.keys(THEMES);
 const GROUNDS = [...ENUMS.GROUNDS];
@@ -458,6 +458,19 @@ function composePlayFence() {
 
 let playSeq = 0;
 
+/** First measure can run before the rail rows settle. Repaint to the leftover box. */
+async function fitPlayBoard(mount, seq) {
+  await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  if (seq !== playSeq || !mount) return;
+  const painted = Number.parseFloat(mount.style.getPropertyValue('--radius-board-h')) || 0;
+  const hostH = mount.clientHeight || 0;
+  const hostW = mount.clientWidth || 0;
+  const paintedW = Number.parseFloat(mount.style.getPropertyValue('--radius-board-w')) || 0;
+  if (hostH < 80 || hostW < 80) return;
+  if (Math.abs(hostH - painted) < 24 && Math.abs(hostW - paintedW) < 24) return;
+  await radiusReflow(mount, { keepObserver: true, quiet: true, force: true });
+}
+
 async function renderPlayground() {
   const mount = $('#play-mount');
   const source = $('#play-source-pre');
@@ -470,6 +483,7 @@ async function renderPlayground() {
   try {
     await radiusRender(mount, fence, { animate: false });
     if (seq !== playSeq) return;
+    await fitPlayBoard(mount, seq);
   } catch (e) {
     if (seq !== playSeq) return;
     if (errEl) {
@@ -489,7 +503,20 @@ function esc(s) {
     .replace(/"/g, '&quot;');
 }
 
+function syncVisualViewport() {
+  const vv = window.visualViewport;
+  const h = Math.round(vv?.height || window.innerHeight || 0);
+  const top = Math.round(vv?.offsetTop || 0);
+  if (h > 0) document.documentElement.style.setProperty('--g-vvh', `${h}px`);
+  document.documentElement.style.setProperty('--g-vv-top', `${top}px`);
+}
+
 function init() {
+  syncVisualViewport();
+  window.visualViewport?.addEventListener('resize', syncVisualViewport, { passive: true });
+  window.visualViewport?.addEventListener('scroll', syncVisualViewport, { passive: true });
+  window.addEventListener('resize', syncVisualViewport, { passive: true });
+
   const ver = $('#gallery-version');
   if (ver) ver.textContent = VERSION;
 

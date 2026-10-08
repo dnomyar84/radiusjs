@@ -2,8 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Radius examples</title>
+  <script>
+    (function () {
+      var vv = window.visualViewport;
+      var h = (vv && vv.height) || window.innerHeight;
+      var top = (vv && vv.offsetTop) || 0;
+      if (h) document.documentElement.style.setProperty('--g-vvh', Math.round(h) + 'px');
+      document.documentElement.style.setProperty('--g-vv-top', Math.round(top) + 'px');
+    })();
+  </script>
   <meta name="description" content="Radius diagram examples — categorized gallery, diagram-first preview, styling playground." />
   <link rel="stylesheet" href="gallery.css" />
 </head>
@@ -71,7 +80,7 @@
         <div class="stage-panel" id="stage-playground" aria-label="Styling playground">
           <div class="play-layout">
             <div class="play-preview">
-              <div id="play-mount" class="radius-mount"></div>
+              <div id="play-mount" class="radius-mount" data-fit-board="host"></div>
               <div class="play-error" id="play-error" role="alert"></div>
             </div>
             <div class="play-controls" id="play-controls"></div>
