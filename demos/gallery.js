@@ -131,7 +131,8 @@ function syncNavActive() {
   });
 }
 
-const narrowQuery = window.matchMedia('(max-width: 1100px)');
+/* Drawer + snap rails: phone, including landscape. Tablet and laptop keep the list open. */
+const narrowQuery = window.matchMedia('(max-width: 759px), (max-height: 499px)');
 
 function galleryEl() {
   return document.querySelector('.gallery');
