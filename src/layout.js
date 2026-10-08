@@ -13,6 +13,7 @@ import {
 } from './edges.js';
 import { layoutWithElk, usesElk } from './layout-elk.js';
 import { packConstellation3d, projectConstellation } from './orbit.js';
+import { layoutSequence } from './sequence.js';
 
 const PAD = 48;
 const GAP = 28;
@@ -140,7 +141,7 @@ function measureMindmapNode(node, board) {
       ? { maxPx: 12, maxBoxW: Math.max(56, Math.round(short * 0.3)) }
       : {}),
   });
-  if (shape === 'circle' || shape === 'diamond' || shape === 'hex') {
+  if (shape === 'circle' || shape === 'diamond' || shape === 'hex' || shape === 'dbl') {
     const side = Math.max(s.w, s.h, tight ? 34 : 56);
     return { ...s, w: side, h: side };
   }
@@ -1835,6 +1836,7 @@ function finish(spec, board, boxes, groupBoxes, extra = {}) {
     boxes,
     groupBoxes,
     routes,
+    frames: extra.frames || null,
     appearOrder,
     axis: extra.axis || null,
     engine: extra.engine || 'native',
@@ -1875,7 +1877,14 @@ export function layoutNative(spec, board = { w: 960, h: 540 }) {
       axis: r.axis,
       routes: routeTimelineEdges(r.boxes, spec.edges, r.axis),
     });
-  } else if (t === 'cloud' || t === 'gis' || t === 'k8s') {
+  } else if (t === 'sequence') {
+    const r = layoutSequence(spec, board);
+    return finish(spec, board, r.boxes, r.groupBoxes, {
+      engine: 'native',
+      routes: r.routes,
+      frames: r.frames,
+    });
+  } else if (t === 'cloud' || t === 'gis' || t === 'k8s' || t === 'class' || t === 'state' || t === 'er') {
     const r = layoutCloud(spec, board);
     boxes = r.boxes;
     groupBoxes = r.groupBoxes;
@@ -1893,7 +1902,7 @@ export function layout(spec, board = { w: 960, h: 540 }) {
 
 /** Async layout — tries elkjs for graph templates, falls back to native. */
 export async function layoutAsync(spec, board = { w: 960, h: 540 }) {
-  if (usesElk(spec) && spec.template !== 'timeline') {
+  if (usesElk(spec) && spec.template !== 'timeline' && spec.template !== 'sequence') {
     try {
       const elkLaid = await layoutWithElk(spec, board);
       if (elkLaid && Object.keys(elkLaid.boxes).length) {

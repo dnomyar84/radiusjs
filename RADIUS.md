@@ -111,8 +111,11 @@ a --> b
 a --> b: label
 a --> b{wire:flow}
 a --> b: DNS{wire:trust}
+a --> b: ok{line:dotted head:arrow tail:none}
 portal --> maps: to group exterior
 ```
+
+`line` is `solid` (default), `dotted`, or `thick`. `head` and `tail` are `arrow` (head default), `open`, `circle`, `cross`, `none` (tail default), `triangle` (inheritance), `diamond` (composition), or `odiamond` (aggregation). One board still uses a single route style (`ortho`, `curve`, `straight`).
 
 Tag edges with `wire:name` to form named **wire groups** (default `main`). Document `wires:` filters which groups paint:
 
@@ -176,11 +179,17 @@ Node `shape:` sets the face geometry (any template). Default `rect`.
 | shape | read as |
 | --- | --- |
 | `rect` | process / default box |
-| `round` | soft process |
+| `round` | soft process, stadium |
 | `oval` / `circle` | start / end / terminal |
+| `dbl` | double circle (final) |
 | `diamond` | decision |
 | `parallelogram` | input / output |
 | `hex` | preparation / callout |
+| `trap` | trapezoid |
+| `flag` | asymmetric |
+| `cylinder` | database / disk |
+| `sub` | subroutine (double border) |
+| `note` | callout |
 | `table` | expandable parent whose **children are row elements** |
 
 ### Table rows as elements
@@ -258,6 +267,47 @@ edges:
   eng --> ui
   hub --> risks
 ```
+
+## Sequence
+
+`template: sequence` stacks participants on lifelines. Each edge is the next message, top to bottom. Self-messages loop beside that lifeline. `role:note` sits on its own row (`lane` is the participant, `side` is `left` / `right` / `over`, `rank` is the message index it follows). `role:bar` is an activation on `lane` from `rank` for `span` messages. A group with `rank` and `span` frames those messages (`alt`, `loop`, `opt`).
+
+```radius
+template: sequence
+title: Checkout
+nodes:
+  alice[Alice]{shape:oval}
+  api[API]
+  note1[In stock?]{role:note shape:note lane:api side:right rank:0}
+edges:
+  alice --> api: Place order
+  api --> alice: ok{line:dotted}
+groups:
+  stock[alt in stock]{rank:0 span:2 virtual:true expandable:false}
+```
+
+`template: class`, `state`, and `er` pack like a cloud: tables for classes and entities, round states, groups for composite states. Relationship heads use `triangle`, `diamond`, and `odiamond`.
+
+## Import
+
+Paste Mermaid into a `pre.mermaid` or the playground **Diagram text** box. Radius translates it into nodes, edges, and groups, then lays that out — theme, ground, motion, and fit stay Radius.
+
+| Mermaid | Radius |
+| --- | --- |
+| `flowchart` / `graph` | `flow`, or `cloud` when a subgraph is present |
+| `sequenceDiagram` | `sequence` |
+| `classDiagram` | `class` |
+| `stateDiagram-v2` | `state` |
+| `erDiagram` | `er` |
+| `mindmap` | `mindmap` |
+| `timeline`, `journey` | `timeline` |
+| `gitGraph` | `flow` of commits |
+| `C4Context` (and the other C4 views) | `cloud` or `flow` |
+| `requirementDiagram` | `flow` |
+
+`pie`, `gantt`, `xychart`, `sankey`, `quadrant`, `kanban`, and the other chart grammars are refused with `{ path, fix, see }`. A draw.io `mxfile` is recognized and refused the same way until that importer lands on this same input.
+
+Nested subgraph `direction` is kept on the group as `dir`. The board uses the outer direction.
 
 ## Drill-in
 

@@ -1,17 +1,26 @@
 /**
  * Parse ```radius fences / text into IR.
+ * Mermaid diagram text is translated first. Draw.io is recognized and refused
+ * until that importer lands on the same nodes / edges / groups.
  * Errors: { path, fix, see } for agent retry loops.
  */
+
+import { isDrawio, looksLikeMermaid, mermaidToInput } from './mermaid.js';
 
 const TEMPLATES = new Set([
   'deck', 'process', 'hub', 'sequence', 'hierarchy', 'flow', 'bars',
   'gis', 'cloud', 'k8s', 'nkp', 'timeline', 'mindmap', 'constellation',
+  'class', 'state', 'er',
 ]);
 
 /** UML / flowchart-inspired faces — meaning documented in RADIUS.md */
 const SHAPES = new Set([
   'rect', 'round', 'oval', 'circle', 'diamond', 'parallelogram', 'hex', 'table',
+  'cylinder', 'sub', 'trap', 'flag', 'dbl', 'note',
 ]);
+
+const LINES = new Set(['solid', 'dotted', 'thick']);
+const HEADS = new Set(['arrow', 'open', 'circle', 'cross', 'none', 'triangle', 'diamond', 'odiamond']);
 
 const ROUTES = new Set(['curve', 'ortho', 'straight']);
 
@@ -83,7 +92,7 @@ function err(path, fix, see) {
 
 function stripFence(raw) {
   let t = String(raw ?? '').trim();
-  const open = /^```\s*radius\s*\r?\n?/i;
+  const open = /^```\s*(?:radius|mermaid)?\s*\r?\n?/i;
   if (open.test(t)) {
     t = t.replace(open, '');
     t = t.replace(/\r?\n?```\s*$/i, '');
@@ -204,6 +213,7 @@ function parseNodeLine(line, path) {
       ? Number(attrs.maxlines || attrs.maxLines)
       : null,
     shape: normalizeShape(attrs.shape),
+    side: normalizeSide(attrs.side),
   };
 }
 
@@ -217,14 +227,60 @@ function normalizeShape(v) {
   if (s === 'io' || s === 'input' || s === 'output' || s === 'para') return 'parallelogram';
   if (s === 'hexagon' || s === 'prep') return 'hex';
   if (s === 'grid' || s === 'rows' || s === 'tabular') return 'table';
+  if (s === 'cylinder' || s === 'database' || s === 'db' || s === 'disk') return 'cylinder';
+  if (s === 'subroutine' || s === 'sub') return 'sub';
+  if (s === 'trapezoid' || s === 'trap' || s === 'trapezium') return 'trap';
+  if (s === 'asymmetric' || s === 'flag') return 'flag';
+  if (s === 'double' || s === 'dbl' || s === 'dblcircle' || s === 'doublecircle') return 'dbl';
+  if (s === 'note' || s === 'comment') return 'note';
   if (!SHAPES.has(s)) {
     throw err(
       'shape',
-      `shape must be rect|round|oval|circle|diamond|parallelogram|hex|table (got "${v}").`,
+      `shape must be rect|round|oval|circle|diamond|parallelogram|hex|table|cylinder|sub|trap|flag|dbl|note (got "${v}").`,
       'RADIUS.md#shapes',
     );
   }
   return s;
+}
+
+function normalizeLine(v) {
+  if (v == null || v === '') return 'solid';
+  const s = String(v).trim().toLowerCase();
+  if (s === 'dot' || s === 'dashed' || s === 'dash') return 'dotted';
+  if (s === 'bold' || s === 'strong') return 'thick';
+  if (!LINES.has(s)) {
+    throw err('line', `line must be solid|dotted|thick (got "${v}").`, 'RADIUS.md#edges');
+  }
+  return s;
+}
+
+function normalizeHead(v, fallback) {
+  if (v == null || v === '') return fallback;
+  const s = String(v).trim().toLowerCase();
+  if (s === 'vee' || s === 'normal') return 'arrow';
+  if (s === 'async' || s === 'plain') return 'open';
+  if (s === 'o' || s === 'dot') return 'circle';
+  if (s === 'x') return 'cross';
+  if (s === 'inheritance' || s === 'empty') return 'triangle';
+  if (s === 'composition') return 'diamond';
+  if (s === 'aggregation') return 'odiamond';
+  if (!HEADS.has(s)) {
+    throw err(
+      'head',
+      `head/tail must be arrow|open|circle|cross|none|triangle|diamond|odiamond (got "${v}").`,
+      'RADIUS.md#edges',
+    );
+  }
+  return s;
+}
+
+function normalizeSide(v) {
+  if (v == null || v === '') return null;
+  const s = String(v).trim().toLowerCase();
+  if (s === 'left' || s === 'l') return 'left';
+  if (s === 'right' || s === 'r') return 'right';
+  if (s === 'over' || s === 'center' || s === 'centre') return 'over';
+  return null;
 }
 
 function normalizeRoute(v) {
@@ -285,6 +341,9 @@ function parseEdgeLine(line, path) {
     to: m[3],
     label: labelFromColon || (attrs.label != null ? String(attrs.label) : null),
     wire: normalizeWireName(attrs.wire || attrs.wires || attrs.band || null),
+    line: normalizeLine(attrs.line),
+    head: normalizeHead(attrs.head, 'arrow'),
+    tail: normalizeHead(attrs.tail, 'none'),
   };
 }
 
@@ -361,6 +420,15 @@ export function parse(raw) {
       throw err('root', `Invalid JSON: ${e.message}`, 'RADIUS.md#json');
     }
   }
+
+  if (isDrawio(text)) {
+    throw err(
+      'import',
+      'This is a draw.io file. Radius will import drawings later onto the same nodes, edges, and groups. Paste Mermaid or a Radius fence for now.',
+      'RADIUS.md#import',
+    );
+  }
+  if (looksLikeMermaid(text)) return normalizeSpec(mermaidToInput(text));
 
   const lines = text.split(/\r?\n/);
   const meta = {
@@ -449,6 +517,8 @@ export function parse(raw) {
         order: attrs.order != null ? Number(attrs.order) : null,
         lane: attrs.lane || null,
         align: attrs.align || null,
+        span: attrs.span != null ? Number(attrs.span) : null,
+        dir: attrs.dir ? String(attrs.dir).toLowerCase() : null,
       });
     } else if (section === 'story') {
       const s = parseStoryLine(line);
@@ -516,6 +586,8 @@ export function normalizeSpec(input) {
           order: g.order != null ? Number(g.order) : null,
           lane: g.lane || null,
           align: g.align || null,
+          span: g.span != null ? Number(g.span) : null,
+          dir: g.dir || null,
         }))
       : [],
     story: Array.isArray(input.story)
@@ -627,10 +699,11 @@ function normalizeNode(n) {
       span: null,
       time: null,
       stack: null,
-      maxLines: null,
-      shape: null,
-    };
-  }
+    maxLines: null,
+    shape: null,
+    side: null,
+  };
+}
   rejectForbiddenAttrs(n, `nodes[${n.id || '?'}]`);
   return {
     id: n.id,
@@ -651,6 +724,7 @@ function normalizeNode(n) {
     stack: normalizeStack(n.stack),
     maxLines: n.maxLines != null ? Number(n.maxLines) : null,
     shape: normalizeShape(n.shape),
+    side: normalizeSide(n.side),
   };
 }
 
@@ -676,6 +750,9 @@ function normalizeEdge(e) {
     to: e.to,
     label: e.label || null,
     wire: normalizeWireName(e.wire || e.wires || e.band || null),
+    line: normalizeLine(e.line),
+    head: normalizeHead(e.head, 'arrow'),
+    tail: normalizeHead(e.tail, 'none'),
   };
 }
 

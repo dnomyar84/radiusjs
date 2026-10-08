@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="radius-learn" content="RADIUS.md" />
+  <title>24 From Mermaid — Radius</title>
+  <link rel="stylesheet" href="demo.css" />
+  <script type="module" src="../dist/radius.js"></script>
+</head>
+<body>
+  <header class="demo-bar">
+    <a href="index.html">← Demos</a>
+    <strong>24 · From Mermaid</strong>
+    <em>Same text a Mermaid editor would take</em>
+  </header>
+  <h1 class="demo-sub">Flowchart pasted as Mermaid</h1>
+  <pre class="mermaid">
+flowchart TB
+  start([Start]) --> gate{Ready?}
+  gate -->|Yes| build[Build]
+  gate -->|No| stop([Stop])
+  build --> save[(Save)]
+  save --> ship[[Release]]
+  subgraph train [Release train]
+    save
+    ship
+  end
+</pre>
+  <details class="snippet"><summary>What was pasted</summary><pre></pre></details>
+</body>
+</html>

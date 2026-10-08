@@ -488,6 +488,30 @@ body.sheet-lock { overflow: hidden; }
 
 .play-source[open] summary::before { content: "▾ "; }
 
+.play-source-hint {
+  margin: 0;
+  padding: 0 0.75rem 0.35rem;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--g-muted);
+}
+
+.play-source textarea {
+  display: block;
+  box-sizing: border-box;
+  width: calc(100% - 1.5rem);
+  margin: 0 0.75rem 0.75rem;
+  min-height: 6.5rem;
+  max-height: 24vh;
+  resize: vertical;
+  border: 1px solid var(--g-line);
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+  background: var(--g-bg, var(--g-panel));
+  color: var(--g-ink);
+  font: 0.78rem/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
 .play-source pre {
   margin: 0;
   padding: 0 0.75rem 0.75rem;
@@ -600,7 +624,8 @@ body.sheet-lock { overflow: hidden; }
 
   .stage-head { display: none; }
 
-  .play-source pre { max-height: 28vh; }
+  .play-source pre,
+  .play-source textarea { max-height: 22vh; min-height: 5.25rem; }
 
   .play-carousel {
     flex-wrap: nowrap;

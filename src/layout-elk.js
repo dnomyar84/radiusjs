@@ -13,7 +13,7 @@ const DIR_MAP = {
   bt: 'UP',
 };
 
-const GRAPH_TEMPLATES = new Set(['flow', 'sequence', 'hierarchy', 'cloud', 'k8s', 'gis']);
+const GRAPH_TEMPLATES = new Set(['flow', 'hierarchy', 'cloud', 'k8s', 'gis']);
 
 let elkPromise = null;
 
