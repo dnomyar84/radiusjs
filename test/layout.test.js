@@ -462,4 +462,123 @@ ${nodes}
     // Row should reach well past the left third of the board
     assert.ok(right > board.w * 0.45, `rightmost ${right} should use horizontal space`);
   });
+
+  it('a collapsed sibling sits between expanded neighbors, not in a reserved column', () => {
+    const spec = parse(`
+template: cloud
+engine: native
+groups:
+  outer[Platform]{virtual collapsed:false}
+  left[Left]{parent:outer members:l1 l2 l3 collapsed:false}
+  mid[Mid]{parent:outer members:m1 m2 m3 m4 collapsed:true}
+  right[Right]{parent:outer members:r1 r2 r3 collapsed:false}
+nodes:
+  l1[Alpha one]
+  l2[Beta two]
+  l3[Gamma three]
+  m1[Hidden one]
+  m2[Hidden two]
+  m3[Hidden three]
+  m4[Hidden four]
+  r1[Delta four]
+  r2[Epsilon five]
+  r3[Zeta six]
+`);
+    const laid = layout(spec, { w: 1280, h: 720 });
+    const L = laid.groupBoxes.left;
+    const M = laid.groupBoxes.mid;
+    const R = laid.groupBoxes.right;
+    const gapLM = M.x - (L.x + L.w);
+    const gapMR = R.x - (M.x + M.w);
+    assert.ok(gapLM > 8 && gapLM < 48, `left/mid gap ${gapLM}`);
+    assert.ok(gapMR > 8 && gapMR < 48, `mid/right gap ${gapMR}`);
+    assert.ok(Math.abs(gapLM - gapMR) < 4, `gaps should match, ${gapLM} vs ${gapMR}`);
+    assert.ok(M.w < 180, `folded middle stays a face, w=${M.w}`);
+    assert.equal(M.collapsed, true);
+    assert.ok(L.w > M.w * 2 && R.w > M.w * 2, 'open neighbors are wider than the face');
+    assert.equal(layoutReport(spec, laid).overlaps.length, 0);
+  });
+
+  it('folded roots cluster with a constant gap on a wide board', () => {
+    const spec = parse(`
+template: cloud
+engine: native
+groups:
+  a[Alpha]{collapsed:true members:a0}
+  b[Beta]{collapsed:true members:b0}
+  c[Gamma]{collapsed:true members:c0}
+nodes:
+  a0[A]
+  b0[B]
+  c0[C]
+`);
+    const board = { w: 1200, h: 600 };
+    const laid = layout(spec, board);
+    const A = laid.groupBoxes.a;
+    const B = laid.groupBoxes.b;
+    const C = laid.groupBoxes.c;
+    const gapAB = B.x - (A.x + A.w);
+    const gapBC = C.x - (B.x + B.w);
+    assert.ok(gapAB > 8 && gapAB < 48, `gap ${gapAB}`);
+    assert.ok(Math.abs(gapAB - gapBC) < 4);
+    const clusterMid = (A.x + C.x + C.w) / 2;
+    assert.ok(Math.abs(clusterMid - board.w / 2) < 24, `cluster mid ${clusterMid}`);
+    assert.ok(A.w < 200 && B.w < 200 && C.w < 200);
+  });
+
+  it('dir:tb leaves a collapsed band at face height while open bands grow', () => {
+    const spec = parse(`
+template: cloud
+engine: native
+dir: tb
+groups:
+  a[Lane A]{virtual members:a0 a1 collapsed:false}
+  b[Lane B]{virtual members:b0 collapsed:true}
+  c[Lane C]{virtual members:c0 c1 collapsed:false}
+nodes:
+  a0[A0]
+  a1[A1]
+  b0[B0]
+  c0[C0]
+  c1[C1]
+`);
+    const laid = layout(spec, { w: 900, h: 720 });
+    const a = laid.groupBoxes.a;
+    const b = laid.groupBoxes.b;
+    const c = laid.groupBoxes.c;
+    assert.ok(b.h <= b.hCollapsed + 1, `folded band height ${b.h}`);
+    assert.ok(b.h < 90, `folded band should stay a face, h=${b.h}`);
+    assert.ok(a.h > b.h + 80, `open band a=${a.h} folded b=${b.h}`);
+    assert.ok(c.h > b.h + 80, `open band c=${c.h} folded b=${b.h}`);
+    assert.ok(Math.abs(a.h - c.h) < 8, `open bands share leftover, ${a.h} vs ${c.h}`);
+    assert.ok(b.y > a.y + a.h - 1);
+    assert.ok(c.y > b.y + b.h - 1);
+  });
+
+  it('a wide flow keeps a constant gap instead of equal lanes', () => {
+    const spec = parse(`
+template: flow
+dir: lr
+engine: native
+nodes:
+  a[Start]
+  b[Check the request carefully]
+  c[Done]
+edges:
+  a --> b
+  b --> c
+`);
+    const board = { w: 1200, h: 600 };
+    const laid = layout(spec, board);
+    const A = laid.boxes.a;
+    const B = laid.boxes.b;
+    const C = laid.boxes.c;
+    const gapAB = B.x - (A.x + A.w);
+    const gapBC = C.x - (B.x + B.w);
+    assert.ok(gapAB > 8 && gapAB < 48, `gap ${gapAB}`);
+    assert.ok(Math.abs(gapAB - gapBC) < 4, `${gapAB} vs ${gapBC}`);
+    const mid = (A.x + C.x + C.w) / 2;
+    assert.ok(Math.abs(mid - board.w / 2) < 24, `chain mid ${mid}`);
+    assert.ok(Math.abs(A.y - B.y) < 2, 'ranks share a top');
+  });
 });
