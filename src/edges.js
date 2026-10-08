@@ -489,7 +489,9 @@ function buildCurve(p1, p2, fromSide, toSide, channelOffset = 0) {
   const dx = inn.x - out.x;
   const dy = inn.y - out.y;
   const dist = Math.hypot(dx, dy) || 1;
-  const pull = Math.min(140, Math.max(36, dist * 0.42));
+  // Keep the bow inside the open segment. A fixed 36px pull cuts through
+  // neighboring faces once the corridor is only a fraction of the node size.
+  const pull = Math.min(140, Math.max(10, dist * 0.42));
   const n1 = sideNormal(fromSide);
   const n2 = sideNormal(toSide);
   const px = (-dy / dist) * (channelOffset || 0);
