@@ -6,7 +6,9 @@ import assert from 'node:assert/strict';
 import { readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { CATEGORIES, DEMOS, VERSION } from '../demos/catalog.js';
+import { BEAUTY_PRESETS, CATEGORIES, DEMOS, STYLE_PRESETS, VERSION } from '../demos/catalog.js';
+import { ENUMS, parse } from '../src/parse.js';
+import { layout } from '../src/layout.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const demosDir = join(here, '../demos');
@@ -42,6 +44,23 @@ describe('gallery catalog', () => {
         readdirSync(demosDir).includes(d.file),
         `missing demos/${d.file}`,
       );
+    }
+  });
+
+  it('playground rails cover a look and a diagram style', () => {
+    assert.ok(BEAUTY_PRESETS.length >= 2);
+    assert.ok(STYLE_PRESETS.some((s) => s.id === 'mindmap'));
+    assert.ok(STYLE_PRESETS.some((s) => s.label === 'Flow chart'));
+    assert.ok(STYLE_PRESETS.some((s) => s.label === 'AWS'));
+    const phone = { w: 390, h: 520 };
+    for (const look of BEAUTY_PRESETS) {
+      assert.ok(ENUMS.THEMES.has(look.theme), look.id);
+      assert.ok(ENUMS.GROUNDS.has(look.ground), look.id);
+    }
+    for (const style of STYLE_PRESETS) {
+      const spec = parse(`theme: indigo\nground: dots\nroute: ${style.route}\nframe: system\n${style.fence}`);
+      const laid = layout(spec, phone);
+      assert.ok(Object.keys(laid.boxes).length >= 2, style.id);
     }
   });
 
