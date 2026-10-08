@@ -69,7 +69,6 @@ html, body {
   display: none;
   align-items: center;
   gap: 0.4rem;
-  margin-left: auto;
   border: 1px solid var(--g-line);
   background: var(--g-panel);
   border-radius: 8px;
@@ -80,6 +79,11 @@ html, body {
   color: inherit;
   cursor: pointer;
 }
+
+.style-toggle,
+.sheet-close { margin-left: auto; }
+
+.nav-toggle { margin-left: 0; margin-right: 0.15rem; }
 
 .nav-toggle-bars {
   display: inline-flex;
@@ -437,7 +441,10 @@ body.sheet-lock { overflow: hidden; }
 
   .nav-toggle {
     display: inline-flex;
+    order: -1;
     flex: 0 0 auto;
+    margin-left: 0;
+    margin-right: 0.15rem;
     min-height: 36px;
     padding: 0.3rem 0.45rem;
     font-size: 0;
