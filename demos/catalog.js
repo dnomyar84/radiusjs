@@ -8,6 +8,13 @@ export const VERSION = '0.5.0';
 
 /** @type {Record<string, DemoEntry>} */
 export const DEMOS = {
+  '25-crowd-pipeline': {
+    id: '25-crowd-pipeline',
+    file: '25-crowd-pipeline.html',
+    title: 'Crowd simulation pipeline',
+    blurb: 'ArcGIS Online triggers Fargate Spot, then the map refreshes',
+    tags: ['sequence', 'aws', 'esri'],
+  },
   '24-mermaid-flow': {
     id: '24-mermaid-flow',
     file: '24-mermaid-flow.html',
@@ -192,7 +199,7 @@ export const CATEGORIES = [
   {
     id: 'new',
     label: 'New',
-    demos: ['24-mermaid-flow', '23-sequence', '22-age-velocity-ha', '21-constellation', '20-mindmap', '19-delivery-arch'],
+    demos: ['25-crowd-pipeline', '24-mermaid-flow', '23-sequence', '22-age-velocity-ha', '21-constellation', '20-mindmap'],
   },
   {
     id: 'architecture',
@@ -202,17 +209,17 @@ export const CATEGORIES = [
   {
     id: 'cloud',
     label: 'Cloud & platform',
-    demos: ['12-aws', '13-azure', '03-azure-nutanix', '05-nkp'],
+    demos: ['25-crowd-pipeline', '12-aws', '13-azure', '03-azure-nutanix', '05-nkp'],
   },
   {
     id: 'gis',
     label: 'GIS & Esri',
-    demos: ['22-age-velocity-ha', '02-gis-esri', '15-named-user', '16-sg-mha', '18-reality-jupedsim'],
+    demos: ['25-crowd-pipeline', '22-age-velocity-ha', '02-gis-esri', '15-named-user', '16-sg-mha', '18-reality-jupedsim'],
   },
   {
     id: 'narrative',
     label: 'Narrative & time',
-    demos: ['23-sequence', '01-deck', '04-story-replace', '09-timeline'],
+    demos: ['25-crowd-pipeline', '23-sequence', '01-deck', '04-story-replace', '09-timeline'],
   },
   {
     id: 'layout',
