@@ -134,8 +134,8 @@ nodes:
   agol[ArcGIS Online]
   lambda[AWS Lambda]
   fargate[Fargate Spot]
-  engine[Crowd Simulation Engine]{role:note shape:note lane:lambda,fargate side:over rank:3}
-  stop[Billing stops]{role:note shape:note lane:lambda,fargate side:over rank:5}
+  engine[Crowd Simulation Engine]{role:note shape:note lane:planner,fargate side:over rank:3}
+  stop[Billing stops]{role:note shape:note lane:planner,fargate side:over rank:5}
   live[ ]{role:bar lane:fargate rank:4 span:2}
 edges:
   planner --> agol: Draw routes
@@ -225,6 +225,8 @@ describe('crowd simulation pipeline', () => {
         assert.ok(note.y >= heads, id);
       }
       assert.equal(overlaps(laid.boxes.engine, laid.boxes.stop), false);
+      assert.ok(laid.boxes.engine.measure.fontPx >= 12, 'engine note stays readable');
+      assert.equal(laid.boxes.engine.measure.truncated, false);
       assert.equal(laid.frames.length, 3);
       for (const frame of laid.frames) {
         assert.ok(frame.y > heads - 4, frame.label);
