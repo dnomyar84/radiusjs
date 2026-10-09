@@ -22,7 +22,7 @@ describe('gallery catalog', () => {
   it('stacks newest demos first under New', () => {
     const neu = CATEGORIES.find((c) => c.id === 'new');
     assert.ok(neu?.demos?.length);
-    assert.equal(neu.demos[0], '24-mermaid-flow', 'newest demo leads New');
+    assert.equal(neu.demos[0], '25-crowd-pipeline', 'newest demo leads New');
     assert.ok(neu.demos.includes('21-constellation'));
     assert.ok(neu.demos.includes('20-mindmap'));
     // Numeric order in the New list should be descending for leading ids

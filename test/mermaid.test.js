@@ -124,6 +124,32 @@ edges:
   });
 });
 
+const CROWD_PIPELINE = `theme: esri
+template: sequence
+frame: system
+ground: wash
+title: Crowd simulation pipeline
+nodes:
+  planner[Planner]{shape:oval}
+  agol[ArcGIS Online]
+  lambda[AWS Lambda]
+  fargate[Fargate Spot]
+  engine[Crowd Simulation Engine]{role:note shape:note lane:planner,fargate side:over rank:3}
+  stop[Billing stops]{role:note shape:note lane:planner,fargate side:over rank:5}
+  live[ ]{role:bar lane:fargate rank:4 span:2}
+edges:
+  planner --> agol: Draw routes
+  agol --> lambda: POST /simulate
+  lambda --> fargate: Start Spot task
+  lambda --> agol: 202 Accepted{line:dotted}
+  fargate --> agol: Publish layer
+  agol --> planner: Map refreshes{line:dotted}
+groups:
+  trigger[Trigger]{rank:0 span:2 virtual:true expandable:false}
+  dispatch[Dispatcher]{rank:2 span:2 virtual:true expandable:false}
+  publish[Publish]{rank:4 span:2 virtual:true expandable:false}
+`;
+
 describe('sequence layout', () => {
   const source = `template: sequence
 title: Checkout
@@ -167,6 +193,46 @@ groups:
       assert.ok(frame.y > heads - 4, 'fragment does not cover actor faces');
       for (const actor of actors) {
         assert.ok(actor.x >= 0 && actor.x + actor.w <= (laid.groupBoxes._extent.x + laid.groupBoxes._extent.w) + 2);
+      }
+    });
+  }
+});
+
+describe('crowd simulation pipeline', () => {
+  for (const board of [
+    { name: 'laptop', w: 1280, h: 720 },
+    { name: 'phone', w: 390, h: 700 },
+  ]) {
+    it(`keeps the four stages readable on ${board.name}`, () => {
+      const spec = parse(CROWD_PIPELINE);
+      assert.equal(spec.template, 'sequence');
+      assert.equal(spec.nodes.find((n) => n.id === 'engine').label, 'Crowd Simulation Engine');
+      const blob = JSON.stringify(spec).toLowerCase();
+      assert.equal(blob.includes('jupedsim'), false);
+      const laid = layout(spec, board);
+      const actors = actorBoxes(spec, laid);
+      assert.equal(actors.length, 4);
+      for (let i = 0; i < actors.length; i++) {
+        for (let j = i + 1; j < actors.length; j++) {
+          assert.equal(overlaps(actors[i], actors[j]), false);
+        }
+      }
+      const heads = Math.max(...actors.map((b) => b.y + b.h));
+      for (const id of ['engine', 'stop']) {
+        const note = laid.boxes[id];
+        assert.ok(note, id);
+        for (const actor of actors) assert.equal(overlaps(note, actor), false);
+        assert.ok(note.y >= heads, id);
+      }
+      assert.equal(overlaps(laid.boxes.engine, laid.boxes.stop), false);
+      assert.ok(laid.boxes.engine.measure.fontPx >= 12, 'engine note stays readable');
+      assert.equal(laid.boxes.engine.measure.truncated, false);
+      assert.equal(laid.frames.length, 3);
+      for (const frame of laid.frames) {
+        assert.ok(frame.y > heads - 4, frame.label);
+      }
+      for (const route of laid.routes.filter((r) => r.routeMode === 'sequence')) {
+        assert.ok(route.labelY > heads);
       }
     });
   }

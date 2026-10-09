@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="radius-learn" content="RADIUS.md" />
+  <title>25 Crowd simulation pipeline — Radius</title>
+  <link rel="stylesheet" href="demo.css" />
+  <script type="module" src="../dist/radius.js"></script>
+</head>
+<body>
+  <header class="demo-bar">
+    <a href="index.html">← Demos</a>
+    <strong>25 · Crowd simulation pipeline</strong>
+    <em>ArcGIS Online · Lambda · Fargate Spot</em>
+  </header>
+  <h1 class="demo-sub">Trigger, dispatch, Crowd Simulation Engine, publish</h1>
+  <pre class="radius">
+theme: esri
+template: sequence
+frame: system
+ground: wash
+title: Crowd simulation pipeline
+nodes:
+  planner[Planner]{shape:oval}
+  agol[ArcGIS Online]
+  lambda[AWS Lambda]
+  fargate[Fargate Spot]
+  engine[Crowd Simulation Engine]{role:note shape:note lane:planner,fargate side:over rank:3}
+  stop[Billing stops]{role:note shape:note lane:planner,fargate side:over rank:5}
+  live[ ]{role:bar lane:fargate rank:4 span:2}
+edges:
+  planner --> agol: Draw routes
+  agol --> lambda: POST /simulate
+  lambda --> fargate: Start Spot task
+  lambda --> agol: 202 Accepted{line:dotted}
+  fargate --> agol: Publish layer
+  agol --> planner: Map refreshes{line:dotted}
+groups:
+  trigger[Trigger]{rank:0 span:2 virtual:true expandable:false}
+  dispatch[Dispatcher]{rank:2 span:2 virtual:true expandable:false}
+  publish[Publish]{rank:4 span:2 virtual:true expandable:false}
+</pre>
+  <details class="snippet"><summary>What the AI writes</summary><pre></pre></details>
+  <script type="module" src="demo-snippet.js"></script>
+</body>
+</html>
