@@ -24,7 +24,7 @@ Portable Node + MinGit live under `.tools/` (gitignored). Use project wrappers:
 
 Live gallery: [https://dnomyar84.github.io/radiusjs/](https://dnomyar84.github.io/radiusjs/) (redirects to `/demos/`).
 
-Pages publishes the repo root on `main`. `.nojekyll` keeps the files static. Deep links: `#/demo/20-mindmap`, `#/playground`.
+Pages publishes the repo root on `main`. `.nojekyll` keeps the files static. Deep links: `#/demo/26-azure-age-ha`, `#/demo/20-mindmap`, `#/playground`.
 
 ## Agent 30-second path
 
