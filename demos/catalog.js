@@ -8,6 +8,13 @@ export const VERSION = '0.5.0';
 
 /** @type {Record<string, DemoEntry>} */
 export const DEMOS = {
+  '24-azure-age-ha': {
+    id: '24-azure-age-ha',
+    file: '24-azure-cloud-builder-ha.html',
+    title: 'Azure Cloud Builder · Enterprise HA',
+    blurb: 'Multitier V2 · App Gateway · portal ×2 · hosting ×2 · relational ×2 · Blob',
+    tags: ['azure', 'esri', 'ha', 'cloud'],
+  },
   '23-hierarchy': {
     id: '23-hierarchy',
     file: '23-hierarchy.html',
@@ -185,22 +192,22 @@ export const CATEGORIES = [
   {
     id: 'new',
     label: 'New',
-    demos: ['23-hierarchy', '22-sequence', '21-constellation', '20-mindmap', '19-delivery-arch', '18-reality-jupedsim'],
+    demos: ['24-azure-age-ha', '23-hierarchy', '22-sequence', '21-constellation', '20-mindmap', '19-delivery-arch'],
   },
   {
     id: 'architecture',
     label: 'Architecture',
-    demos: ['08-arch-drill', '17-egis-one', '14-age-ha', '11-age-k8s', '19-delivery-arch'],
+    demos: ['24-azure-age-ha', '08-arch-drill', '17-egis-one', '14-age-ha', '11-age-k8s'],
   },
   {
     id: 'cloud',
     label: 'Cloud & platform',
-    demos: ['12-aws', '13-azure', '03-azure-nutanix', '05-nkp'],
+    demos: ['24-azure-age-ha', '13-azure', '12-aws', '03-azure-nutanix', '05-nkp'],
   },
   {
     id: 'gis',
     label: 'GIS & Esri',
-    demos: ['02-gis-esri', '15-named-user', '16-sg-mha', '18-reality-jupedsim'],
+    demos: ['24-azure-age-ha', '14-age-ha', '11-age-k8s', '02-gis-esri', '15-named-user'],
   },
   {
     id: 'narrative',

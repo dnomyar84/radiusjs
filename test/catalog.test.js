@@ -20,7 +20,8 @@ describe('gallery catalog', () => {
   it('stacks newest demos first under New', () => {
     const neu = CATEGORIES.find((c) => c.id === 'new');
     assert.ok(neu?.demos?.length);
-    assert.equal(neu.demos[0], '23-hierarchy', 'newest demo must lead New');
+    assert.equal(neu.demos[0], '24-azure-age-ha', 'newest demo must lead New');
+    assert.ok(neu.demos.includes('23-hierarchy'));
     assert.ok(neu.demos.includes('22-sequence'));
     assert.ok(neu.demos.includes('21-constellation'));
     assert.ok(neu.demos.includes('20-mindmap'));

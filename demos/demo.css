@@ -18,6 +18,15 @@ body {
 }
 .demo-bar a { color: #78716c; text-decoration: none; }
 .demo-bar a:hover { color: #1c1917; }
+.demo-note {
+  font-size: 0.95rem;
+  font-weight: 450;
+  line-height: 1.45;
+  margin: 0.25rem auto 1.5rem;
+  max-width: 70rem;
+  padding: 0 1.25rem;
+  color: #57534e;
+}
 .demo-sub {
   font-size: 1.15rem;
   font-weight: 650;

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="radius-learn" content="RADIUS.md" />
+  <title>24 Azure Cloud Builder · ArcGIS Enterprise HA — Radius</title>
+  <link rel="stylesheet" href="demo.css" />
+  <script type="module" src="../dist/radius.js"></script>
+</head>
+<body>
+  <header class="demo-bar">
+    <a href="index.html#/demo/24-azure-age-ha">← Examples</a>
+    <strong>24 · Azure Cloud Builder · Enterprise HA</strong>
+    <em>Multitier V2 · one region · Application Gateway · Blob content, config, object store</em>
+  </header>
+  <h1 class="demo-sub">ArcGIS Enterprise Cloud Builder for Microsoft Azure — highly available base deployment</h1>
+  <pre class="radius">
+theme: azure
+template: cloud
+dir: tb
+frame: system
+ground: contour
+groundTone: muted
+glass: frost
+look: elevated
+engine: native
+title: Cloud Builder · Enterprise HA
+groups:
+  edge[Public edge]{family:azure layer:conceptual kind:azure.appgateway members:agw kv entra collapsed:false virtual:true}
+  vnet[VNet · one region]{family:azure layer:conceptual kind:azure.vnet members:infra portal host data store collapsed:false virtual:true}
+  infra[Subnet controls]{family:azure parent:vnet layer:logical kind:azure.nsg members:nsg dns jump collapsed:true virtual:true}
+  portal[Portal · secondary machine]{family:esri parent:vnet layer:logical kind:esri.portal members:portal_p portal_s collapsed:false virtual:true}
+  host[Hosting GIS Server site]{family:esri parent:vnet layer:logical kind:esri.hosting members:gis_1 gis_2 collapsed:false virtual:true}
+  data[Data tier]{family:esri parent:vnet layer:logical kind:esri.datastore members:rel_p rel_s collapsed:false virtual:true}
+  store[Cloud storage]{family:azure parent:vnet layer:physical kind:azure.storage members:blob_content blob_config blob_object files collapsed:false virtual:true}
+  extra[Optional add-ons]{family:esri parent:vnet layer:logical kind:esri.datastore members:tile_p tile_s st_1 st_2 st_3 graph collapsed:true virtual:true}
+  allcloud[All-cloud directories]{family:azure parent:vnet layer:physical kind:azure.cosmos members:bus cosmos collapsed:true virtual:true}
+nodes:
+  agw[Application Gateway V2]{kind:azure.appgateway layer:logical}
+  kv[Key Vault · CA certificate]{kind:azure.keyvault layer:logical}
+  entra[Entra ID]{kind:azure.entra layer:conceptual}
+  nsg[Network security group]{kind:azure.nsg layer:logical}
+  dns[Private DNS]{kind:azure.dns layer:logical}
+  jump[Jumpbox VM · RDP 3389]{kind:azure.vm layer:logical}
+  portal_p[Portal primary]{kind:esri.portal layer:logical}
+  portal_s[Portal standby]{kind:esri.portal layer:logical}
+  gis_1[Hosting server 1]{kind:esri.server layer:logical}
+  gis_2[Hosting server 2]{kind:esri.server layer:logical}
+  rel_p[Relational primary]{kind:esri.relational layer:logical}
+  rel_s[Relational standby]{kind:esri.relational layer:logical}
+  blob_content[Blob · portal content]{kind:azure.blob layer:physical}
+  blob_config[Blob · config store]{kind:azure.blob layer:physical}
+  blob_object[Blob · object store]{kind:azure.blob layer:physical}
+  files[Azure Files · server directories]{kind:azure.files layer:physical}
+  tile_p[Tile cache primary]{kind:esri.tilecache layer:logical}
+  tile_s[Tile cache standby]{kind:esri.tilecache layer:logical}
+  st_1[Spatiotemporal 1]{kind:esri.spatiotemporal layer:logical}
+  st_2[Spatiotemporal 2]{kind:esri.spatiotemporal layer:logical}
+  st_3[Spatiotemporal 3]{kind:esri.spatiotemporal layer:logical}
+  graph[Graph store]{kind:esri.knowledge layer:logical}
+  bus[Service Bus]{kind:azure.servicebus layer:physical}
+  cosmos[Cosmos DB for NoSQL]{kind:azure.cosmos layer:physical}
+edges:
+  kv --> agw: pfx{wire:edge}
+  entra --> portal_p: 443{wire:edge}
+  entra --> portal_s: 443{wire:edge}
+  agw --> portal_p: 7443{wire:edge}
+  agw --> portal_s: 7443{wire:edge}
+  agw --> gis_1: 6443{wire:edge}
+  agw --> gis_2: 6443{wire:edge}
+  portal_p --> portal_s: 7443{wire:ha}
+  gis_1 --> gis_2: 6443{wire:ha}
+  portal_p --> gis_1: federate{wire:fed}
+  portal_s --> gis_2: federate{wire:fed}
+  gis_1 --> rel_p: 2443{wire:data}
+  gis_2 --> rel_p: 2443{wire:data}
+  rel_p --> rel_s: 9876{wire:ha}
+  portal_p --> blob_content: content{wire:store}
+  portal_s --> blob_content: content{wire:store}
+  gis_1 --> blob_config: config{wire:store}
+  gis_2 --> blob_config: config{wire:store}
+  gis_1 --> blob_object: object{wire:store}
+  gis_2 --> blob_object: object{wire:store}
+  gis_1 --> files: directories{wire:store}
+  gis_2 --> files: directories{wire:store}
+  jump --> gis_1: 3389{wire:ops}
+  gis_1 --> tile_p: 29081{wire:extra}
+  gis_1 --> st_1: 9220{wire:extra}
+  gis_1 --> graph: 9829{wire:extra}
+  tile_p --> tile_s: 29081{wire:ha}
+  st_1 --> st_2: 9220{wire:ha}
+  st_2 --> st_3: 9220{wire:ha}
+  gis_1 --> bus: queues{wire:allcloud}
+  gis_1 --> cosmos: config tables{wire:allcloud}
+story:
+  expand infra
+  expand extra
+  expand allcloud
+  wires edge fed data store
+  wires all
+  focus agw portal_p gis_1 rel_p blob_object
+</pre>
+  <details class="snippet">
+    <summary>What the AI writes</summary>
+    <pre tabindex="0" data-radius-snippet></pre>
+  </details>
+  <p class="demo-note">
+    Multitier pattern from ArcGIS Enterprise Cloud Builder for Microsoft Azure.
+    One region. Application Gateway V2 is the public entry for the portal and the hosting site.
+    Check Add secondary machine for Portal for ArcGIS and the relational store.
+    The hosting site is two active machines, not a primary-standby pair.
+    Portal content, the hosting configuration store, and the object store are Blob containers.
+    Server directories stay on Azure Files.
+    Tile cache, a three-machine spatiotemporal cluster, the graph store, and the all-cloud directory option (Service Bus plus Cosmos DB) stay folded until the story opens them.
+    Glyphs here are original drawings, not Esri or Microsoft logos.
+  </p>
+  <script type="module" src="demo-snippet.js"></script>
+</body>
+</html>

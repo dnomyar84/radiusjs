@@ -7,7 +7,7 @@
 The gallery is static HTML. Open [`demos/index.html`](demos/index.html). The repository root redirects there.
 
 - Playground: `demos/#/playground`
-- A diagram: `demos/#/demo/20-mindmap`
+- A diagram: `demos/#/demo/24-azure-age-ha`
 
 On Cloud Agents, open that file. Do not start a static server.
 
@@ -15,7 +15,7 @@ GitHub Pages, if enabled from the repository root (there is no `/docs` folder):
 
 - https://dnomyar84.github.io/radiusjs/demos/
 - https://dnomyar84.github.io/radiusjs/demos/#/playground
-- https://dnomyar84.github.io/radiusjs/demos/#/demo/20-mindmap
+- https://dnomyar84.github.io/radiusjs/demos/#/demo/24-azure-age-ha
 
 Windows local preview only, optional:
 
