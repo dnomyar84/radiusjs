@@ -27,15 +27,16 @@ look: elevated
 engine: native
 title: Cloud Builder · Enterprise HA
 groups:
-  edge[Public edge]{family:azure layer:conceptual kind:azure.appgateway members:agw kv entra collapsed:false virtual:true}
-  vnet[VNet · one region]{family:azure layer:conceptual kind:azure.vnet members:infra portal host data store collapsed:false virtual:true}
-  infra[Subnet controls]{family:azure parent:vnet layer:logical kind:azure.nsg members:nsg dns jump collapsed:true virtual:true}
+  edge[Public edge]{family:azure rank:0 layer:conceptual kind:azure.appgateway members:agw kv entra collapsed:false virtual:true}
+  vnet[VNet · one region]{family:azure rank:1 layer:conceptual kind:azure.vnet members:portal host store data collapsed:false virtual:true}
   portal[Portal · secondary machine]{family:esri parent:vnet layer:logical kind:esri.portal members:portal_p portal_s collapsed:false virtual:true}
   host[Hosting GIS Server site]{family:esri parent:vnet layer:logical kind:esri.hosting members:gis_1 gis_2 collapsed:false virtual:true}
-  data[Data tier]{family:esri parent:vnet layer:logical kind:esri.datastore members:rel_p rel_s collapsed:false virtual:true}
   store[Cloud storage]{family:azure parent:vnet layer:physical kind:azure.storage members:blob_content blob_config blob_object files collapsed:false virtual:true}
-  extra[Optional add-ons]{family:esri parent:vnet layer:logical kind:esri.datastore members:tile_p tile_s st_1 st_2 st_3 graph collapsed:true virtual:true}
-  allcloud[All-cloud directories]{family:azure parent:vnet layer:physical kind:azure.cosmos members:bus cosmos collapsed:true virtual:true}
+  data[Data tier]{family:esri parent:vnet layer:logical kind:esri.datastore members:rel_p rel_s collapsed:false virtual:true}
+  more[Optional in this region]{family:azure rank:2 layer:logical kind:azure.storage members:infra extra allcloud collapsed:false virtual:true}
+  infra[Subnet controls]{family:azure parent:more layer:logical kind:azure.nsg members:nsg dns jump collapsed:true virtual:true}
+  extra[Optional add-ons]{family:esri parent:more layer:logical kind:esri.datastore members:tile_p tile_s st_1 st_2 st_3 graph collapsed:true virtual:true}
+  allcloud[All-cloud directories]{family:azure parent:more layer:physical kind:azure.cosmos members:bus cosmos collapsed:true virtual:true}
 nodes:
   agw[Application Gateway V2]{kind:azure.appgateway layer:logical}
   kv[Key Vault · CA certificate]{kind:azure.keyvault layer:logical}
